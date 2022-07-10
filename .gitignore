@@ -1,0 +1,8 @@
+.vs/
+.vscode/
+/x64/Debug/
+/x64/Release/
+/WanderUnityChan/x64/
+# /x64/Debug/*.exe
+# /x64/Debug/*.pdb
+/dependencies/fbxsdk/lib/
