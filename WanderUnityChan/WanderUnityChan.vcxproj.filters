@@ -56,8 +56,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\ShadowMap.frag" />
-    <None Include="shaders\Phong.vert" />
+    <None Include="shaders\ShadowLighting.vert" />
     <None Include="shaders\Skinning.vert" />
     <None Include="shaders\ShadowLighting.frag" />
+    <None Include="shaders\ShadowMap.vert" />
   </ItemGroup>
 </Project>

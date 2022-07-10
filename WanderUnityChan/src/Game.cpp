@@ -154,6 +154,7 @@ bool Game::LoadData()
 	mShadowMapShader->UseProgram();
 	mShadowMapShader->SetMatrixUniform("CameraView", CameraView);
 	mShadowMapShader->SetMatrixUniform("CameraProj", CameraProj);
+	mShadowMapShader->SetSamplerUniform("gShadowMap", 1);
 
 	{
 		// Shadow Lighting
@@ -190,7 +191,7 @@ bool Game::LoadData()
 		if (mesh->Load("./resources/TreasureBox3/", "scene.gltf")) {
 			mesh->SetMeshPos(glm::vec3(0.0f, 0.0f, 0.0f));
 			mesh->SetMeshRotate(glm::mat4(1.0f));
-			mesh->SetMeshScale(0.01f / 2.0f);
+			mesh->SetMeshScale(1.f / 2.0f);
 			mMeshes.push_back(mesh);
 		}
 	}
