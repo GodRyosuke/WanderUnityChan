@@ -3,7 +3,7 @@
 #include "GLUtil.hpp"
 
 
-Mesh::Mesh(Shader* shader)
+Mesh::Mesh()
 {
 
 }
@@ -124,7 +124,6 @@ bool Mesh::Load(std::string RootPath, std::string ObjFileName)
     // Vertex Array Objectì¬
     unsigned int VertexArray;
 
-    //mShader->UseProgram();
     glGenVertexArrays(1, &VertexArray);
     glBindVertexArray(VertexArray);
 

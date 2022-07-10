@@ -48,4 +48,10 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\ShadowMap.frag" />
+    <None Include="shaders\Phong.vert" />
+    <None Include="shaders\Skinning.vert" />
+    <None Include="shaders\ShadowLighting.frag" />
+  </ItemGroup>
 </Project>

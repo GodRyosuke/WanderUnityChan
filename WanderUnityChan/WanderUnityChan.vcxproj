@@ -192,6 +192,12 @@ XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y
     <ClInclude Include="include\Mesh.hpp" />
     <ClInclude Include="include\Shader.hpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\Phong.vert" />
+    <None Include="shaders\ShadowLighting.frag" />
+    <None Include="shaders\ShadowMap.frag" />
+    <None Include="shaders\Skinning.vert" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

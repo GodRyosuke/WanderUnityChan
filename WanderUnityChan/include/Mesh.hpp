@@ -17,7 +17,7 @@
 
 class Mesh {
 public:
-    Mesh(Shader* shader);
+    Mesh();
     ~Mesh() {}
     bool Load(std::string FilePath, std::string ObjFileName);
     void Draw(Shader* shader, float timeInSeconds);
