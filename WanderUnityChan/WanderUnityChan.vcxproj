@@ -182,11 +182,14 @@ XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y
     <ClCompile Include="include\Texture.hpp" />
     <ClCompile Include="src\Game.cpp" />
     <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Game.hpp" />
+    <ClInclude Include="include\GLUtil.hpp" />
+    <ClInclude Include="include\Mesh.hpp" />
     <ClInclude Include="include\Shader.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

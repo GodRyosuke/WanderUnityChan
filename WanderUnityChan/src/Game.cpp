@@ -17,7 +17,7 @@ bool Game::Initialize()
 
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0)
 	{
-		SDL_Log("Unable to initialize SDL: %s", SDL_GetError());
+		printf("Unable to initialize SDL: %s", SDL_GetError());
 		return false;
 	}
 
@@ -43,7 +43,7 @@ bool Game::Initialize()
 		mWindowWidth, mWindowHeight, SDL_WINDOW_OPENGL);
 	if (!mWindow)
 	{
-		SDL_Log("Failed to create window: %s", SDL_GetError());
+		printf("Failed to create window: %s", SDL_GetError());
 		return false;
 	}
 
@@ -54,7 +54,7 @@ bool Game::Initialize()
 	glewExperimental = GL_TRUE;
 	if (glewInit() != GLEW_OK)
 	{
-		SDL_Log("Failed to initialize GLEW.");
+		printf("Failed to initialize GLEW.");
 		return false;
 	}
 
@@ -69,15 +69,21 @@ bool Game::Initialize()
 
 	////CreateSpriteVerts();
 
-	//if (!LoadData())
-	//{
-	//	SDL_Log("Failed to load data.");
-	//	return false;
-	//}
+	if (!LoadData())
+	{
+		printf("error: Failed to Load Game Data\n");
+		return false;
+	}
 
 
 
 	mTicksCount = SDL_GetTicks();
+
+	return true;
+}
+
+bool Game::LoadData()
+{
 
 	return true;
 }

@@ -1,7 +1,9 @@
-#pragma once
+//#pragma once
 
 #include "SDL.h"
 #include "glew.h"
+#include "Texture.hpp"
+#include "Mesh.hpp"
 
 class Game {
 public:
@@ -17,9 +19,13 @@ private:
 	void UpdateGame();
 	void Draw();
 
+	bool LoadData();
+
 	const int mWindowWidth;
 	const int mWindowHeight;
 	bool mIsRunning;
+
+	std::vector<Mesh*> mMeshes;
 
 	SDL_Window* mWindow;
 	// OpenGL context
