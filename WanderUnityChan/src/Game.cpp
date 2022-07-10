@@ -2,6 +2,10 @@
 
 
 #include "Game.hpp"
+#include "gtc/matrix_transform.hpp"
+#include "gtc/type_ptr.hpp"
+#include "gtx/rotate_vector.hpp"
+#include "gtx/vector_angle.hpp"
 
 Game::Game()
 	:mWindowWidth(1024),
@@ -10,9 +14,13 @@ Game::Game()
 	mMoveSpeed(0.1),
 	mMoveSensitivity(100.0f)
 {
-	mCameraPos = glm::vec3(-1.0f, 2.5f, 0.0f);
+	mCameraPos = glm::vec3(-1.0f, 0.0f, 0.0f);
 	mCameraOrientation = glm::vec3(0, 0.5f, 0);
 	mCameraUP = glm::vec3(0.0, 0.0f, 1.0f);
+
+	mSpotLight.Position = glm::vec3(2.5f, 2.5f, 10.0f);
+	mSpotLight.Direction = glm::vec3(0.0f, 0.0f, -1.0f);
+	mSpotLight.Up = glm::vec3(0.0f, 0.0f, 1.0f);
 }
 
 
@@ -161,16 +169,18 @@ bool Game::LoadData()
 	mShadowLightingShader->SetMatrixUniform("CameraProj", CameraProj);
 	// light setting
 	{
+
 		glm::mat4 projection = glm::perspective(glm::radians(20.0f), (float)mWindowWidth / mWindowHeight, 0.1f, 100.0f);
 		glm::mat4 view = glm::lookAt(
-			glm::vec3(2.5f, 2.5f, 10.0f),	// position
-			glm::vec3(0.0f, 0.0f, -1.0f),	// direction
-			glm::vec3(0.0f, 0.0f, 1.0f)		// up
+			mSpotLight.Position,	// position
+			mSpotLight.Direction,	// direction
+			mSpotLight.Up			// up
 		);
 		mShadowLightingShader->SetMatrixUniform("LightView", view);
 		mShadowLightingShader->SetMatrixUniform("LightProj", projection);
 	}
 
+	SetShaderLighting();
 
 
 	// Model“Ç‚Ýž‚Ýˆ—
@@ -178,7 +188,7 @@ bool Game::LoadData()
 		// Treasure Box
 		Mesh* mesh = new Mesh();
 		if (mesh->Load("./resources/TreasureBox3/", "scene.gltf")) {
-			mesh->SetMeshPos(glm::vec3(5.0f / 2.0f, 35.0f, 0.0f));
+			mesh->SetMeshPos(glm::vec3(0.0f, 0.0f, 0.0f));
 			mesh->SetMeshRotate(glm::mat4(1.0f));
 			mesh->SetMeshScale(0.01f / 2.0f);
 			mMeshes.push_back(mesh);
@@ -186,6 +196,13 @@ bool Game::LoadData()
 	}
 	// Unity Chan world
 
+
+	// Load ShadowMap FBO
+	mTextureShadowMapFBO = new TextureShadowMap();
+	if (!mTextureShadowMapFBO->Load(mWindowWidth, mWindowHeight)) {
+		printf("error: Failed to load shadwo map fbo\n");
+		return false;
+	}
 
 	return true;
 }
@@ -269,16 +286,85 @@ void Game::UpdateGame()
 	{
 		deltaTime = 0.05f;
 	}
+
 	mTicksCount = SDL_GetTicks();
+
+	if (mPhase == PHASE_MOVE) {
+		//printf("%d %d\n", mMousePos.x, mMousePos.y);
+
+		float rotX = mMoveSensitivity * (float)((float)mMousePos.y - ((float)mWindowHeight / 2.0f)) / (float)mWindowHeight;
+		float rotY = mMoveSensitivity * (float)((float)mMousePos.x - ((float)mWindowWidth / 2.0f)) / (float)mWindowWidth;
+		//printf("rotX: %f rotY: %f\t", rotX, rotY);
+		// Calculates upcoming vertical change in the Orientation
+		glm::vec3 newOrientation = glm::rotate(mCameraOrientation, glm::radians(-rotX), glm::normalize(glm::cross(mCameraOrientation, mCameraUP)));
+
+		// Decides whether or not the next vertical Orientation is legal or not
+		int rad = abs(glm::angle(newOrientation, mCameraUP) - glm::radians(90.0f));
+		//std::cout << rad * 180 / M_PI << std::endl;
+		if (abs(glm::angle(newOrientation, mCameraUP) - glm::radians(90.0f)) <= glm::radians(85.0f))
+		{
+			mCameraOrientation = newOrientation;
+		}
+
+		// Rotates the Orientation left and right
+		mCameraOrientation = glm::rotate(mCameraOrientation, glm::radians(-rotY), mCameraUP);
+
+		if ((mMousePos.x != mWindowWidth / 2) || (mMousePos.y != mWindowHeight / 2)) {
+			SDL_WarpMouseInWindow(mWindow, mWindowWidth / 2, mWindowHeight / 2);
+		}
+	}
+
+	// XV‚³‚ê‚½ƒJƒƒ‰‚ÌˆÊ’u‚ðShader‚É”½‰f
+	std::vector<Shader*> Shaders;
+	Shaders.push_back(mShadowLightingShader);
+	for (auto shader : Shaders) {
+		shader->SetVectorUniform("gEyeWorldPos", mCameraPos);
+		shader->SetMatrixUniform("CameraView", glm::lookAt(mCameraPos, mCameraPos + mCameraOrientation, mCameraUP));
+	}
+
+
+
 }
 
 void Game::Draw()
 {
+	// Frame Buffer‚É•`‰æ
+	mTextureShadowMapFBO->WriteBind();
+
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	mShadowMapShader->UseProgram();
+
+	{
+		// Spot Light‚ÌView Projection‚ðÝ’è
+		glm::mat4 projection = glm::perspective(glm::radians(20.0f), (float)mWindowWidth / mWindowHeight, 0.1f, 100.0f);
+		glm::mat4 view = glm::lookAt(
+			mSpotLight.Position,
+			mSpotLight.Direction,
+			mSpotLight.Up
+		);
+		mShadowMapShader->SetMatrixUniform("LightView", view);
+		mShadowMapShader->SetMatrixUniform("LightProj", projection);
+	}
+	for (auto mesh : mMeshes) {
+		mesh->Draw(mShadowMapShader, mTicksCount / 1000.0f);
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// ---------------------------------
 	glClearColor(0, 0.5, 0.7, 1.0f);
 	// Clear the color buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_BLEND);
+
+	mShadowLightingShader->UseProgram();
+	mTextureShadowMapFBO->BindTexture(GL_TEXTURE1);
+	for (auto mesh : mMeshes) {
+		mesh->Draw(mShadowLightingShader, mTicksCount / 1000.0f);
+	}
+
 
 	mShadowLightingShader->UseProgram();
 

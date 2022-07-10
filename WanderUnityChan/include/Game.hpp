@@ -2,7 +2,7 @@
 
 #include "SDL.h"
 #include "glew.h"
-#include "Texture.hpp"
+#include "TextureShadowMap.hpp"
 #include "Mesh.hpp"
 #include "Shader.hpp"
 
@@ -21,6 +21,12 @@ private:
 		PHASE_MOVE,
 		PHASE_MAX
 	};
+	struct SpotLight {
+		glm::vec3 Position;
+		glm::vec3 Direction;
+		glm::vec3 Up;
+	};
+
 	void ProcessInput();
 	void UpdateGame();
 	void Draw();
@@ -32,7 +38,11 @@ private:
 	const int mWindowHeight;
 	bool mIsRunning;
 
+	SpotLight mSpotLight;
+
 	std::vector<Mesh*> mMeshes;
+
+	TextureShadowMap* mTextureShadowMapFBO;
 
 	Shader* mShadowMapShader;
 	Shader* mShadowLightingShader;

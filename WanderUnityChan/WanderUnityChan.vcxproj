@@ -185,12 +185,14 @@ XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\Texture.cpp" />
+    <ClCompile Include="src\TextureShadowMap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Game.hpp" />
     <ClInclude Include="include\GLUtil.hpp" />
     <ClInclude Include="include\Mesh.hpp" />
     <ClInclude Include="include\Shader.hpp" />
+    <ClInclude Include="include\TextureShadowMap.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\Phong.vert" />
