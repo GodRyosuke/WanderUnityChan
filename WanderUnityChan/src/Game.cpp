@@ -252,7 +252,8 @@ bool Game::LoadData()
 		SkinMesh* mesh = new SkinMesh();
 		if (mesh->Load("./resources/TreasureBox3/", "scene.gltf")) {
 			mesh->SetMeshPos(glm::vec3(4.0f, 4.0f, 0.0f));
-			mesh->SetMeshRotate(glm::mat4(1.0f));
+			glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), (float)M_PI, glm::vec3(1.0f, 0.0f, 0.0f));
+			mesh->SetMeshRotate(rotate);
 			mesh->SetMeshScale(0.01f / 2.0f);
 			mSkinMeshes.push_back(mesh);
 		}
@@ -378,7 +379,9 @@ void Game::UpdateGame()
 	// 更新されたカメラの位置をShaderに反映
 	std::vector<Shader*> Shaders;
 	Shaders.push_back(mShadowLightingShader);
+	Shaders.push_back(mSkinShadowLightingShader);
 	for (auto shader : Shaders) {
+		shader->UseProgram();
 		shader->SetVectorUniform("gEyeWorldPos", mCameraPos);
 		shader->SetMatrixUniform("CameraView", glm::lookAt(mCameraPos, mCameraPos + mCameraOrientation, mCameraUP));
 	}
