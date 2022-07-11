@@ -184,6 +184,7 @@ XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\Shader.cpp" />
+    <ClCompile Include="src\Skinning.cpp" />
     <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\TextureShadowMap.cpp" />
   </ItemGroup>
@@ -192,6 +193,7 @@ XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y
     <ClInclude Include="include\GLUtil.hpp" />
     <ClInclude Include="include\Mesh.hpp" />
     <ClInclude Include="include\Shader.hpp" />
+    <ClInclude Include="include\Skinning.hpp" />
     <ClInclude Include="include\TextureShadowMap.hpp" />
   </ItemGroup>
   <ItemGroup>
@@ -199,7 +201,8 @@ XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y
     <None Include="shaders\ShadowLighting.frag" />
     <None Include="shaders\ShadowMap.frag" />
     <None Include="shaders\ShadowMap.vert" />
-    <None Include="shaders\Skinning.vert" />
+    <None Include="shaders\SkinningShadowLighting.vert" />
+    <None Include="shaders\SkinningShadowMap.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -14,12 +14,12 @@ Game::Game()
 	mMoveSpeed(0.1),
 	mMoveSensitivity(100.0f)
 {
-	mCameraPos = glm::vec3(-1.0f, 0.0f, 0.0f);
-	mCameraOrientation = glm::vec3(0, 0.5f, 0);
-	mCameraUP = glm::vec3(0.0, 0.0f, 1.0f);
+	mCameraPos = glm::vec3(-1.0f, 2.5f, 1.0f);
+	mCameraUP = glm::vec3(0.0f, 0.0f, 1.0f);
+	mCameraOrientation = glm::vec3(0.5f, 0, 0);
 
-	mSpotLight.Position = glm::vec3(2.5f, 2.5f, 10.0f);
-	mSpotLight.Direction = glm::vec3(0.0f, 0.0f, -1.0f);
+	mSpotLight.Position = glm::vec3(-1.0f, 2.5f, 10.0f);
+	mSpotLight.Direction = glm::vec3(0.5f, 0.0f, -1.0f);
 	mSpotLight.Up = glm::vec3(0.0f, 0.0f, 1.0f);
 }
 
@@ -98,16 +98,16 @@ void Game::SetShaderLighting()
 {
 	std::vector<Shader*> Shaders;
 	Shaders.push_back(mShadowLightingShader);
-	//Shaders.push_back(mSkinningShaderProgram);
+	Shaders.push_back(mSkinShadowLightingShader);
 
 	for (auto shader : Shaders) {
 		shader->UseProgram();
 		shader->SetVectorUniform("gEyeWorldPos", mCameraPos);
 		shader->SetSamplerUniform("gShadowMap", 1);
 		shader->SetSamplerUniform("gSampler", 0);
-		shader->SetMatrixUniform("CameraView", glm::lookAt(mCameraPos, mCameraPos + mCameraOrientation, mCameraUP));
 		shader->SetSamplerUniform("gNumSpotLights", 1);
 
+		// spot light
 		for (int i = 0; i < 1; i++) {
 			std::string uniformName;
 			std::string pD = std::to_string(i);
@@ -128,6 +128,19 @@ void Game::SetShaderLighting()
 			shader->SetFloatUniform(uniformName, 0.01f);
 			uniformName = "gSpotLights[" + pD + "].Base.Atten.Exp";
 		}
+
+		 // directional light
+		{
+			std::string uniformName;
+			uniformName = "gDirectionalLight.Base.Color";
+			shader->SetVectorUniform(uniformName, glm::vec3(1.0f, 1.0f, 1.0f));
+			uniformName = "gDirectionalLight.Base.AmbientIntensity";
+			shader->SetFloatUniform(uniformName, 0.1f);
+			uniformName = "gDirectionalLight.Base.DiffuseIntensity";
+			shader->SetFloatUniform(uniformName, 0.9f);
+			uniformName = "gDirectionalLight.Direction";
+			shader->SetVectorUniform(uniformName, mSpotLight.Direction);
+		}
 	}
 }
 
@@ -138,13 +151,18 @@ bool Game::LoadData()
 		mCameraPos + mCameraOrientation,
 		mCameraUP);
 	glm::mat4 CameraProj = glm::perspective(glm::radians(45.0f), (float)mWindowWidth / mWindowHeight, 0.1f, 100.0f);
-
+	glm::mat4 SpotLightView = glm::lookAt(
+		mSpotLight.Position,
+		mSpotLight.Direction,
+		mSpotLight.Up
+	);
 
 
 	// Shader“Ç‚Ýž‚Ýˆ—
+	// •’Ê‚ÌMesh
 	{
 		// Shadow Map
-		std::string vert_file = "./Shaders/Phong.vert";
+		std::string vert_file = "./Shaders/ShadowMap.vert";
 		std::string frag_file = "./Shaders/ShadowMap.frag";
 		mShadowMapShader = new Shader();
 		if (!mShadowMapShader->CreateShaderProgram(vert_file, frag_file)) {
@@ -152,13 +170,13 @@ bool Game::LoadData()
 		}
 	}
 	mShadowMapShader->UseProgram();
-	mShadowMapShader->SetMatrixUniform("CameraView", CameraView);
+	mShadowMapShader->SetMatrixUniform("LightView", SpotLightView);
 	mShadowMapShader->SetMatrixUniform("CameraProj", CameraProj);
 	mShadowMapShader->SetSamplerUniform("gShadowMap", 1);
 
 	{
 		// Shadow Lighting
-		std::string vert_file = "./Shaders/Phong.vert";
+		std::string vert_file = "./Shaders/ShadowLighting.vert";
 		std::string frag_file = "./Shaders/ShadowLighting.frag";
 		mShadowLightingShader = new Shader();
 		if (!mShadowLightingShader->CreateShaderProgram(vert_file, frag_file)) {
@@ -168,19 +186,40 @@ bool Game::LoadData()
 	mShadowLightingShader->UseProgram();
 	mShadowLightingShader->SetMatrixUniform("CameraView", CameraView);
 	mShadowLightingShader->SetMatrixUniform("CameraProj", CameraProj);
-	// light setting
+	mShadowLightingShader->SetMatrixUniform("LightView", SpotLightView);
+	mShadowLightingShader->SetSamplerUniform("gShadowMap", 1);
+
+	// SkinMesh
 	{
-
-		glm::mat4 projection = glm::perspective(glm::radians(20.0f), (float)mWindowWidth / mWindowHeight, 0.1f, 100.0f);
-		glm::mat4 view = glm::lookAt(
-			mSpotLight.Position,	// position
-			mSpotLight.Direction,	// direction
-			mSpotLight.Up			// up
-		);
-		mShadowLightingShader->SetMatrixUniform("LightView", view);
-		mShadowLightingShader->SetMatrixUniform("LightProj", projection);
+		// Shadow Map
+		std::string vert_file = "./Shaders/SkinningShadowMap.vert";
+		std::string frag_file = "./Shaders/ShadowMap.frag";
+		mSkinShadowMapShader = new Shader();
+		if (!mSkinShadowMapShader->CreateShaderProgram(vert_file, frag_file)) {
+			return false;
+		}
 	}
+	mSkinShadowMapShader->UseProgram();
+	mSkinShadowMapShader->SetMatrixUniform("LightView", SpotLightView);
+	mSkinShadowMapShader->SetMatrixUniform("CameraProj", CameraProj);
+	mSkinShadowMapShader->SetSamplerUniform("gShadowMap", 1);
 
+	{
+		// Shadow Lighting
+		std::string vert_file = "./Shaders/SkinningShadowLighting.vert";
+		std::string frag_file = "./Shaders/ShadowLighting.frag";
+		mSkinShadowLightingShader = new Shader();
+		if (!mSkinShadowLightingShader->CreateShaderProgram(vert_file, frag_file)) {
+			return false;
+		}
+	}
+	mSkinShadowLightingShader->UseProgram();
+	mSkinShadowLightingShader->SetMatrixUniform("CameraView", CameraView);
+	mSkinShadowLightingShader->SetMatrixUniform("CameraProj", CameraProj);
+	mSkinShadowLightingShader->SetMatrixUniform("LightView", SpotLightView);
+	mSkinShadowLightingShader->SetSamplerUniform("gShadowMap", 1);
+
+	// light setting
 	SetShaderLighting();
 
 
@@ -189,14 +228,35 @@ bool Game::LoadData()
 		// Treasure Box
 		Mesh* mesh = new Mesh();
 		if (mesh->Load("./resources/TreasureBox3/", "scene.gltf")) {
-			mesh->SetMeshPos(glm::vec3(0.0f, 0.0f, 0.0f));
+			mesh->SetMeshPos(glm::vec3(4.0f, 5.0f/2.0f, 0.0f));
 			mesh->SetMeshRotate(glm::mat4(1.0f));
-			mesh->SetMeshScale(1.f / 2.0f);
-			mMeshes.push_back(mesh);
+			mesh->SetMeshScale(0.01f / 2.0f);
+			mMeshes.push_back(MeshData(mesh, true));
 		}
 	}
 	// Unity Chan world
-
+	{
+		Mesh* mesh = new Mesh();
+		if (mesh->Load("./resources/world/", "terrain.fbx")) {
+			mesh->SetMeshPos(glm::vec3(0.0f));
+			glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), (float)M_PI / 2.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+			//mesh->SetMeshRotate(rotate);
+			mesh->SetMeshRotate(glm::mat4(1.0f));
+			mesh->SetMeshScale(1.0f);
+			mMeshes.push_back(MeshData(mesh, false));
+		}
+	}
+	// BobMesh
+	{
+		// Treasure Box
+		SkinMesh* mesh = new SkinMesh();
+		if (mesh->Load("./resources/TreasureBox3/", "scene.gltf")) {
+			mesh->SetMeshPos(glm::vec3(4.0f, 4.0f, 0.0f));
+			mesh->SetMeshRotate(glm::mat4(1.0f));
+			mesh->SetMeshScale(0.01f / 2.0f);
+			mSkinMeshes.push_back(mesh);
+		}
+	}
 
 	// Load ShadowMap FBO
 	mTextureShadowMapFBO = new TextureShadowMap();
@@ -336,20 +396,26 @@ void Game::Draw()
 
 	mShadowMapShader->UseProgram();
 
-	{
-		// Spot Light‚ÌView Projection‚ðÝ’è
-		glm::mat4 projection = glm::perspective(glm::radians(20.0f), (float)mWindowWidth / mWindowHeight, 0.1f, 100.0f);
-		glm::mat4 view = glm::lookAt(
-			mSpotLight.Position,
-			mSpotLight.Direction,
-			mSpotLight.Up
-		);
-		mShadowMapShader->SetMatrixUniform("LightView", view);
-		mShadowMapShader->SetMatrixUniform("LightProj", projection);
-	}
+	//{
+	//	// Spot Light‚ÌView Projection‚ðÝ’è
+	//	glm::mat4 projection = glm::perspective(glm::radians(20.0f), (float)mWindowWidth / mWindowHeight, 0.1f, 100.0f);
+	//	glm::mat4 view = glm::lookAt(
+	//		mSpotLight.Position,
+	//		mSpotLight.Direction,
+	//		mSpotLight.Up
+	//	);
+	//	mShadowMapShader->SetMatrixUniform("LightView", view);
+	//	mShadowMapShader->SetMatrixUniform("LightProj", projection);
+	//}
 	for (auto mesh : mMeshes) {
-		mesh->Draw(mShadowMapShader, mTicksCount / 1000.0f);
+		if (mesh.IsShadow) {
+			mesh.mesh->Draw(mShadowMapShader, mTicksCount / 1000.0f);
+		}
 	}
+	for (auto skinmesh : mSkinMeshes) {
+		skinmesh->Draw(mSkinShadowMapShader, mTicksCount / 1000.0f);
+	}
+
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -363,7 +429,10 @@ void Game::Draw()
 	mShadowLightingShader->UseProgram();
 	mTextureShadowMapFBO->BindTexture(GL_TEXTURE1);
 	for (auto mesh : mMeshes) {
-		mesh->Draw(mShadowLightingShader, mTicksCount / 1000.0f);
+		mesh.mesh->Draw(mShadowLightingShader, mTicksCount / 1000.0f);
+	}
+	for (auto skinmesh : mSkinMeshes) {
+		skinmesh->Draw(mSkinShadowLightingShader, mTicksCount / 1000.0f);
 	}
 
 

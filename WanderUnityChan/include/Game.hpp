@@ -3,7 +3,7 @@
 #include "SDL.h"
 #include "glew.h"
 #include "TextureShadowMap.hpp"
-#include "Mesh.hpp"
+#include "Skinning.hpp"
 #include "Shader.hpp"
 
 class Game {
@@ -40,12 +40,24 @@ private:
 
 	SpotLight mSpotLight;
 
-	std::vector<Mesh*> mMeshes;
+	struct MeshData {
+		MeshData(Mesh* mesh, bool IsShadow)
+			:mesh(mesh),
+			IsShadow(IsShadow)
+		{
+		}
+		Mesh* mesh;
+		bool IsShadow;
+	};
+	std::vector<MeshData> mMeshes;
+	std::vector<SkinMesh*> mSkinMeshes;
 
 	TextureShadowMap* mTextureShadowMapFBO;
 
 	Shader* mShadowMapShader;
 	Shader* mShadowLightingShader;
+	Shader* mSkinShadowMapShader;
+	Shader* mSkinShadowLightingShader;
 
 	PHASE mPhase;
 

@@ -230,7 +230,7 @@ void Mesh::UpdateTransform(Shader* shader, float timeInSeconds)
     glm::mat4 TranslateMat = glm::translate(glm::mat4(1.0f), mMeshPos);
     glm::mat4 TransformMat = TranslateMat * mMeshRotate * ScaleMat;
 
-    shader->SetMatrixUniform("model", TransformMat);
+    shader->SetMatrixUniform("ModelTransform", TransformMat);
 }
 
 void Mesh::Draw(Shader* shader, float timeInSeconds)

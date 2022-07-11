@@ -15,7 +15,7 @@ Texture::Texture(std::string filePath)
 	unsigned char* PictureData = stbi_load(filePath.c_str(), &width, &height, &numColCh, 0);
 
 	glGenTextures(1, &texture_data);
-	glActiveTexture(GL_TEXTURE0);
+	//glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture_data);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -30,6 +30,8 @@ Texture::Texture(std::string filePath)
 	// Generates MipMaps
 	//glGenerateMipmap(GL_TEXTURE_2D);
 	glBindTexture(texture_data, 0);		// unbind
+	stbi_image_free(PictureData);
+
 
 
 	//SDL_Surface* surf = IMG_Load(filePath.c_str());

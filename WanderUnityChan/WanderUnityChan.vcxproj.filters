@@ -36,6 +36,9 @@
     <ClCompile Include="src\TextureShadowMap.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="src\Skinning.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Game.hpp">
@@ -53,12 +56,16 @@
     <ClInclude Include="include\TextureShadowMap.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="include\Skinning.hpp">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\ShadowMap.frag" />
     <None Include="shaders\ShadowLighting.vert" />
-    <None Include="shaders\Skinning.vert" />
+    <None Include="shaders\SkinningShadowLighting.vert" />
     <None Include="shaders\ShadowLighting.frag" />
     <None Include="shaders\ShadowMap.vert" />
+    <None Include="shaders\SkinningShadowMap.vert" />
   </ItemGroup>
 </Project>
