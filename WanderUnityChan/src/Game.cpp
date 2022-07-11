@@ -246,7 +246,7 @@ bool Game::LoadData()
 			mMeshes.push_back(MeshData(mesh, false));
 		}
 	}
-	// BobMesh
+	// Treasure Chest(Move)
 	{
 		// Treasure Box
 		SkinMesh* mesh = new SkinMesh();
@@ -258,6 +258,19 @@ bool Game::LoadData()
 			mSkinMeshes.push_back(mesh);
 		}
 	}
+	// Load Unity Chan!!
+	{
+		// Treasure Box
+		SkinMesh* mesh = new SkinMesh();
+		if (mesh->Load("./resources/TreasureBox3/", "scene.gltf")) {
+			mesh->SetMeshPos(glm::vec3(4.0f, 4.0f, 0.0f));
+			glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), (float)M_PI, glm::vec3(1.0f, 0.0f, 0.0f));
+			mesh->SetMeshRotate(rotate);
+			mesh->SetMeshScale(0.01f / 2.0f);
+			mSkinMeshes.push_back(mesh);
+		}
+	}
+
 
 	// Load ShadowMap FBO
 	mTextureShadowMapFBO = new TextureShadowMap();
