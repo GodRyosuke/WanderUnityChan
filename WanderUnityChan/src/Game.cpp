@@ -262,11 +262,11 @@ bool Game::LoadData()
 	{
 		// Treasure Box
 		SkinMesh* mesh = new SkinMesh();
-		if (mesh->Load("./resources/TreasureBox3/", "scene.gltf")) {
-			mesh->SetMeshPos(glm::vec3(4.0f, 4.0f, 0.0f));
+		if (mesh->Load("./resources/UnityChan/", "unitychan.fbx")) {
+			mesh->SetMeshPos(glm::vec3(6.0f, 4.0f, 0.0f));
 			glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), (float)M_PI, glm::vec3(1.0f, 0.0f, 0.0f));
 			mesh->SetMeshRotate(rotate);
-			mesh->SetMeshScale(0.01f / 2.0f);
+			mesh->SetMeshScale(0.1f);
 			mSkinMeshes.push_back(mesh);
 		}
 	}
