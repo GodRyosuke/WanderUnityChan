@@ -259,15 +259,26 @@ bool Game::LoadData()
 		}
 	}
 	// Load Unity Chan!!
+	//{
+	//	// Treasure Box
+	//	SkinMesh* mesh = new SkinMesh();
+	//	if (mesh->Load("./resources/UnityChan/", "unitychansetup.fbx")) {
+	//		mesh->SetMeshPos(glm::vec3(6.0f, 4.0f, 0.0f));
+	//		glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), (float)M_PI, glm::vec3(1.0f, 0.0f, 0.0f));
+	//		mesh->SetMeshRotate(rotate);
+	//		mesh->SetMeshScale(0.1f);
+	//		mSkinMeshes.push_back(mesh);
+	//	}
+	//}
 	{
 		// Treasure Box
-		SkinMesh* mesh = new SkinMesh();
-		if (mesh->Load("./resources/UnityChan/", "unitychan.fbx")) {
+		Mesh* mesh = new Mesh();
+		if (mesh->Load("./resources/UnityChan/", "unitychansetup.fbx")) {
 			mesh->SetMeshPos(glm::vec3(6.0f, 4.0f, 0.0f));
 			glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), (float)M_PI, glm::vec3(1.0f, 0.0f, 0.0f));
-			mesh->SetMeshRotate(rotate);
-			mesh->SetMeshScale(0.1f);
-			mSkinMeshes.push_back(mesh);
+			mesh->SetMeshRotate(glm::mat4(1.0f));
+			mesh->SetMeshScale(1.0f);
+			mMeshes.push_back(MeshData(mesh, true));
 		}
 	}
 
