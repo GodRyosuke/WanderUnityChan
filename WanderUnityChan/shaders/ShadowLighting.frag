@@ -168,5 +168,9 @@ void main()
     }                                                                                       
                                                                                             
     vec4 SampledColor = texture2D(gSampler, TexCoord0.xy);                                  
+    //if(SampledColor.a < 0.4) {
+    //    discard;
+    //}
+
     FragColor = SampledColor * TotalLight;                                                  
 }

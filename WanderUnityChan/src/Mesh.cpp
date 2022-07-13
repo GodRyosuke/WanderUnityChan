@@ -249,7 +249,8 @@ void Mesh::Draw(Shader* shader, float timeInSeconds)
         shader->SetVectorUniform("uDirLight.mDirection", glm::vec3(0, -0.707, -0.707));
         shader->SetVectorUniform("uDirLight.mDiffuseColor", m_Materials[MaterialIndex].DiffuseColor);
         shader->SetVectorUniform("uDirLight.mSpecColor", m_Materials[MaterialIndex].SpecColor);
-        shader->SetFloatUniform("uSpecPower", 0.3f);
+        shader->SetFloatUniform("gSpecularPower", 0.3f);
+        //shader->SetFloatUniform("gMatSpecularIntensity", 1.0f);
 
         if (m_Materials[MaterialIndex].DiffuseTexture) {
             m_Materials[MaterialIndex].DiffuseTexture->BindTexture(GL_TEXTURE0);

@@ -228,12 +228,15 @@ bool Game::LoadData()
 		// Treasure Box
 		Mesh* mesh = new Mesh();
 		if (mesh->Load("./resources/TreasureBox3/", "scene.gltf")) {
-			mesh->SetMeshPos(glm::vec3(4.0f, 5.0f/2.0f, 0.0f));
+			mesh->SetMeshPos(glm::vec3(4.0f, 5.0f / 2.0f, 0.0f));
 			mesh->SetMeshRotate(glm::mat4(1.0f));
 			mesh->SetMeshScale(0.01f / 2.0f);
 			mMeshes.push_back(MeshData(mesh, true));
 		}
 	}
+
+
+
 	// Unity Chan world
 	{
 		Mesh* mesh = new Mesh();
@@ -258,6 +261,21 @@ bool Game::LoadData()
 			mSkinMeshes.push_back(mesh);
 		}
 	}
+
+	// Bob mesh clean
+	{
+		// Treasure Box
+		SkinMesh* mesh = new SkinMesh();
+		if (mesh->Load("./resources/boblampclean/", "boblampclean.md5mesh")) {
+			mesh->SetMeshPos(glm::vec3(4.0f, 1.5, 0.0f));
+			glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), (float)M_PI, glm::vec3(1.0f, 0.0f, 0.0f));
+			mesh->SetMeshRotate(glm::mat4(1.0f));
+			mesh->SetMeshScale(0.01f);
+			mSkinMeshes.push_back(mesh);
+		}
+	}
+
+
 	// Load Unity Chan!!
 	//{
 	//	// Treasure Box
@@ -271,7 +289,7 @@ bool Game::LoadData()
 	//	}
 	//}
 	{
-		// Treasure Box
+		// Unity Chan
 		Mesh* mesh = new Mesh();
 		if (mesh->Load("./resources/UnityChan/", "unitychansetup.fbx")) {
 			mesh->SetMeshPos(glm::vec3(6.0f, 4.0f, 0.0f));
@@ -447,10 +465,13 @@ void Game::Draw()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// ---------------------------------
+	glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glClearColor(0, 0.5, 0.7, 1.0f);
 	// Clear the color buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_DEPTH_TEST);
 	glDisable(GL_BLEND);
 
 	mShadowLightingShader->UseProgram();
