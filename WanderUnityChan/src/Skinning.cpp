@@ -262,6 +262,14 @@ void SkinMesh::ReadNodeHierarchy(float AnimationTimeTicks, const aiNode* pNode, 
 void SkinMesh::GetBoneTransform(float TimeInSeconds, std::vector<glm::mat4>& Transforms)
 {
     int num = m_pScene->mNumAnimations;
+    if (num == 0) {
+        Transforms.resize(m_BoneInfo.size());
+        for (unsigned int i = 0; i < m_BoneInfo.size(); i++) {
+            Transforms[i] = glm::mat4(1.0f);
+        }
+        return;
+    }
+
     auto k = m_pScene->mAnimations[0];
     float TicksPerSecond = (float)(m_pScene->mAnimations[0]->mTicksPerSecond != NULL ? m_pScene->mAnimations[0]->mTicksPerSecond : 25.0f);
     float TimeInTicks = TimeInSeconds * TicksPerSecond;

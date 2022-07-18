@@ -99,6 +99,7 @@ void Game::SetShaderLighting()
 	std::vector<Shader*> Shaders;
 	Shaders.push_back(mShadowLightingShader);
 	Shaders.push_back(mSkinShadowLightingShader);
+	Shaders.push_back(mUnityChanShader);
 
 	for (auto shader : Shaders) {
 		shader->UseProgram();
@@ -219,6 +220,22 @@ bool Game::LoadData()
 	mSkinShadowLightingShader->SetMatrixUniform("LightView", SpotLightView);
 	mSkinShadowLightingShader->SetSamplerUniform("gShadowMap", 1);
 
+	// Unity Chan Shadow Lighting 
+	{
+		// Shadow Lighting
+		std::string vert_file = "./Shaders/ShadowLighting.vert";
+		std::string frag_file = "./Shaders/UnityChan.frag";
+		mUnityChanShader = new Shader();
+		if (!mUnityChanShader->CreateShaderProgram(vert_file, frag_file)) {
+			return false;
+		}
+	}
+	mUnityChanShader->UseProgram();
+	mUnityChanShader->SetMatrixUniform("CameraView", CameraView);
+	mUnityChanShader->SetMatrixUniform("CameraProj", CameraProj);
+	mUnityChanShader->SetMatrixUniform("LightView", SpotLightView);
+	mUnityChanShader->SetSamplerUniform("gShadowMap", 1);
+
 	// light setting
 	SetShaderLighting();
 
@@ -265,14 +282,14 @@ bool Game::LoadData()
 	// Bob mesh clean
 	{
 		// Treasure Box
-		SkinMesh* mesh = new SkinMesh();
-		if (mesh->Load("./resources/boblampclean/", "boblampclean.md5mesh")) {
-			mesh->SetMeshPos(glm::vec3(4.0f, 1.5, 0.0f));
-			glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), (float)M_PI, glm::vec3(1.0f, 0.0f, 0.0f));
-			mesh->SetMeshRotate(glm::mat4(1.0f));
-			mesh->SetMeshScale(0.01f);
-			mSkinMeshes.push_back(mesh);
-		}
+		//SkinMesh* mesh = new SkinMesh();
+		//if (mesh->Load("./resources/boblampclean/", "boblampclean.md5mesh")) {
+		//	mesh->SetMeshPos(glm::vec3(4.0f, 1.5, 0.0f));
+		//	glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), (float)M_PI, glm::vec3(1.0f, 0.0f, 0.0f));
+		//	mesh->SetMeshRotate(glm::mat4(1.0f));
+		//	mesh->SetMeshScale(0.01f);
+		//	mSkinMeshes.push_back(mesh);
+		//}
 	}
 
 
@@ -291,14 +308,28 @@ bool Game::LoadData()
 	{
 		// Unity Chan
 		Mesh* mesh = new Mesh();
-		if (mesh->Load("./resources/UnityChan/", "unitychansetup.fbx")) {
+		if (mesh->Load("./resources/UnityChan/", "unitychan2.fbx")) {
 			mesh->SetMeshPos(glm::vec3(6.0f, 4.0f, 0.0f));
-			glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), (float)M_PI, glm::vec3(1.0f, 0.0f, 0.0f));
-			mesh->SetMeshRotate(glm::mat4(1.0f));
-			mesh->SetMeshScale(1.0f);
-			mMeshes.push_back(MeshData(mesh, true));
+			glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), (float)M_PI / 2.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+			mesh->SetMeshRotate(rotate);
+			mesh->SetMeshScale(0.01);
+			mUnityChan = mesh;
 		}
 	}
+
+	{
+		// Running Animation
+		SkinMesh* mesh = new SkinMesh();
+		if (mesh->Load("./resources/UnityChan/", "running.fbx")) {
+			mesh->SetMeshPos(glm::vec3(6.0f, 4.0f, 0.0f));
+			glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), (float)M_PI / 2.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+			mesh->SetMeshRotate(rotate);
+			mesh->SetMeshScale(0.01);
+			mRunAnim = mesh;
+		}
+	}
+
+
 
 
 	// Load ShadowMap FBO
@@ -422,6 +453,7 @@ void Game::UpdateGame()
 	std::vector<Shader*> Shaders;
 	Shaders.push_back(mShadowLightingShader);
 	Shaders.push_back(mSkinShadowLightingShader);
+	Shaders.push_back(mUnityChanShader);
 	for (auto shader : Shaders) {
 		shader->UseProgram();
 		shader->SetVectorUniform("gEyeWorldPos", mCameraPos);
@@ -460,14 +492,14 @@ void Game::Draw()
 	for (auto skinmesh : mSkinMeshes) {
 		skinmesh->Draw(mSkinShadowMapShader, mTicksCount / 1000.0f);
 	}
+	mUnityChan->Draw(mShadowMapShader, mTicksCount / 1000.0f);
 
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// ---------------------------------
 	glEnable(GL_DEPTH_TEST);
-	//glEnable(GL_BLEND);
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	glClearColor(0, 0.5, 0.7, 1.0f);
 	// Clear the color buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -483,8 +515,12 @@ void Game::Draw()
 		skinmesh->Draw(mSkinShadowLightingShader, mTicksCount / 1000.0f);
 	}
 
-
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	mShadowLightingShader->UseProgram();
+	mUnityChan->Draw(mUnityChanShader, mTicksCount / 1000.0f);
+
+
 
 
 	SDL_GL_SwapWindow(mWindow);

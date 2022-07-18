@@ -51,6 +51,8 @@ private:
 	};
 	std::vector<MeshData> mMeshes;
 	std::vector<SkinMesh*> mSkinMeshes;
+	Mesh* mUnityChan;
+	SkinMesh* mRunAnim;
 
 	TextureShadowMap* mTextureShadowMapFBO;
 
@@ -58,6 +60,7 @@ private:
 	Shader* mShadowLightingShader;
 	Shader* mSkinShadowMapShader;
 	Shader* mSkinShadowLightingShader;
+	Shader* mUnityChanShader;
 
 	PHASE mPhase;
 
