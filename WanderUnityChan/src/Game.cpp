@@ -223,7 +223,7 @@ bool Game::LoadData()
 	// Unity Chan Shadow Lighting 
 	{
 		// Shadow Lighting
-		std::string vert_file = "./Shaders/ShadowLighting.vert";
+		std::string vert_file = "./Shaders/SkinningShadowLighting.vert";
 		std::string frag_file = "./Shaders/UnityChan.frag";
 		mUnityChanShader = new Shader();
 		if (!mUnityChanShader->CreateShaderProgram(vert_file, frag_file)) {
@@ -305,30 +305,47 @@ bool Game::LoadData()
 	//		mSkinMeshes.push_back(mesh);
 	//	}
 	//}
-	{
-		// Unity Chan
-		Mesh* mesh = new Mesh();
-		if (mesh->Load("./resources/UnityChan/", "unitychan2.fbx")) {
-			mesh->SetMeshPos(glm::vec3(6.0f, 4.0f, 0.0f));
-			glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), (float)M_PI / 2.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-			mesh->SetMeshRotate(rotate);
-			mesh->SetMeshScale(0.01);
-			mUnityChan = mesh;
-		}
-	}
+	//{
+	//	// Unity Chan
+	//	Mesh* mesh = new Mesh();
+	//	if (mesh->Load("./resources/UnityChan/", "unitychan2.fbx")) {
+	//		mesh->SetMeshPos(glm::vec3(6.0f, 4.0f, 0.0f));
+	//		glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), (float)M_PI / 2.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+	//		mesh->SetMeshRotate(rotate);
+	//		mesh->SetMeshScale(0.01);
+	//		mUnityChan = mesh;
+	//	}
+	//}
+
+	//{
+	//	// Running Animation
+	//	SkinMesh* mesh = new SkinMesh();
+	//	if (mesh->Load("./resources/UnityChan/", "running.fbx")) {
+	//		mesh->SetMeshPos(glm::vec3(6.0f, 4.0f, 0.0f));
+	//		glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), (float)M_PI / 2.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+	//		mesh->SetMeshRotate(rotate);
+	//		mesh->SetMeshScale(0.01);
+	//		mRunAnim = mesh;
+	//	}
+	//}
 
 	{
-		// Running Animation
-		SkinMesh* mesh = new SkinMesh();
-		if (mesh->Load("./resources/UnityChan/", "running.fbx")) {
-			mesh->SetMeshPos(glm::vec3(6.0f, 4.0f, 0.0f));
+		UnityChan* unitychan = new UnityChan();
+		std::vector<std::string> animFillePaths;
+		animFillePaths.push_back("running.fbx");
+		if (unitychan->Load("./resources/UnityChan/", "unitychan2.fbx", animFillePaths)) {
+			unitychan->SetMeshPos(glm::vec3(6.0f, 4.0f, 0.0f));
 			glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), (float)M_PI / 2.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-			mesh->SetMeshRotate(rotate);
-			mesh->SetMeshScale(0.01);
-			mRunAnim = mesh;
+			unitychan->SetMeshRotate(rotate);
+			unitychan->SetMeshScale(0.01);
+			mAnimUnityChan = unitychan;
+		}
+		else {
+			delete unitychan;
+			mAnimUnityChan = nullptr;
+			return false;
 		}
 	}
-
 
 
 
@@ -492,7 +509,7 @@ void Game::Draw()
 	for (auto skinmesh : mSkinMeshes) {
 		skinmesh->Draw(mSkinShadowMapShader, mTicksCount / 1000.0f);
 	}
-	mUnityChan->Draw(mShadowMapShader, mTicksCount / 1000.0f);
+	//mAnimUnityChan->Draw(mSkinShadowMapShader, mTicksCount / 1000.0f);
 
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -517,8 +534,8 @@ void Game::Draw()
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	mShadowLightingShader->UseProgram();
-	mUnityChan->Draw(mUnityChanShader, mTicksCount / 1000.0f);
+	mUnityChanShader->UseProgram();
+	mAnimUnityChan->Draw(mUnityChanShader, mTicksCount / 1000.0f);
 
 
 

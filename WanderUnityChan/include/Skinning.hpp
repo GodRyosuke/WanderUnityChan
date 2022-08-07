@@ -7,6 +7,22 @@ public:
     SkinMesh();
     ~SkinMesh() {}
 
+protected:
+    struct BoneInfo
+    {
+        glm::mat4 OffsetMatrix;
+        glm::mat4 FinalTransformation;
+
+        BoneInfo(const glm::mat4& Offset)
+        {
+            OffsetMatrix = Offset;
+            FinalTransformation = glm::mat4(0.0f);
+        }
+    };
+    std::vector<BoneInfo> m_BoneInfo;
+    void ReadNodeHierarchy(float AnimationTimeTicks, const aiNode* pNode, const glm::mat4& ParentTransform);
+    virtual const aiAnimation* SetAnimPointer();
+
 private:
     struct VertexBoneData
     {
@@ -36,17 +52,7 @@ private:
         }
     };
 
-    struct BoneInfo
-    {
-        glm::mat4 OffsetMatrix;
-        glm::mat4 FinalTransformation;
 
-        BoneInfo(const glm::mat4& Offset)
-        {
-            OffsetMatrix = Offset;
-            FinalTransformation = glm::mat4(0.0f);
-        }
-    };
 
     virtual void ReserveVertexSpace() override;
     virtual void PopulateBuffers() override;
@@ -59,7 +65,6 @@ private:
     // 時刻TimeInSecondsにおける各ボーンのTransformを求める
     void GetBoneTransform(float TimeInSeconds, std::vector<glm::mat4>& Transforms);
     // Nodeの階層構造を読みだす
-    void ReadNodeHierarchy(float AnimationTimeTicks, const aiNode* pNode, const glm::mat4& ParentTransform);
     // AnimationTimeTicks時刻におけるAnimationを求める
     void CalcInterpolatedRotation(aiQuaternion& Out, float AnimationTimeTicks, const aiNodeAnim* pNodeAnim);
     void CalcInterpolatedScaling(aiVector3D& Out, float AnimationTimeTicks, const aiNodeAnim* pNodeAnim);
@@ -71,7 +76,7 @@ private:
 
     std::map<std::string, unsigned int> m_BoneNameToIndexMap;
     std::vector<VertexBoneData> m_Bones;
-    std::vector<BoneInfo> m_BoneInfo;
+
 
     glm::mat4 m_GlobalInverseTransform;
 };

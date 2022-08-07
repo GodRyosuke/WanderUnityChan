@@ -196,13 +196,19 @@ void SkinMesh::CalcInterpolatedPosition(aiVector3D& Out, float AnimationTimeTick
     }
 }
 
+const aiAnimation* SkinMesh::SetAnimPointer()
+{
+    return m_pScene->mAnimations[0];
+}
+
 
 void SkinMesh::ReadNodeHierarchy(float AnimationTimeTicks, const aiNode* pNode, const glm::mat4& ParentTransform)
 {
     GLUtil glutil;
     std::string NodeName(pNode->mName.data);
+    int x = 0;
 
-    const aiAnimation* pAnimation = m_pScene->mAnimations[0];
+    const aiAnimation* pAnimation = SetAnimPointer();
 
     // Node‚Ì‚ÂTransform
     glm::mat4 NodeTransformation;

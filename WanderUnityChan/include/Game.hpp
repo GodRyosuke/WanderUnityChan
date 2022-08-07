@@ -5,6 +5,7 @@
 #include "TextureShadowMap.hpp"
 #include "Skinning.hpp"
 #include "Shader.hpp"
+#include "UnityChan.hpp"
 
 class Game {
 public:
@@ -53,6 +54,7 @@ private:
 	std::vector<SkinMesh*> mSkinMeshes;
 	Mesh* mUnityChan;
 	SkinMesh* mRunAnim;
+	UnityChan* mAnimUnityChan;
 
 	TextureShadowMap* mTextureShadowMapFBO;
 
