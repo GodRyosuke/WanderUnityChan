@@ -17,7 +17,7 @@ bool UnityChan::Load(std::string FileRoot, std::string MeshFile, std::vector<std
 	for (auto animFile : AnimationFiles) {
 		std::string filePath = FileRoot + animFile;
 		AnimationData* animData = new AnimationData(filePath);
-		animData->innerAnimIndex = 0;
+		animData->innerAnimIndex = 3;
 		mAnimationData.push_back(animData);
 	}
 

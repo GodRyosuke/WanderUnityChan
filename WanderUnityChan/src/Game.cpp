@@ -332,7 +332,7 @@ bool Game::LoadData()
 	{
 		UnityChan* unitychan = new UnityChan();
 		std::vector<std::string> animFillePaths;
-		animFillePaths.push_back("running.fbx");
+		animFillePaths.push_back("running2.fbx");
 		if (unitychan->Load("./resources/UnityChan/", "unitychan2.fbx", animFillePaths)) {
 			unitychan->SetMeshPos(glm::vec3(6.0f, 4.0f, 0.0f));
 			glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), (float)M_PI / 2.0f, glm::vec3(1.0f, 0.0f, 0.0f));
