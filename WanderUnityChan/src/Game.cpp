@@ -330,21 +330,21 @@ bool Game::LoadData()
 	//}
 
 	{
-		UnityChan* unitychan = new UnityChan();
-		std::vector<std::string> animFillePaths;
-		animFillePaths.push_back("unitychan_RUN00_F.fbx");
-		if (unitychan->Load("./resources/UnityChan/", "unitychan.fbx", animFillePaths)) {
-			unitychan->SetMeshPos(glm::vec3(6.0f, 4.0f, 0.0f));
-			glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), (float)M_PI / 2.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-			unitychan->SetMeshRotate(rotate);
-			unitychan->SetMeshScale(0.01);
-			mAnimUnityChan = unitychan;
-		}
-		else {
-			delete unitychan;
-			mAnimUnityChan = nullptr;
-			return false;
-		}
+		//UnityChan* unitychan = new UnityChan();
+		//std::vector<std::string> animFillePaths;
+		//animFillePaths.push_back("unitychan_RUN00_F.fbx");
+		//if (unitychan->Load("./resources/UnityChan/", "unitychan.fbx", animFillePaths)) {
+		//	unitychan->SetMeshPos(glm::vec3(6.0f, 4.0f, 0.0f));
+		//	glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), (float)M_PI / 2.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+		//	unitychan->SetMeshRotate(rotate);
+		//	unitychan->SetMeshScale(0.01);
+		//	mAnimUnityChan = unitychan;
+		//}
+		//else {
+		//	delete unitychan;
+		//	mAnimUnityChan = nullptr;
+		//	return false;
+		//}
 	}
 
 
@@ -535,7 +535,7 @@ void Game::Draw()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	mUnityChanShader->UseProgram();
-	mAnimUnityChan->Draw(mUnityChanShader, mTicksCount / 1000.0f);
+	//mAnimUnityChan->Draw(mUnityChanShader, mTicksCount / 1000.0f);
 
 
 

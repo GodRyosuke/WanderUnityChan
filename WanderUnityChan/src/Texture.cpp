@@ -1,7 +1,9 @@
+
 #include "Texture.hpp"
 #include "SDL_image.h"
 #include <iostream>
 
+#define STB_IMAGE_IMPLEMENTATION
 Texture::Texture()
 {
 
