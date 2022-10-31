@@ -204,6 +204,7 @@ XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y</Comman
     <None Include="shaders\ShadowMap.vert" />
     <None Include="shaders\SkinningShadowLighting.vert" />
     <None Include="shaders\SkinningShadowMap.vert" />
+    <None Include="shaders\test.frag" />
     <None Include="shaders\UnityChan.frag" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -38,6 +38,8 @@ bool FBXMesh::Load(std::string fileName)
     importer->Import(scene);
     importer->Destroy(); // シーンを流し込んだらImporterは解放してOK
 
+    FbxGeometryConverter geometryConv = FbxGeometryConverter(mManager);
+    geometryConv.Triangulate(scene, true);
     // Scene解析
     FbxNode* rootNode = scene->GetRootNode();
     if (rootNode == 0) {
@@ -60,7 +62,6 @@ bool FBXMesh::Load(std::string fileName)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    // ...
 
     // マネージャ解放
     // 関連するすべてのオブジェクトが解放される
@@ -102,7 +103,6 @@ void FBXMesh::LoadMesh(FbxMesh* mesh)
     int PolygonVertexNum = mesh->GetPolygonVertexCount();
     int* IndexAry = mesh->GetPolygonVertices();
 
-
     for (int p = 0; p < PolygonNum; p++) {
         //mIndices.push_back(p * 3);
         //mIndices.push_back(p * 3 + 1);
@@ -112,6 +112,7 @@ void FBXMesh::LoadMesh(FbxMesh* mesh)
             // ポリゴンpを構成するn番目の頂点のインデックス番号
             int IndexNumber = mesh->GetPolygonVertex(p, n);
             mIndices.push_back(IndexNumber);
+            FbxVector4 vec = mesh->GetControlPointAt(IndexNumber);
         }
     }
 
@@ -263,7 +264,7 @@ void FBXMesh::Draw(Shader* shader)
     //    (void*)(mIndices.data()),
     //    mPositions.size() * 3);
 
-    glDrawElements(GL_POINTS,
+    glDrawElements(GL_TRIANGLES,
         mIndices.size(),
         GL_UNSIGNED_INT,
         (void*)(0));
