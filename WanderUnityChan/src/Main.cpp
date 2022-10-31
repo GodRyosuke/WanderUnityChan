@@ -1,5 +1,6 @@
 #include "Game.hpp"
 #include <iostream>
+#define STB_IMAGE_IMPLEMENTATION
 int main(int argc, char** argv)
 {
 	Game game;
