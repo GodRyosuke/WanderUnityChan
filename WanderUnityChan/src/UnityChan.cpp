@@ -1,6 +1,9 @@
+#define _USE_MATH_DEFINES
 #include "UnityChan.hpp"
 #include "FBXMesh.hpp"
 #include "Shader.hpp"
+#include "gtc/matrix_transform.hpp"
+
 
 UnityChan::UnityChan()
 {
@@ -8,8 +11,8 @@ UnityChan::UnityChan()
 	mMesh->Load("UnityChan");
 
 	mPos = glm::vec3(2.f, 2.f, 0.f);
-	mRotate = glm::mat4(1.f);
-	mScale = 10.f;
+	mRotate = glm::rotate(glm::mat4(1.0f), (float)M_PI / 2.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+	mScale = 0.01f;
 }
 
 void UnityChan::Update(float deltatime)
@@ -25,7 +28,8 @@ void UnityChan::Draw(Shader* shader)
 	shader->SetMatrixUniform("ModelTransform", mWorldTransform);
 
  	mMesh->BindVertexArray();
-	mMesh->Draw(shader);
+	//mMesh->Draw(shader);
+	mMesh->DrawArray();
 	mMesh->UnBindVertexArray();
 }
 

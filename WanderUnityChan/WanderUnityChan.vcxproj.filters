@@ -81,5 +81,6 @@
     <None Include="shaders\SkinningShadowMap.vert" />
     <None Include="shaders\UnityChan.frag" />
     <None Include="shaders\test.frag" />
+    <None Include="shaders\test.vert" />
   </ItemGroup>
 </Project>

@@ -15,4 +15,5 @@ void main()
     FragColor.r = 0.8;
     FragColor.g = 0.8;
     FragColor.b = 0.8;
+    FragColor = vec4(1.0f);
 }

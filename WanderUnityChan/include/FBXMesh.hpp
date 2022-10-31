@@ -13,6 +13,7 @@ public:
 	void BindVertexArray();
 	void UnBindVertexArray();
 	void Draw(class Shader* shader);
+	void DrawArray();
 
 private:
 	struct Polygon {
@@ -28,6 +29,7 @@ private:
 	void LoadUV(FbxLayerElementUV* uvElem);
 
 	void PopulateBuffers();
+	void DrawArrayPB();
 
 	std::vector<glm::vec3> mPositions;
 	std::vector<glm::vec3> mNormals;
@@ -35,6 +37,7 @@ private:
 	std::vector<unsigned int> mIndices;
 
 	unsigned int mVertexArray;
+	unsigned int mDrawArrayVAO;
 
 	FbxManager* mManager;
 };

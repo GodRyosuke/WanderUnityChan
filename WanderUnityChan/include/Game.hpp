@@ -4,8 +4,8 @@
 #include "glew.h"
 #include "TextureShadowMap.hpp"
 #include "Skinning.hpp"
-#include "Shader.hpp"
 #include "UnityChan.hpp"
+#include <map>
 
 class Game {
 public:
@@ -58,11 +58,13 @@ private:
 
 	TextureShadowMap* mTextureShadowMapFBO;
 
-	Shader* mShadowMapShader;
-	Shader* mShadowLightingShader;
-	Shader* mSkinShadowMapShader;
-	Shader* mSkinShadowLightingShader;
-	Shader* mUnityChanShader;
+	//Shader* mShadowMapShader;
+	//Shader* mShadowLightingShader;
+	//Shader* mSkinShadowMapShader;
+	//Shader* mSkinShadowLightingShader;
+	//Shader* mUnityChanShader;
+
+	std::map<std::string, class Shader*> mShaders;
 
 	PHASE mPhase;
 

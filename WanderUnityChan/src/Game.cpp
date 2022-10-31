@@ -2,6 +2,7 @@
 
 #include "Game.hpp"
 #include "FBXMesh.hpp"
+#include "Shader.hpp"
 #include "gtc/matrix_transform.hpp"
 #include "gtc/type_ptr.hpp"
 #include "gtx/rotate_vector.hpp"
@@ -101,9 +102,9 @@ bool Game::Initialize()
 void Game::SetShaderLighting()
 {
 	std::vector<Shader*> Shaders;
-	Shaders.push_back(mShadowLightingShader);
-	Shaders.push_back(mSkinShadowLightingShader);
-	Shaders.push_back(mUnityChanShader);
+	Shaders.push_back(mShaders["ShadowLighting"]);
+	Shaders.push_back(mShaders["SkinShadowLighting"]);
+	Shaders.push_back(mShaders["UnityChanShader"]);
 
 	for (auto shader : Shaders) {
 		shader->UseProgram();
@@ -165,86 +166,91 @@ bool Game::LoadData()
 
 	// Shader�ǂݍ��ݏ���
 	// ���ʂ�Mesh
+	Shader* shader = nullptr;
 	{
 		// Shadow Map
 		std::string vert_file = "./Shaders/ShadowMap.vert";
 		std::string frag_file = "./Shaders/ShadowMap.frag";
-		mShadowMapShader = new Shader();
-		if (!mShadowMapShader->CreateShaderProgram(vert_file, frag_file)) {
+		shader = new Shader();
+		if (!shader->CreateShaderProgram(vert_file, frag_file)) {
 			return false;
 		}
+		mShaders.emplace("ShadowMap", shader);
 	}
-	mShadowMapShader->UseProgram();
-	mShadowMapShader->SetMatrixUniform("LightView", SpotLightView);
-	mShadowMapShader->SetMatrixUniform("CameraProj", CameraProj);
-	mShadowMapShader->SetSamplerUniform("gShadowMap", 1);
 
 	{
 		// Shadow Lighting
 		std::string vert_file = "./Shaders/ShadowLighting.vert";
 		std::string frag_file = "./Shaders/ShadowLighting.frag";
-		mShadowLightingShader = new Shader();
-		if (!mShadowLightingShader->CreateShaderProgram(vert_file, frag_file)) {
+		shader = new Shader();
+		if (!shader->CreateShaderProgram(vert_file, frag_file)) {
 			return false;
 		}
+		mShaders.emplace("ShadowLighting", shader);
 	}
-	mShadowLightingShader->UseProgram();
-	mShadowLightingShader->SetMatrixUniform("CameraView", CameraView);
-	mShadowLightingShader->SetMatrixUniform("CameraProj", CameraProj);
-	mShadowLightingShader->SetMatrixUniform("LightView", SpotLightView);
-	mShadowLightingShader->SetSamplerUniform("gShadowMap", 1);
 
 	// SkinMesh
 	{
 		// Shadow Map
 		std::string vert_file = "./Shaders/SkinningShadowMap.vert";
 		std::string frag_file = "./Shaders/ShadowMap.frag";
-		mSkinShadowMapShader = new Shader();
-		if (!mSkinShadowMapShader->CreateShaderProgram(vert_file, frag_file)) {
+		shader = new Shader();
+		if (!shader->CreateShaderProgram(vert_file, frag_file)) {
 			return false;
 		}
+		mShaders.emplace("SkinShadowMap", shader);
 	}
-	mSkinShadowMapShader->UseProgram();
-	mSkinShadowMapShader->SetMatrixUniform("LightView", SpotLightView);
-	mSkinShadowMapShader->SetMatrixUniform("CameraProj", CameraProj);
-	mSkinShadowMapShader->SetSamplerUniform("gShadowMap", 1);
 
 	{
 		// Shadow Lighting
 		std::string vert_file = "./Shaders/SkinningShadowLighting.vert";
 		std::string frag_file = "./Shaders/ShadowLighting.frag";
-		mSkinShadowLightingShader = new Shader();
-		if (!mSkinShadowLightingShader->CreateShaderProgram(vert_file, frag_file)) {
+		shader = new Shader();
+		if (!shader->CreateShaderProgram(vert_file, frag_file)) {
 			return false;
 		}
+		mShaders.emplace("SkinShadowLighting", shader);
 	}
-	mSkinShadowLightingShader->UseProgram();
-	mSkinShadowLightingShader->SetMatrixUniform("CameraView", CameraView);
-	mSkinShadowLightingShader->SetMatrixUniform("CameraProj", CameraProj);
-	mSkinShadowLightingShader->SetMatrixUniform("LightView", SpotLightView);
-	mSkinShadowLightingShader->SetSamplerUniform("gShadowMap", 1);
 
 	// Unity Chan Shadow Lighting 
 	{
 		// Shadow Lighting
 		std::string vert_file = "./Shaders/SkinningShadowLighting.vert";
 		std::string frag_file = "./Shaders/UnityChan.frag";
-		mUnityChanShader = new Shader();
-		if (!mUnityChanShader->CreateShaderProgram(vert_file, frag_file)) {
+		shader = new Shader();
+		if (!shader->CreateShaderProgram(vert_file, frag_file)) {
 			return false;
 		}
+		mShaders.emplace("UnityChanShader", shader);
 	}
-	mUnityChanShader->UseProgram();
-	mUnityChanShader->SetMatrixUniform("CameraView", CameraView);
-	mUnityChanShader->SetMatrixUniform("CameraProj", CameraProj);
-	mUnityChanShader->SetMatrixUniform("LightView", SpotLightView);
-	mUnityChanShader->SetSamplerUniform("gShadowMap", 1);
+
+	// Load TestShader
+	{
+		// Shadow Lighting
+		std::string vert_file = "./Shaders/test.vert";
+		std::string frag_file = "./Shaders/test.frag";
+		shader = new Shader();
+		if (!shader->CreateShaderProgram(vert_file, frag_file)) {
+			return false;
+		}
+		mShaders.emplace("TestShader", shader);
+	}
+
+	// View Projection Matrixを設定
+	for (auto iter : mShaders) {
+		Shader* shader = iter.second;
+		shader->UseProgram();
+		shader->SetMatrixUniform("CameraView", CameraView);
+		shader->SetMatrixUniform("CameraProj", CameraProj);
+		shader->SetMatrixUniform("LightView", SpotLightView);
+		shader->SetSamplerUniform("gShadowMap", 1);
+	}
 
 	// light setting
 	SetShaderLighting();
 
 
-	// Model�ǂݍ��ݏ���
+	// Load Models
 	{
 		// Treasure Box
 		Mesh* mesh = new Mesh();
@@ -476,9 +482,10 @@ void Game::UpdateGame()
 
 	// �X�V���ꂽ�J�����̈ʒu��Shader�ɔ��f
 	std::vector<Shader*> Shaders;
-	Shaders.push_back(mShadowLightingShader);
-	Shaders.push_back(mSkinShadowLightingShader);
-	Shaders.push_back(mUnityChanShader);
+	Shaders.push_back(mShaders["ShadowLighting"]);
+	Shaders.push_back(mShaders["SkinShadowLighting"]);
+	Shaders.push_back(mShaders["UnityChanShader"]);
+	Shaders.push_back(mShaders["TestShader"]);
 	for (auto shader : Shaders) {
 		shader->UseProgram();
 		shader->SetVectorUniform("gEyeWorldPos", mCameraPos);
@@ -496,7 +503,7 @@ void Game::Draw()
 
 	glClear(GL_DEPTH_BUFFER_BIT);
 
-	mShadowMapShader->UseProgram();
+	mShaders["ShadowMap"]->UseProgram();
 
 	//{
 	//	// Spot Light��View Projection��ݒ�
@@ -511,14 +518,14 @@ void Game::Draw()
 	//}
 	for (auto mesh : mMeshes) {
 		if (mesh.IsShadow) {
-			mesh.mesh->Draw(mShadowMapShader, mTicksCount / 1000.0f);
+			mesh.mesh->Draw(mShaders["ShadowMap"], mTicksCount / 1000.0f);
 		}
 	}
 	for (auto skinmesh : mSkinMeshes) {
-		skinmesh->Draw(mSkinShadowMapShader, mTicksCount / 1000.0f);
+		skinmesh->Draw(mShaders["SkinShadowMap"], mTicksCount / 1000.0f);
 	}
 
-	mUnityChan->Draw(mShadowMapShader);
+	//mUnityChan->Draw(mShadowMapShader);
 	//mAnimUnityChan->Draw(mSkinShadowMapShader, mTicksCount / 1000.0f);
 
 
@@ -533,19 +540,18 @@ void Game::Draw()
 	//glEnable(GL_DEPTH_TEST);
 	glDisable(GL_BLEND);
 
-	mShadowLightingShader->UseProgram();
+	mShaders["ShadowLighting"]->UseProgram();
 	mTextureShadowMapFBO->BindTexture(GL_TEXTURE1);
 	for (auto mesh : mMeshes) {
-		mesh.mesh->Draw(mShadowLightingShader, mTicksCount / 1000.0f);
+		mesh.mesh->Draw(mShaders["ShadowLighting"], mTicksCount / 1000.0f);
 	}
 	for (auto skinmesh : mSkinMeshes) {
-		skinmesh->Draw(mSkinShadowLightingShader, mTicksCount / 1000.0f);
+		skinmesh->Draw(mShaders["SkinShadowLighting"], mTicksCount / 1000.0f);
 	}
-	mUnityChan->Draw(mShadowLightingShader);
+	mUnityChan->Draw(mShaders["TestShader"]);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	mUnityChanShader->UseProgram();
 	//mAnimUnityChan->Draw(mUnityChanShader, mTicksCount / 1000.0f);
 
 
