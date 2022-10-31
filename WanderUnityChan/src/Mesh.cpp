@@ -1,7 +1,7 @@
 #include "Mesh.hpp"
+#include "Texture.hpp"
 #include <iostream>
 #include "GLUtil.hpp"
-
 
 Mesh::Mesh()
 {
@@ -250,10 +250,10 @@ void Mesh::Draw(Shader* shader, float timeInSeconds)
         unsigned int MaterialIndex = m_Meshes[i].MaterialIndex;
         assert(MaterialIndex < m_Materials.size());
 
-        shader->SetVectorUniform("uAmbientLight", m_Materials[MaterialIndex].AmbientColor);
-        shader->SetVectorUniform("uDirLight.mDirection", glm::vec3(0, -0.707, -0.707));
+        shader->SetVectorUniform("gMatAmbientColor", m_Materials[MaterialIndex].AmbientColor);
+        //shader->SetVectorUniform("uDirLight.mDirection", glm::vec3(0, -0.707, -0.707));
         shader->SetVectorUniform("gMatDiffuseColor", m_Materials[MaterialIndex].DiffuseColor);
-        shader->SetVectorUniform("uDirLight.mSpecColor", m_Materials[MaterialIndex].SpecColor);
+        //shader->SetVectorUniform("uDirLight.mSpecColor", m_Materials[MaterialIndex].SpecColor);
         shader->SetFloatUniform("gMatSpecularPower", m_Materials[MaterialIndex].SpecPower);
         shader->SetVectorUniform("gMatSpecularColor", m_Materials[MaterialIndex].SpecColor);
         shader->SetFloatUniform("gMatSpecularIntensity", 1.f);

@@ -5,11 +5,9 @@
 #include "glm.hpp"
 #include "Shader.hpp"
 #include <map>
-#include "Texture.hpp"
 #include <assimp/Importer.hpp>      // C++ importer interface
 #include <assimp/scene.h>       // Output data structure
 #include <assimp/postprocess.h> // Post processing flags
-
 
 #define MAX_NUM_BONES_PER_VERTEX 4
 #define ASSIMP_LOAD_FLAGS (aiProcess_Triangulate | aiProcess_GenSmoothNormals |  aiProcess_JoinIdenticalVertices )
@@ -71,7 +69,7 @@ private:
         glm::vec3 Emissive;
         glm::vec3 Bump;
         glm::vec3 NormalMap;
-        Texture* DiffuseTexture;
+        class Texture* DiffuseTexture;
     };
 
 

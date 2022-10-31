@@ -1,0 +1,13 @@
+XCOPY "$(SolutionDir)dependencies\SDL2\lib\x64\*.dll" "$(OutDir)" /e /y  
+XCOPY "$(SolutionDir)dependencies\fmod\lib\*.dll" "$(OutDir)" /e /y
+XCOPY "$(SolutionDir)dependencies\glew\lib\*.dll" "$(OutDir)" /e /y
+XCOPY "$(SolutionDir)dependencies\assimp\lib\Release\*.dll" "$(OutDir)" /e /y
+XCOPY "$(SolutionDir)dependencies\fbxsdk\lib\release\libfbxsdk.dll" "$(OutDir)" /e /y
+
+set OUTPUT_DIRECTORY="$(OutDir)shaders"
+if not exist %OUTPUT_DIRECTORY% mkdir %OUTPUT_DIRECTORY%
+XCOPY "$(SolutionDir)WanderUnityChan\shaders" %OUTPUT_DIRECTORY% /e /y
+
+set OUTPUT_DIRECTORY="$(OutDir)resources"
+if not exist %OUTPUT_DIRECTORY% mkdir %OUTPUT_DIRECTORY%
+XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y

@@ -1,11 +1,15 @@
 #define _CRT_SECURE_NO_WARNINGS
 
-
 #include "Game.hpp"
+#include "FBXMesh.hpp"
 #include "gtc/matrix_transform.hpp"
 #include "gtc/type_ptr.hpp"
 #include "gtx/rotate_vector.hpp"
 #include "gtx/vector_angle.hpp"
+#include "UnityChan.hpp"
+
+
+#define STB_IMAGE_IMPLEMENTATION
 
 Game::Game()
 	:mWindowWidth(1024),
@@ -347,6 +351,8 @@ bool Game::LoadData()
 		//}
 	}
 
+	// FBXSDKを使ってUnityChanを読み込む
+	mUnityChan = new UnityChan();
 
 
 	// Load ShadowMap FBO
@@ -441,6 +447,8 @@ void Game::UpdateGame()
 
 	mTicksCount = SDL_GetTicks();
 
+	mUnityChan->Update(deltaTime);
+
 	if (mPhase == PHASE_MOVE) {
 		//printf("%d %d\n", mMousePos.x, mMousePos.y);
 
@@ -509,6 +517,8 @@ void Game::Draw()
 	for (auto skinmesh : mSkinMeshes) {
 		skinmesh->Draw(mSkinShadowMapShader, mTicksCount / 1000.0f);
 	}
+
+	mUnityChan->Draw(mShadowMapShader);
 	//mAnimUnityChan->Draw(mSkinShadowMapShader, mTicksCount / 1000.0f);
 
 
@@ -531,6 +541,7 @@ void Game::Draw()
 	for (auto skinmesh : mSkinMeshes) {
 		skinmesh->Draw(mSkinShadowLightingShader, mTicksCount / 1000.0f);
 	}
+	mUnityChan->Draw(mShadowLightingShader);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

@@ -116,19 +116,20 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)WanderUnityChan\include;%(AdditionalIncludeDirectories);$(SolutionDir)WanderUnityChan\include;$(SolutionDir)dependencies\SDL2\include;$(SolutionDir)dependencies\fmod\include;$(SolutionDir)dependencies\glew\include;$(SolutionDir)dependencies\glm\glm;$(SolutionDir)dependencies\assimp\include;$(SolutionDir)dependencies\STB_Image</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)WanderUnityChan\include;%(AdditionalIncludeDirectories);$(SolutionDir)WanderUnityChan\include;$(SolutionDir)dependencies\SDL2\include;$(SolutionDir)dependencies\fmod\include;$(SolutionDir)dependencies\glew\include;$(SolutionDir)dependencies\glm\glm;$(SolutionDir)dependencies\assimp\include;$(SolutionDir)dependencies\STB_Image;$(SolutionDir)dependencies\fbxsdk\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)dependencies\SDL2\lib\x64;$(SolutionDir)dependencies\fmod\lib;$(SolutionDir)dependencies\glew\lib;$(SolutionDir)dependencies\assimp\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>fmod_vc.lib;fmodstudio_vc.lib;SDL2.lib;SDL2main.lib;glew32.lib;opengl32.lib;assimp-vc142-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)dependencies\SDL2\lib\x64;$(SolutionDir)dependencies\fmod\lib;$(SolutionDir)dependencies\glew\lib;$(SolutionDir)dependencies\assimp\lib\Debug;$(SolutionDir)dependencies\fbxsdk\lib\debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>fmod_vc.lib;fmodstudio_vc.lib;SDL2.lib;SDL2main.lib;glew32.lib;opengl32.lib;assimp-vc142-mtd.lib;libfbxsdk-md.lib;libxml2-md.lib;zlib-md.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>XCOPY "$(SolutionDir)dependencies\SDL2\lib\x64\*.dll" "$(OutDir)" /e /y  
 XCOPY "$(SolutionDir)dependencies\fmod\lib\*.dll" "$(OutDir)" /e /y
 XCOPY "$(SolutionDir)dependencies\glew\lib\*.dll" "$(OutDir)" /e /y
 XCOPY "$(SolutionDir)dependencies\assimp\lib\Debug\*.dll" "$(OutDir)" /e /y
+XCOPY "$(SolutionDir)dependencies\fbxsdk\lib\debug\libfbxsdk.dll" "$(OutDir)" /e /y
 
 
 set OUTPUT_DIRECTORY="$(OutDir)shaders"
@@ -137,9 +138,7 @@ XCOPY "$(SolutionDir)WanderUnityChan\shaders" %OUTPUT_DIRECTORY% /e /y
 
 set OUTPUT_DIRECTORY="$(OutDir)resources"
 if not exist %OUTPUT_DIRECTORY% mkdir %OUTPUT_DIRECTORY%
-XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y
-
-</Command>
+XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -150,22 +149,22 @@ XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>;$(SolutionDir)WanderUnityChan\include;$(SolutionDir)dependencies\SDL2\include;$(SolutionDir)dependencies\fmod\include;$(SolutionDir)dependencies\glew\include;$(SolutionDir)dependencies\glm\glm;$(SolutionDir)dependencies\assimp\include;$(SolutionDir)dependencies\STB_Image</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)WanderUnityChan\include;$(SolutionDir)dependencies\SDL2\include;$(SolutionDir)dependencies\fmod\include;$(SolutionDir)dependencies\glew\include;$(SolutionDir)dependencies\glm\glm;$(SolutionDir)dependencies\assimp\include;$(SolutionDir)dependencies\STB_Image;$(SolutionDir)dependencies\fbxsdk\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)dependencies\SDL2\lib\x64;$(SolutionDir)dependencies\fmod\lib;$(SolutionDir)dependencies\glew\lib;$(SolutionDir)dependencies\assimp\lib\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>fmod_vc.lib;fmodstudio_vc.lib;SDL2.lib;SDL2main.lib;glew32s.lib;opengl32.lib;assimp-vc142-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)dependencies\SDL2\lib\x64;$(SolutionDir)dependencies\fmod\lib;$(SolutionDir)dependencies\glew\lib;$(SolutionDir)dependencies\assimp\lib\Release;$(SolutionDir)dependencies\fbxsdk\lib\release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>fmod_vc.lib;fmodstudio_vc.lib;SDL2.lib;SDL2main.lib;glew32s.lib;opengl32.lib;assimp-vc142-mt.lib;libfbxsdk-md.lib;libxml2-md.lib;zlib-md.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>XCOPY "$(SolutionDir)dependencies\SDL2\lib\x64\*.dll" "$(OutDir)" /e /y  
 XCOPY "$(SolutionDir)dependencies\fmod\lib\*.dll" "$(OutDir)" /e /y
 XCOPY "$(SolutionDir)dependencies\glew\lib\*.dll" "$(OutDir)" /e /y
 XCOPY "$(SolutionDir)dependencies\assimp\lib\Release\*.dll" "$(OutDir)" /e /y
-
+XCOPY "$(SolutionDir)dependencies\fbxsdk\lib\release\libfbxsdk.dll" "$(OutDir)" /e /y
 
 set OUTPUT_DIRECTORY="$(OutDir)shaders"
 if not exist %OUTPUT_DIRECTORY% mkdir %OUTPUT_DIRECTORY%
@@ -173,13 +172,12 @@ XCOPY "$(SolutionDir)WanderUnityChan\shaders" %OUTPUT_DIRECTORY% /e /y
 
 set OUTPUT_DIRECTORY="$(OutDir)resources"
 if not exist %OUTPUT_DIRECTORY% mkdir %OUTPUT_DIRECTORY%
-XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y
-
-</Command>
+XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="include\Texture.hpp" />
+    <ClCompile Include="src\FBXMesh.cpp" />
     <ClCompile Include="src\Game.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
@@ -190,6 +188,7 @@ XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y
     <ClCompile Include="src\UnityChan.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\FBXMesh.hpp" />
     <ClInclude Include="include\Game.hpp" />
     <ClInclude Include="include\GLUtil.hpp" />
     <ClInclude Include="include\Mesh.hpp" />

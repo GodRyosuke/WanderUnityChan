@@ -1,10 +1,11 @@
 #pragma once
 
 #include "Texture.hpp"
+#define STB_IMAGE_IMPLEMENTATION
 
 class TextureShadowMap : public Texture {
 public:
-	TextureShadowMap() : Texture() {}
+	TextureShadowMap();
 	~TextureShadowMap() {}
 
 	bool Load(int width, int height);

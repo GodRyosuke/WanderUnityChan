@@ -1,2 +1,3 @@
 ﻿  test.cpp
-  testProject.vcxproj -> C:\Users\ienvs\source\repos\WanderUnityChan\x64\Debug\testProject.exe
+  LINK : 前回のインクリメンタル リンクで C:\Users\kusumoto\source\repos\WanderUnityChan\x64\Debug\testProject.exe が見つからなかったか、ビルドされませんでした。フル リンクを行います。
+  testProject.vcxproj -> C:\Users\kusumoto\source\repos\WanderUnityChan\x64\Debug\testProject.exe

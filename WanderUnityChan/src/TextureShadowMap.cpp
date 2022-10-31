@@ -1,5 +1,9 @@
 #include "TextureShadowMap.hpp"
 
+TextureShadowMap::TextureShadowMap()
+    :Texture()
+{}
+
 bool TextureShadowMap::Load(int width, int height)
 {
     this->width = width;

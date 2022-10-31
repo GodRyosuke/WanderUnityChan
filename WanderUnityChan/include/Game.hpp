@@ -1,4 +1,4 @@
-//#pragma once
+#pragma once
 
 #include "SDL.h"
 #include "glew.h"
@@ -52,7 +52,7 @@ private:
 	};
 	std::vector<MeshData> mMeshes;
 	std::vector<SkinMesh*> mSkinMeshes;
-	Mesh* mUnityChan;
+	class UnityChan* mUnityChan;
 	SkinMesh* mRunAnim;
 	UnityChan* mAnimUnityChan;
 

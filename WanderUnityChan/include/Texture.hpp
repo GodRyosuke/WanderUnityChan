@@ -4,8 +4,9 @@
 #include <string>
 #include "glew.h"
 #include "SDL.h"
-#include "stb_image.h"
+
 #include <vector>
+#define STB_IMAGE_IMPLEMENTATION
 
 class Texture {
 public:

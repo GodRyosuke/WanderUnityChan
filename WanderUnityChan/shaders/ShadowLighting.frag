@@ -55,7 +55,7 @@ uniform sampler2D gShadowMap;
 uniform vec3 gEyeWorldPos;                                                                  
 
 // Material color
-uniform float gMatSpecularIntensity;                                                        
+uniform float gMatSpecularIntensity;  // Ç±ÇÍÇ¢ÇÈÅH                                                      
 uniform float gMatSpecularPower;
 uniform vec3 gMatSpecularColor;
 uniform vec3 gMatAmbientColor;
@@ -79,7 +79,7 @@ float CalcShadowFactor(vec4 LightSpacePos)
 vec4 CalcLightInternal(BaseLight Light, vec3 LightDirection, vec3 Normal,            
                        float ShadowFactor)                                                  
 {                                                                                           
-    vec4 AmbientColor = vec4(Light.Color * Light.AmbientIntensity, 1.0f);
+    vec4 AmbientColor = vec4(Light.Color * Light.AmbientIntensity * gMatAmbientColor, 1.0f);
     float DiffuseFactor = dot(Normal, -LightDirection);                                     
                                                                                             
     vec4 DiffuseColor  = vec4(0, 0, 0, 0);                                                  
