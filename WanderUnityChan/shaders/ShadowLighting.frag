@@ -12,7 +12,7 @@ out vec4 FragColor;
                                                                                     
 struct BaseLight                                                                    
 {                                                                                   
-    vec3 Color;                                                                     
+    vec3 Color;     // Ambient Color                                                                     
     float AmbientIntensity;                                                         
     float DiffuseIntensity;                                                         
 };                                                                                  
@@ -43,7 +43,8 @@ struct SpotLight
     vec3 Direction;                                                                         
     float Cutoff;                                                                           
 };                                                                                          
-                                                                                            
+           
+// Light color
 uniform int gNumPointLights;                                                                
 uniform int gNumSpotLights;                                                                 
 uniform DirectionalLight gDirectionalLight;                                                 
@@ -52,8 +53,14 @@ uniform SpotLight gSpotLights[MAX_SPOT_LIGHTS];
 uniform sampler2D gSampler;                                                                 
 uniform sampler2D gShadowMap;                                                               
 uniform vec3 gEyeWorldPos;                                                                  
+
+// Material color
 uniform float gMatSpecularIntensity;                                                        
-uniform float gSpecularPower;                                                               
+uniform float gMatSpecularPower;
+uniform vec3 gMatSpecularColor;
+uniform vec3 gMatAmbientColor;
+uniform vec3 gMatDiffuseColor;
+
                                                                                             
 float CalcShadowFactor(vec4 LightSpacePos)                                                  
 {                                                                                           
@@ -79,14 +86,15 @@ vec4 CalcLightInternal(BaseLight Light, vec3 LightDirection, vec3 Normal,
     vec4 SpecularColor = vec4(0, 0, 0, 0);                                                  
                                                                                             
     if (DiffuseFactor > 0) {                                                                
-        DiffuseColor = vec4(Light.Color * Light.DiffuseIntensity * DiffuseFactor, 1.0f);    
+        DiffuseColor = vec4(Light.Color * Light.DiffuseIntensity * gMatDiffuseColor * DiffuseFactor, 1.0f);    
                                                                                             
         vec3 VertexToEye = normalize(gEyeWorldPos - WorldPos0);                             
         vec3 LightReflect = normalize(reflect(LightDirection, Normal));                     
         float SpecularFactor = dot(VertexToEye, LightReflect);                                      
         if (SpecularFactor > 0) {                                                           
-            SpecularFactor = pow(SpecularFactor, gSpecularPower);                               
-            SpecularColor = vec4(Light.Color, 1.0f) * gMatSpecularIntensity * SpecularFactor;                         
+            SpecularFactor = pow(SpecularFactor, gMatSpecularPower);                               
+            SpecularColor = vec4(gMatSpecularColor, 1.0f) * gMatSpecularIntensity * SpecularFactor;                         
+            // SpecularColor = vec4(Light.Color, 1.0f) * SpecularFactor;                         
         }                                                                                   
     }                                                                                       
     // ShadowFactor = 1.0f;                
@@ -171,6 +179,10 @@ void main()
     //if(SampledColor.a < 0.4) {
     //    discard;
     //}
+
+    vec3 a = vec3(3.4f, 5.4f, 1.2f);
+    vec3 b = vec3(1.2, 3.3f, 4.5f);
+    vec3 c = a * b;
 
     FragColor = SampledColor * TotalLight;                                                  
 }

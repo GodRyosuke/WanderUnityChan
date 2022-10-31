@@ -159,8 +159,8 @@ bool Game::LoadData()
 	);
 
 
-	// Shader“Ç‚İ‚İˆ—
-	// •’Ê‚ÌMesh
+	// Shaderï¿½Ç‚İï¿½ï¿½İï¿½ï¿½ï¿½
+	// ï¿½ï¿½ï¿½Ê‚ï¿½Mesh
 	{
 		// Shadow Map
 		std::string vert_file = "./Shaders/ShadowMap.vert";
@@ -240,7 +240,7 @@ bool Game::LoadData()
 	SetShaderLighting();
 
 
-	// Model“Ç‚İ‚İˆ—
+	// Modelï¿½Ç‚İï¿½ï¿½İï¿½ï¿½ï¿½
 	{
 		// Treasure Box
 		Mesh* mesh = new Mesh();
@@ -330,21 +330,21 @@ bool Game::LoadData()
 	//}
 
 	{
-		UnityChan* unitychan = new UnityChan();
-		std::vector<std::string> animFillePaths;
-		animFillePaths.push_back("running2.fbx");
-		if (unitychan->Load("./resources/UnityChan/", "unitychan2.fbx", animFillePaths)) {
-			unitychan->SetMeshPos(glm::vec3(6.0f, 4.0f, 0.0f));
-			glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), (float)M_PI / 2.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-			unitychan->SetMeshRotate(rotate);
-			unitychan->SetMeshScale(0.01);
-			mAnimUnityChan = unitychan;
-		}
-		else {
-			delete unitychan;
-			mAnimUnityChan = nullptr;
-			return false;
-		}
+		//UnityChan* unitychan = new UnityChan();
+		//std::vector<std::string> animFillePaths;
+		//animFillePaths.push_back("unitychan_RUN00_F.fbx");
+		//if (unitychan->Load("./resources/UnityChan/", "unitychan.fbx", animFillePaths)) {
+		//	unitychan->SetMeshPos(glm::vec3(6.0f, 4.0f, 0.0f));
+		//	glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), (float)M_PI / 2.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+		//	unitychan->SetMeshRotate(rotate);
+		//	unitychan->SetMeshScale(0.01);
+		//	mAnimUnityChan = unitychan;
+		//}
+		//else {
+		//	delete unitychan;
+		//	mAnimUnityChan = nullptr;
+		//	return false;
+		//}
 	}
 
 
@@ -376,7 +376,7 @@ void Game::ProcessInput()
 		case SDL_QUIT:
 			mIsRunning = false;
 			break;
-		case SDL_MOUSEBUTTONDOWN:	// ƒ}ƒEƒX‚Ìƒ{ƒ^ƒ“‚ª‰Ÿ‚³‚ê‚½‚ç
+		case SDL_MOUSEBUTTONDOWN:	// ï¿½}ï¿½Eï¿½Xï¿½Ìƒ{ï¿½^ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ê‚½ï¿½ï¿½
 		{
 			if (mPhase == PHASE_IDLE) {
 				//mLastMousePos = mMousePos;
@@ -391,7 +391,7 @@ void Game::ProcessInput()
 			}
 		}
 		break;
-		case SDL_MOUSEBUTTONUP:		// ƒ}ƒEƒX‚ğ—£‚µ‚½‚ç
+		case SDL_MOUSEBUTTONUP:		// ï¿½}ï¿½Eï¿½Xï¿½ğ—£‚ï¿½ï¿½ï¿½ï¿½ï¿½
 			if (mPhase == PHASE_MOVE) {
 				mPhase = PHASE_IDLE;
 
@@ -408,7 +408,7 @@ void Game::ProcessInput()
 	}
 
 	const Uint8* keyState = SDL_GetKeyboardState(NULL);
-	if (keyState[SDL_SCANCODE_ESCAPE] || keyState[SDL_SCANCODE_Q])	// escapeƒL[‚ğ‰Ÿ‰º‚·‚é‚ÆI—¹
+	if (keyState[SDL_SCANCODE_ESCAPE] || keyState[SDL_SCANCODE_Q])	// escapeï¿½Lï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÆIï¿½ï¿½
 	{
 		mIsRunning = false;
 	}
@@ -466,7 +466,7 @@ void Game::UpdateGame()
 		}
 	}
 
-	// XV‚³‚ê‚½ƒJƒƒ‰‚ÌˆÊ’u‚ğShader‚É”½‰f
+	// ï¿½Xï¿½Vï¿½ï¿½ï¿½ê‚½ï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½ÌˆÊ’uï¿½ï¿½Shaderï¿½É”ï¿½ï¿½f
 	std::vector<Shader*> Shaders;
 	Shaders.push_back(mShadowLightingShader);
 	Shaders.push_back(mSkinShadowLightingShader);
@@ -483,7 +483,7 @@ void Game::UpdateGame()
 
 void Game::Draw()
 {
-	// Frame Buffer‚É•`‰æ
+	// Frame Bufferï¿½É•`ï¿½ï¿½
 	mTextureShadowMapFBO->WriteBind();
 
 	glClear(GL_DEPTH_BUFFER_BIT);
@@ -491,7 +491,7 @@ void Game::Draw()
 	mShadowMapShader->UseProgram();
 
 	//{
-	//	// Spot Light‚ÌView Projection‚ğİ’è
+	//	// Spot Lightï¿½ï¿½View Projectionï¿½ï¿½İ’ï¿½
 	//	glm::mat4 projection = glm::perspective(glm::radians(20.0f), (float)mWindowWidth / mWindowHeight, 0.1f, 100.0f);
 	//	glm::mat4 view = glm::lookAt(
 	//		mSpotLight.Position,
@@ -535,7 +535,7 @@ void Game::Draw()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	mUnityChanShader->UseProgram();
-	mAnimUnityChan->Draw(mUnityChanShader, mTicksCount / 1000.0f);
+	//mAnimUnityChan->Draw(mUnityChanShader, mTicksCount / 1000.0f);
 
 
 

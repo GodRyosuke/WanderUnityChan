@@ -119,6 +119,11 @@ bool Mesh::Load(std::string RootPath, std::string ObjFileName)
             m_Materials[materialIdx].SpecColor.g = SpecularColor.g;
             m_Materials[materialIdx].SpecColor.b = SpecularColor.b;
         }
+
+        ai_real Shiness(0.f);
+        if (pMaterial->Get(AI_MATKEY_SHININESS, Shiness) == AI_SUCCESS) {
+            m_Materials[materialIdx].SpecPower = Shiness;
+        }
     }
 
     // Vertex Array Objectì¬
@@ -247,9 +252,11 @@ void Mesh::Draw(Shader* shader, float timeInSeconds)
 
         shader->SetVectorUniform("uAmbientLight", m_Materials[MaterialIndex].AmbientColor);
         shader->SetVectorUniform("uDirLight.mDirection", glm::vec3(0, -0.707, -0.707));
-        shader->SetVectorUniform("uDirLight.mDiffuseColor", m_Materials[MaterialIndex].DiffuseColor);
+        shader->SetVectorUniform("gMatDiffuseColor", m_Materials[MaterialIndex].DiffuseColor);
         shader->SetVectorUniform("uDirLight.mSpecColor", m_Materials[MaterialIndex].SpecColor);
-        shader->SetFloatUniform("gSpecularPower", 0.3f);
+        shader->SetFloatUniform("gMatSpecularPower", m_Materials[MaterialIndex].SpecPower);
+        shader->SetVectorUniform("gMatSpecularColor", m_Materials[MaterialIndex].SpecColor);
+        shader->SetFloatUniform("gMatSpecularIntensity", 1.f);
         //shader->SetFloatUniform("gMatSpecularIntensity", 1.0f);
 
         if (m_Materials[MaterialIndex].DiffuseTexture) {
