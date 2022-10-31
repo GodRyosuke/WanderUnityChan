@@ -1,5 +1,6 @@
 #include "FBXMesh.hpp"
 #include "glew.h"
+#include "Shader.hpp"
 
 FBXMesh::FBXMesh()
 {
@@ -7,9 +8,6 @@ FBXMesh::FBXMesh()
     mNormals.resize(0);
     mTexCoords.resize(0);
     mIndices.resize(0);
-
-    mNormals.push_back(glm::vec3());
-    mTexCoords.push_back(glm::vec2());
 }
 
 FBXMesh::~FBXMesh()
@@ -106,6 +104,9 @@ void FBXMesh::LoadMesh(FbxMesh* mesh)
 
 
     for (int p = 0; p < PolygonNum; p++) {
+        //mIndices.push_back(p * 3);
+        //mIndices.push_back(p * 3 + 1);
+        //mIndices.push_back(p * 3 + 2);
         int IndexNumInPolygon = mesh->GetPolygonSize(p);  // p番目のポリゴンの頂点数
         for (int n = 0; n < IndexNumInPolygon; n++) {
             // ポリゴンpを構成するn番目の頂点のインデックス番号
@@ -114,12 +115,97 @@ void FBXMesh::LoadMesh(FbxMesh* mesh)
         }
     }
 
+
+    // 頂点データの取得
     int controlNum = mesh->GetControlPointsCount();   // 頂点数
     FbxVector4* src = mesh->GetControlPoints();    // 頂点座標配列
-
-    // コピー
     for (int i = 0; i < controlNum; ++i) {
         mPositions.push_back(glm::vec3(src[i][0], src[i][1], src[i][2]));
+    }
+
+    int layerNum = mesh->GetLayerCount();
+    for (int i = 0; i < layerNum; ++i) {
+        FbxLayer* layer = mesh->GetLayer(i);
+
+        // 法線情報の取得
+        FbxLayerElementNormal* normalElem = layer->GetNormals();
+        if (normalElem != 0) {
+            LoadNormal(normalElem);
+        }
+        // UV情報を取得
+        FbxLayerElementUV* uvElem = layer->GetUVs();
+        if (uvElem != 0) {
+            LoadUV(uvElem);
+        }
+    }
+}
+
+void FBXMesh::LoadNormal(FbxLayerElementNormal* normalElem)
+{
+    // 法線の数・インデックス
+    int normalNum = normalElem->GetDirectArray().GetCount();
+    int indexNum = normalElem->GetIndexArray().GetCount();
+
+    // マッピングモード・リファレンスモード取得
+    FbxLayerElement::EMappingMode mappingMode = normalElem->GetMappingMode();
+    FbxLayerElement::EReferenceMode refMode = normalElem->GetReferenceMode();
+    assert(refMode == FbxLayerElement::eDirect);    // eDirectじゃないと対応できない
+    if (mappingMode == FbxLayerElement::eByPolygonVertex) {
+        if (refMode == FbxLayerElement::eDirect) {
+            // 直接取得
+            for (int i = 0; i < normalNum; ++i) {
+                mNormals.push_back(glm::vec3(
+                    static_cast<float>(normalElem->GetDirectArray().GetAt(i)[0]),
+                    static_cast<float>(normalElem->GetDirectArray().GetAt(i)[1]),
+                    static_cast<float>(normalElem->GetDirectArray().GetAt(i)[2])
+                ));
+            }
+        }
+    }
+    else if (mappingMode == FbxLayerElement::eByControlPoint) {
+        if (refMode == FbxLayerElement::eDirect) {
+            // 直接取得
+            for (int i = 0; i < normalNum; ++i) {
+                mNormals.push_back(glm::vec3(
+                    static_cast<float>(normalElem->GetDirectArray().GetAt(i)[0]),
+                    static_cast<float>(normalElem->GetDirectArray().GetAt(i)[1]),
+                    static_cast<float>(normalElem->GetDirectArray().GetAt(i)[2])
+                ));
+            }
+        }
+    }
+}
+
+void FBXMesh::LoadUV(FbxLayerElementUV* uvElement)
+{
+    // UVの数・インデックス
+    int UVNum = uvElement->GetDirectArray().GetCount();
+    int indexNum = uvElement->GetIndexArray().GetCount();
+    int size = UVNum > indexNum ? UVNum : indexNum;
+
+    // マッピングモード・リファレンスモード別にUV取得
+    FbxLayerElementUV::EMappingMode mappingMode = uvElement->GetMappingMode();
+    FbxLayerElementUV::EReferenceMode refMode = uvElement->GetReferenceMode();
+    if ((mappingMode == FbxLayerElementUV::eByPolygonVertex) || (mappingMode == FbxLayerElementUV::eByControlPoint)) {
+        if (refMode == FbxLayerElementUV::eDirect) {
+            // 直接取得
+            for (int i = 0; i < size; ++i) {
+                mTexCoords.push_back(glm::vec2(
+                    static_cast<float>(uvElement->GetDirectArray().GetAt(i)[0]),
+                    static_cast<float>(uvElement->GetDirectArray().GetAt(i)[1])
+                ));
+            }
+        }
+        else if (refMode == FbxLayerElementUV::eIndexToDirect) {
+            // インデックスから取得
+            for (int i = 0; i < size; ++i) {
+                int index = uvElement->GetIndexArray().GetAt(i);
+                mTexCoords.push_back(glm::vec2(
+                    static_cast<float>((uvElement->GetDirectArray().GetAt(index)[0])),
+                    static_cast<float>((uvElement->GetDirectArray().GetAt(index)[1]))
+                ));
+            }
+        }
     }
 }
 
@@ -132,7 +218,7 @@ void FBXMesh::PopulateBuffers()
         NORMAL_VB = 3,
         NUM_BUFFERS = 4,  // required only for instancing
     };
-    GLuint m_Buffers[NUM_BUFFERS] = { 0 };
+    GLuint m_Buffers[NUM_BUFFERS] = { 0 }; 
     glGenBuffers(NUM_BUFFERS, m_Buffers);
 
     // Vertex Data
@@ -167,6 +253,20 @@ void FBXMesh::BindVertexArray()
 void FBXMesh::UnBindVertexArray()
 {
     glBindVertexArray(0);
+}
+
+void FBXMesh::Draw(Shader* shader)
+{
+    //glDrawElementsBaseVertex(GL_TRIANGLES,
+    //    mIndices.size(),
+    //    GL_UNSIGNED_INT,
+    //    (void*)(mIndices.data()),
+    //    mPositions.size() * 3);
+
+    glDrawElements(GL_POINTS,
+        mIndices.size(),
+        GL_UNSIGNED_INT,
+        (void*)(0));
 }
 
 void FBXMesh::ShowNodeNames(FbxNode* node, int indent)

@@ -12,11 +12,20 @@ public:
 	bool Load(std::string fileName);
 	void BindVertexArray();
 	void UnBindVertexArray();
+	void Draw(class Shader* shader);
 
 private:
+	struct Polygon {
+		int Size;
+		unsigned int BaseIndex;	// mIndicesÇÃÅAÇ«ÇÃà íuÇÃIndexÇ»ÇÃÇ©ÅH
+	};
+
 	void ShowNodeNames(FbxNode* node, int indent);
 	void LoadNode(FbxNode* node);
 	void LoadMesh(FbxMesh* mesh);
+
+	void LoadNormal(FbxLayerElementNormal* normalElem);
+	void LoadUV(FbxLayerElementUV* uvElem);
 
 	void PopulateBuffers();
 
