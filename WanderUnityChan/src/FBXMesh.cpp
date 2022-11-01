@@ -56,7 +56,6 @@ bool FBXMesh::Load(std::string fileName)
     // Vertex Bufferの作成
     PopulateBuffers();
 
-
     // unbind cube vertex arrays
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -103,23 +102,32 @@ void FBXMesh::LoadMesh(FbxMesh* mesh)
     int PolygonNum = mesh->GetPolygonCount();
     int PolygonVertexNum = mesh->GetPolygonVertexCount();
     int* IndexAry = mesh->GetPolygonVertices();
-    std::vector<glm::vec3> positions(PolygonNum * 3);
-    int currentSize = mPositions.size();
-    mPositions.resize(currentSize + PolygonNum * 3);  // 3角形ポリゴン
+
+    int currentPosSize = mPositions.size();
+    mPositions.resize(currentPosSize + PolygonNum * 3);  // 3角形ポリゴン
+    int currentNormalSize = mNormals.size();
+    mNormals.resize(currentNormalSize + PolygonNum * 3);
     for (int p = 0; p < PolygonNum; p++) {
-        //mIndices.push_back(p * 3);
-        //mIndices.push_back(p * 3 + 1);
-        //mIndices.push_back(p * 3 + 2);
         int IndexNumInPolygon = mesh->GetPolygonSize(p);  // p番目のポリゴンの頂点数
         for (int n = 0; n < IndexNumInPolygon; n++) {
             // ポリゴンpを構成するn番目の頂点のインデックス番号
             int IndexNumber = mesh->GetPolygonVertex(p, n);
             mIndices.push_back(IndexNumber);
-            FbxVector4 vec = mesh->GetControlPointAt(IndexNumber);
-            mPositions[currentSize + p * 3 + n] = glm::vec3(
-                static_cast<float>(vec[0]),
-                static_cast<float>(vec[1]),
-                static_cast<float>(vec[2])
+
+            // 頂点を読みだす
+            FbxVector4 position = mesh->GetControlPointAt(IndexNumber);
+            mPositions[currentPosSize + p * 3 + n] = glm::vec3(
+                static_cast<float>(position[0]),
+                static_cast<float>(position[1]),
+                static_cast<float>(position[2])
+            );
+
+            FbxVector4 normal;
+            mesh->GetPolygonVertexNormal(p, n, normal);
+            mNormals[currentNormalSize + p * 3 + n] = glm::vec3(
+                static_cast<float>(normal[0]),
+                static_cast<float>(normal[1]),
+                static_cast<float>(normal[2])
             );
         }
     }
@@ -140,7 +148,7 @@ void FBXMesh::LoadMesh(FbxMesh* mesh)
         // 法線情報の取得
         FbxLayerElementNormal* normalElem = layer->GetNormals();
         if (normalElem != 0) {
-            LoadNormal(normalElem);
+            //LoadNormal(normalElem);
         }
         // UV情報を取得
         FbxLayerElementUV* uvElem = layer->GetUVs();
@@ -244,12 +252,12 @@ void FBXMesh::PopulateBuffers()
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
     // UV
-    glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[TEXCOORD_VB]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(mTexCoords[0]) * mTexCoords.size(), &mTexCoords[0], GL_STATIC_DRAW);
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    //glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[TEXCOORD_VB]);
+    //glBufferData(GL_ARRAY_BUFFER, sizeof(mTexCoords[0]) * mTexCoords.size(), &mTexCoords[0], GL_STATIC_DRAW);
+    //glEnableVertexAttribArray(2);
+    //glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
-    // Indef Buffer
+    // Index Buffer
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Buffers[INDEX_BUFFER]);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(mIndices[0]) * mIndices.size(), &mIndices[0], GL_STATIC_DRAW);
 }
@@ -260,12 +268,30 @@ void FBXMesh::DrawArrayPB()
     glBindVertexArray(mDrawArrayVAO);
 
     // Vertex Bufferの作成
-    unsigned int VertexBuffer;
-    glGenBuffers(1, &VertexBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, VertexBuffer);
+    enum BUFFER_TYPE {
+        INDEX_BUFFER = 0,
+        POS_VB = 1,
+        TEXCOORD_VB = 2,
+        NORMAL_VB = 3,
+        NUM_BUFFERS = 4,  // required only for instancing
+    };
+    GLuint m_Buffers[NUM_BUFFERS] = { 0 };
+    glGenBuffers(1, m_Buffers);
+
+    glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[POS_VB]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(mPositions[0]) * mPositions.size(), &mPositions[0], GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[NORMAL_VB]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(mNormals[0])* mNormals.size(), &mNormals[0], GL_STATIC_DRAW);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+    // Indef Buffer
+    unsigned int IndexBuffer;
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Buffers[INDEX_BUFFER]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(mIndices[0]) * mIndices.size(), &mIndices[0], GL_STATIC_DRAW);
 
 
     // unbind cube vertex arrays
@@ -300,6 +326,7 @@ void FBXMesh::Draw(Shader* shader)
 
 void FBXMesh::DrawArray()
 {
+    glBindVertexArray(mDrawArrayVAO);
     glDrawArrays(
         GL_TRIANGLES,
         0,

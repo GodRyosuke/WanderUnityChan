@@ -3,7 +3,7 @@
 // ˆÊ’u‚¾‚¯Žó‚¯Žæ‚Á‚Ä•`‰æ
 
 layout (location = 0) in vec3 Position;                                              
-
+layout (location = 1) in vec3 Normal; 
 
 uniform mat4 ModelTransform;
 uniform mat4 CameraView;
@@ -23,6 +23,6 @@ void main()
 	gl_Position = CameraProj * CameraView * ModelTransform * vec4(Position, 1.0);
 	// LightSpacePos = CameraProj * LightView * ModelTransform * vec4(Position, 1.0);                                 
     // WorldPos0 = (ModelTransform * vec4(Position, 1.0)).xyz;                          
-	// Normal0 = (ModelTransform * vec4(Normal, 0.0)).xyz;                            
+	Normal0 = (ModelTransform * vec4(Normal, 0.0)).xyz;                            
 	// TexCoord0 = TexCoord;
 }
