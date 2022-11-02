@@ -1,6 +1,8 @@
 #include "FBXMesh.hpp"
 #include "glew.h"
 #include "Shader.hpp"
+#include "GLUtil.hpp"
+#include "Texture.hpp"
 
 FBXMesh::FBXMesh()
 {
@@ -19,6 +21,8 @@ static std::vector<int> pcount(6);
 
 bool FBXMesh::Load(std::string fileName)
 {
+    mMeshFileName = fileName;
+
     // マネージャを生成
     mManager = FbxManager::Create();
 
@@ -38,9 +42,18 @@ bool FBXMesh::Load(std::string fileName)
     importer->Import(scene);
     importer->Destroy(); // シーンを流し込んだらImporterは解放してOK
 
+    // 三角面化
     FbxGeometryConverter geometryConv = FbxGeometryConverter(mManager);
     geometryConv.Triangulate(scene, true);
+
     // Scene解析
+    // Material 読み込み
+    int materialCount = scene->GetMaterialCount();
+    for (int i = 0; i < materialCount; i++) {
+        FbxSurfaceMaterial* material = scene->GetMaterial(i);
+        LoadMaterial(material);
+    }
+
     FbxNode* rootNode = scene->GetRootNode();
     if (rootNode == 0) {
         printf("error: cannont find root node: %s\n", fileName.c_str());
@@ -68,6 +81,51 @@ bool FBXMesh::Load(std::string fileName)
     mManager->Destroy();
 
 	return true;
+}
+
+void FBXMesh::LoadMaterial(FbxSurfaceMaterial* material)
+{
+    Material MaterialData;
+    MaterialData.Name = material->GetName();
+    FbxProperty fbxProperty = material->FindProperty(FbxSurfaceMaterial::sDiffuse);
+    int textureCount = fbxProperty.GetSrcObjectCount<FbxFileTexture>();
+
+    const FbxImplementation* fbxImp = GetImplementation(
+        material,
+        FBXSDK_IMPLEMENTATION_CGFX
+    );
+    if (fbxImp) {
+        const FbxBindingTable* rootTable = fbxImp->GetRootTable();
+        int entryCount = static_cast<int>(rootTable->GetEntryCount());
+        for (int i = 0; i < entryCount; i++) {
+            FbxBindingTableEntry const& entry = rootTable->GetEntry(i);
+            FbxProperty hierachical = material->RootProperty.FindHierarchical(
+                entry.GetSource()
+            );
+            int fileTexCount = hierachical.GetSrcObjectCount<FbxFileTexture>();
+
+            for (int texIdx = 0; texIdx < fileTexCount; texIdx++) {
+                FbxFileTexture* fileTex = hierachical.GetSrcObject<FbxFileTexture>(texIdx);
+                std::string texturePathData = fileTex->GetFileName();
+                GLUtil glutil;
+                char buffer[512];
+                memset(buffer, 0, 512 * sizeof(char));
+                memcpy(buffer, texturePathData.c_str(), sizeof(char) * 512);
+                glutil.Replace('\\', '/', buffer);
+                std::vector<std::string> split_list;
+                std::string replace_file_name = buffer;
+                // 「/」で分解
+                glutil.Split('/', buffer, split_list);
+
+                std::string texturePath = "./resources/" + mMeshFileName + "/Textures/" + split_list[split_list.size() - 1];
+                Texture* tex = new Texture(texturePath);
+                MaterialData.Textures.push_back(tex);
+                printf("%s\n", fileTex->GetFileName());
+            }
+        }
+    }
+
+    mMaterials.push_back(MaterialData);
 }
 
 void FBXMesh::LoadNode(FbxNode* node)
@@ -104,9 +162,11 @@ void FBXMesh::LoadMesh(FbxMesh* mesh)
     int* IndexAry = mesh->GetPolygonVertices();
 
     int currentPosSize = mPositions.size();
-    mPositions.resize(currentPosSize + PolygonNum * 3);  // 3角形ポリゴン
+    mPositions.resize(currentPosSize + PolygonNum * 3);  // 3角形ポリゴンと仮定
     int currentNormalSize = mNormals.size();
     mNormals.resize(currentNormalSize + PolygonNum * 3);
+    int currentUVSize = mTexCoords.size();
+    mTexCoords.resize(currentUVSize + PolygonNum * 3);
     for (int p = 0; p < PolygonNum; p++) {
         int IndexNumInPolygon = mesh->GetPolygonSize(p);  // p番目のポリゴンの頂点数
         for (int n = 0; n < IndexNumInPolygon; n++) {
@@ -122,12 +182,30 @@ void FBXMesh::LoadMesh(FbxMesh* mesh)
                 static_cast<float>(position[2])
             );
 
+            // 法線情報の取得
             FbxVector4 normal;
             mesh->GetPolygonVertexNormal(p, n, normal);
             mNormals[currentNormalSize + p * 3 + n] = glm::vec3(
                 static_cast<float>(normal[0]),
                 static_cast<float>(normal[1]),
                 static_cast<float>(normal[2])
+            );
+
+            // UV情報の取得
+            FbxStringList uvSetNameList;
+            mesh->GetUVSetNames(uvSetNameList);
+            const char* uvSetName = uvSetNameList.GetStringAt(p);
+            bool unMapped;
+            FbxVector2 uv;
+            mesh->GetPolygonVertexUV(
+                p,
+                n,
+                uvSetName,
+                uv,
+                unMapped);
+            mTexCoords[currentUVSize + p * 3 + n] = glm::vec2(
+                static_cast<float>(uv[0]),
+                static_cast<float>(uv[1])
             );
         }
     }
@@ -153,7 +231,7 @@ void FBXMesh::LoadMesh(FbxMesh* mesh)
         // UV情報を取得
         FbxLayerElementUV* uvElem = layer->GetUVs();
         if (uvElem != 0) {
-            LoadUV(uvElem);
+            //LoadUV(uvElem);
         }
     }
 }
