@@ -198,6 +198,8 @@ XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y</Comman
     <ClInclude Include="include\UnityChan.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="shaders\pos.frag" />
+    <None Include="shaders\pos.vert" />
     <None Include="shaders\ShadowLighting.vert" />
     <None Include="shaders\ShadowLighting.frag" />
     <None Include="shaders\ShadowMap.frag" />

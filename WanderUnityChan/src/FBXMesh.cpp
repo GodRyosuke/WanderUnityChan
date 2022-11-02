@@ -252,10 +252,10 @@ void FBXMesh::PopulateBuffers()
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
     // UV
-    //glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[TEXCOORD_VB]);
-    //glBufferData(GL_ARRAY_BUFFER, sizeof(mTexCoords[0]) * mTexCoords.size(), &mTexCoords[0], GL_STATIC_DRAW);
-    //glEnableVertexAttribArray(2);
-    //glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[TEXCOORD_VB]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(mTexCoords[0]) * mTexCoords.size(), &mTexCoords[0], GL_STATIC_DRAW);
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
     // Index Buffer
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Buffers[INDEX_BUFFER]);
@@ -318,6 +318,7 @@ void FBXMesh::Draw(Shader* shader)
     //    (void*)(mIndices.data()),
     //    mPositions.size() * 3);
 
+    glBindVertexArray(mVertexArray);
     glDrawElements(GL_TRIANGLES,
         mIndices.size(),
         GL_UNSIGNED_INT,
@@ -326,11 +327,11 @@ void FBXMesh::Draw(Shader* shader)
 
 void FBXMesh::DrawArray()
 {
-    glBindVertexArray(mDrawArrayVAO);
+    glBindVertexArray(mVertexArray);
     glDrawArrays(
         GL_TRIANGLES,
         0,
-        mPositions.size()
+        mPositions.size() * 3
     );
 }
 

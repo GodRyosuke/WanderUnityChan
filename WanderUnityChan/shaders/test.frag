@@ -15,7 +15,7 @@ out vec4 FragColor;
 void main()
 {
 	vec3 Direction = vec3(1.0f, 0.0f, -1.0f);
-	vec3 AmbientLight = vec3(0.5, 0.5, 0.2);
+	vec3 AmbientLight = vec3(0.5, 0.5, 0.5);
 	vec3 DiffuseColor = vec3(0.5, 0.5, 0.5);
 	vec3 SpecColor = vec3(0.5f, 0.5f, 0.5f);
 	float SpecPower = 0.5f;
@@ -43,11 +43,3 @@ void main()
 	// FragColor = vec4(1.0f);
 }
 
-// #version 330
-// 
-// out vec4 FragColor;
-// 
-// void main()
-// {
-// 	FragColor = vec4(1.0f);
-// }

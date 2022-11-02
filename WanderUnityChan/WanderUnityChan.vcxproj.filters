@@ -82,5 +82,7 @@
     <None Include="shaders\UnityChan.frag" />
     <None Include="shaders\test.frag" />
     <None Include="shaders\test.vert" />
+    <None Include="shaders\pos.vert" />
+    <None Include="shaders\pos.frag" />
   </ItemGroup>
 </Project>
