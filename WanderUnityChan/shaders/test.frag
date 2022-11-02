@@ -40,5 +40,14 @@ void main()
 		Phong += Diffuse + Specular;
 	}
     FragColor = vec4(Phong, 1.0f);
-	FragColor = vec4(1.0f);
+	// FragColor = vec4(1.0f);
 }
+
+// #version 330
+// 
+// out vec4 FragColor;
+// 
+// void main()
+// {
+// 	FragColor = vec4(1.0f);
+// }
