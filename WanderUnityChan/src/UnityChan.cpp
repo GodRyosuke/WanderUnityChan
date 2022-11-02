@@ -28,8 +28,8 @@ void UnityChan::Draw(Shader* shader)
 	shader->SetMatrixUniform("ModelTransform", mWorldTransform);
 
  	//mMesh->BindVertexArray();
-	//mMesh->Draw(shader);
-	mMesh->DrawArray();
+	mMesh->Draw(shader);
+	//mMesh->DrawArray();
 	mMesh->UnBindVertexArray();
 }
 

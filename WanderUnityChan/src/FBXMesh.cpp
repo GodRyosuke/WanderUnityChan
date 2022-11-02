@@ -59,7 +59,7 @@ bool FBXMesh::Load(std::string fileName)
         printf("error: cannont find root node: %s\n", fileName.c_str());
         return false;
     }
-    ShowNodeNames(rootNode, 0);
+    //ShowNodeNames(rootNode, 0);
     LoadNode(rootNode);
 
     // Create VAO
@@ -87,6 +87,7 @@ void FBXMesh::LoadMaterial(FbxSurfaceMaterial* material)
 {
     Material MaterialData;
     MaterialData.Name = material->GetName();
+    printf("material name: %s\n", material->GetName());
     FbxProperty fbxProperty = material->FindProperty(FbxSurfaceMaterial::sDiffuse);
     int textureCount = fbxProperty.GetSrcObjectCount<FbxFileTexture>();
 
@@ -120,7 +121,7 @@ void FBXMesh::LoadMaterial(FbxSurfaceMaterial* material)
                 std::string texturePath = "./resources/" + mMeshFileName + "/Textures/" + split_list[split_list.size() - 1];
                 Texture* tex = new Texture(texturePath);
                 MaterialData.Textures.push_back(tex);
-                printf("%s\n", fileTex->GetFileName());
+                //printf("%s\n", fileTex->GetFileName());
             }
         }
     }
@@ -137,7 +138,8 @@ void FBXMesh::LoadNode(FbxNode* node)
         "eBoundary", "eNurbsSurface", "eShape", "eLODGroup", "eSubDiv",
         "eCachedEffect", "eLine"
     };
-    const char* name = node->GetName();
+    std::string NodeName = node->GetName();
+    //printf("NodeName: %s\n", NodeName.c_str());
     int attrCount = node->GetNodeAttributeCount();
     for (int i = 0; i < attrCount; ++i) {
         FbxNodeAttribute* attr = node->GetNodeAttributeByIndex(i);
@@ -145,6 +147,12 @@ void FBXMesh::LoadNode(FbxNode* node)
         if (type == FbxNodeAttribute::EType::eMesh) {   // Mesh Nodeなら
             FbxMesh* pMesh = static_cast<FbxMesh*>(attr);
             LoadMesh(pMesh);
+            
+            int materialCount = node->GetMaterialCount();
+            for (int i = 0; i < materialCount; i++) {
+                FbxSurfaceMaterial* material = node->GetMaterial(i);
+                LoadMaterial(material);
+            }
         }
     }
 
@@ -168,11 +176,17 @@ void FBXMesh::LoadMesh(FbxMesh* mesh)
     int currentUVSize = mTexCoords.size();
     mTexCoords.resize(currentUVSize + PolygonNum * 3);
     for (int p = 0; p < PolygonNum; p++) {
+        //mIndices.push_back(p * 3);
+        //mIndices.push_back(p * 3 + 1);
+        //mIndices.push_back(p * 3 + 2);
         int IndexNumInPolygon = mesh->GetPolygonSize(p);  // p番目のポリゴンの頂点数
         for (int n = 0; n < IndexNumInPolygon; n++) {
+            mIndices.push_back((p * 3 + n));
+            mIndices.push_back((p * 3 + n) + 1);
+            mIndices.push_back((p * 3 + n) + 2);
             // ポリゴンpを構成するn番目の頂点のインデックス番号
             int IndexNumber = mesh->GetPolygonVertex(p, n);
-            mIndices.push_back(IndexNumber);
+            //mIndices.push_back(IndexNumber);
 
             // 頂点を読みだす
             FbxVector4 position = mesh->GetControlPointAt(IndexNumber);
@@ -398,7 +412,7 @@ void FBXMesh::Draw(Shader* shader)
 
     glBindVertexArray(mVertexArray);
     glDrawElements(GL_TRIANGLES,
-        mIndices.size(),
+        mIndices.size() * 3,
         GL_UNSIGNED_INT,
         (void*)(0));
 }

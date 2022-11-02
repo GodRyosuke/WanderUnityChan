@@ -21,6 +21,13 @@ private:
 		std::vector<class Texture*> Textures;
 	};
 
+	struct BasicMeshEntry {
+		unsigned int MaterialIndex;
+		unsigned int NumIndices;	// ‚±‚Ìƒ|ƒŠƒSƒ“‚Ì’¸“_‚Ì”
+		unsigned int BaseVertex;
+		unsigned int BaseIndex;
+	};
+
 	void ShowNodeNames(FbxNode* node, int indent);
 	void LoadNode(FbxNode* node);
 	void LoadMesh(FbxMesh* mesh);
