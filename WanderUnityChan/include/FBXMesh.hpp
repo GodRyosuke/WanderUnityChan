@@ -22,15 +22,29 @@ private:
 	};
 
 	struct BasicMeshEntry {
+		BasicMeshEntry()
+			:MaterialIndex(0)
+			,NumIndices(0)
+			,BaseVertex(0)
+			,BaseIndex(0)
+			,IndexOffset(0)
+			,TriangleCount(0)
+		{
+		}
 		unsigned int MaterialIndex;
 		unsigned int NumIndices;	// ‚±‚Ìƒ|ƒŠƒSƒ“‚Ì’¸“_‚Ì”
 		unsigned int BaseVertex;
 		unsigned int BaseIndex;
+		unsigned int IndexOffset;
+		unsigned int TriangleCount;
 	};
+
+	std::vector<BasicMeshEntry*> mSubMeshes;
 
 	void ShowNodeNames(FbxNode* node, int indent);
 	void LoadNode(FbxNode* node);
 	void LoadMesh(FbxMesh* mesh);
+	bool LoadMeshElement(FbxMesh* mesh);
 
 	void LoadMaterial(FbxSurfaceMaterial* material);
 
