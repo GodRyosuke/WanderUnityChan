@@ -146,7 +146,8 @@ void FBXMesh::LoadNode(FbxNode* node)
         FbxNodeAttribute::EType type = attr->GetAttributeType();
         if (type == FbxNodeAttribute::EType::eMesh) {   // Mesh Node‚È‚ç
             FbxMesh* pMesh = static_cast<FbxMesh*>(attr);
-            LoadMesh(pMesh);
+            //LoadMesh(pMesh);
+            LoadMeshElement(pMesh);
             
             int materialCount = node->GetMaterialCount();
             for (int i = 0; i < materialCount; i++) {
@@ -264,20 +265,26 @@ bool FBXMesh::LoadMeshElement(FbxMesh* mesh)
     {
         lPolygonVertexCount = lPolygonCount * 3;
     }
-    float* lVertices = new float[lPolygonVertexCount * VERTEX_STRIDE];
+    //float* lVertices = new float[lPolygonVertexCount * VERTEX_STRIDE];
+    int currentPositionSize = mPositions.size();
+    mPositions.resize(currentPositionSize + lPolygonVertexCount);
     unsigned int* lIndices = new unsigned int[lPolygonCount * 3];
     float* lNormals = NULL;
+    int currentNormalSize = mNormals.size();
     if (hasNormal)
     {
-        lNormals = new float[lPolygonVertexCount * NORMAL_STRIDE];
+        //lNormals = new float[lPolygonVertexCount * NORMAL_STRIDE];
+        mNormals.resize(currentNormalSize + lPolygonVertexCount);
     }
+    int currentUVSize = mTexCoords.size();
     float* lUVs = NULL;
     FbxStringList lUVNames;
     mesh->GetUVSetNames(lUVNames);
     const char* lUVName = NULL;
     if (hasUV && lUVNames.GetCount())
     {
-        lUVs = new float[lPolygonVertexCount * UV_STRIDE];
+        mTexCoords.resize(currentUVSize + lPolygonVertexCount);
+        //lUVs = new float[lPolygonVertexCount * UV_STRIDE];
         lUVName = lUVNames[0];
     }
 
@@ -298,14 +305,23 @@ bool FBXMesh::LoadMeshElement(FbxMesh* mesh)
         {
             lUVElement = mesh->GetElementUV(0);
         }
+
+
         for (int lIndex = 0; lIndex < lPolygonVertexCount; ++lIndex)
         {
             // Save the vertex position.
             lCurrentVertex = lControlPoints[lIndex];
-            lVertices[lIndex * VERTEX_STRIDE] = static_cast<float>(lCurrentVertex[0]);
-            lVertices[lIndex * VERTEX_STRIDE + 1] = static_cast<float>(lCurrentVertex[1]);
-            lVertices[lIndex * VERTEX_STRIDE + 2] = static_cast<float>(lCurrentVertex[2]);
-            lVertices[lIndex * VERTEX_STRIDE + 3] = 1;
+            
+            mPositions[currentPositionSize + lIndex] = glm::vec3(
+                static_cast<float>(lCurrentVertex[0]),
+                static_cast<float>(lCurrentVertex[1]),
+                static_cast<float>(lCurrentVertex[2])
+            );
+
+            //lVertices[lIndex * VERTEX_STRIDE] = static_cast<float>(lCurrentVertex[0]);
+            //lVertices[lIndex * VERTEX_STRIDE + 1] = static_cast<float>(lCurrentVertex[1]);
+            //lVertices[lIndex * VERTEX_STRIDE + 2] = static_cast<float>(lCurrentVertex[2]);
+            //lVertices[lIndex * VERTEX_STRIDE + 3] = 1;
 
             // Save the normal.
             if (hasNormal)
@@ -316,9 +332,14 @@ bool FBXMesh::LoadMeshElement(FbxMesh* mesh)
                     lNormalIndex = lNormalElement->GetIndexArray().GetAt(lIndex);
                 }
                 lCurrentNormal = lNormalElement->GetDirectArray().GetAt(lNormalIndex);
-                lNormals[lIndex * NORMAL_STRIDE] = static_cast<float>(lCurrentNormal[0]);
-                lNormals[lIndex * NORMAL_STRIDE + 1] = static_cast<float>(lCurrentNormal[1]);
-                lNormals[lIndex * NORMAL_STRIDE + 2] = static_cast<float>(lCurrentNormal[2]);
+                mNormals[currentNormalSize + lIndex] = glm::vec3(
+                    static_cast<float>(lCurrentNormal[0]),
+                    static_cast<float>(lCurrentNormal[1]),
+                    static_cast<float>(lCurrentNormal[2])
+                );
+                //lNormals[lIndex * NORMAL_STRIDE] = static_cast<float>(lCurrentNormal[0]);
+                //lNormals[lIndex * NORMAL_STRIDE + 1] = static_cast<float>(lCurrentNormal[1]);
+                //lNormals[lIndex * NORMAL_STRIDE + 2] = static_cast<float>(lCurrentNormal[2]);
             }
 
             // Save the UV.
@@ -330,10 +351,72 @@ bool FBXMesh::LoadMeshElement(FbxMesh* mesh)
                     lUVIndex = lUVElement->GetIndexArray().GetAt(lIndex);
                 }
                 lCurrentUV = lUVElement->GetDirectArray().GetAt(lUVIndex);
-                lUVs[lIndex * UV_STRIDE] = static_cast<float>(lCurrentUV[0]);
-                lUVs[lIndex * UV_STRIDE + 1] = static_cast<float>(lCurrentUV[1]);
+                mTexCoords[currentUVSize + lIndex] = glm::vec2(
+                    static_cast<float>(lCurrentUV[0]),
+                    static_cast<float>(lCurrentUV[1])
+                );
+                //lUVs[lIndex * UV_STRIDE] = static_cast<float>(lCurrentUV[0]);
+                //lUVs[lIndex * UV_STRIDE + 1] = static_cast<float>(lCurrentUV[1]);
             }
         }
+    }
+
+
+    int lVertexCount = 0;
+    for (int lPolygonIndex = 0; lPolygonIndex < lPolygonCount; ++lPolygonIndex)
+    {
+        // The material for current face.
+        int lMaterialIndex = 0;
+        if (lMaterialIndice && lMaterialMappingMode == FbxGeometryElement::eByPolygon)
+        {
+            lMaterialIndex = lMaterialIndice->GetAt(lPolygonIndex);
+        }
+
+        // Where should I save the vertex attribute index, according to the material
+        const int lIndexOffset = mSubMeshes[lMaterialIndex]->IndexOffset +
+            mSubMeshes[lMaterialIndex]->TriangleCount * 3;
+        for (int lVerticeIndex = 0; lVerticeIndex < 3; ++lVerticeIndex)
+        {
+            const int lControlPointIndex = mesh->GetPolygonVertex(lPolygonIndex, lVerticeIndex);
+            // If the lControlPointIndex is -1, we probably have a corrupted mesh data. At this point,
+            // it is not guaranteed that the cache will work as expected.
+            if (lControlPointIndex >= 0)
+            {
+                if (isAllByControlPoint)
+                {
+                    lIndices[lIndexOffset + lVerticeIndex] = static_cast<unsigned int>(lControlPointIndex);
+                }
+                // Populate the array with vertex attribute, if by polygon vertex.
+                else
+                {
+                    lIndices[lIndexOffset + lVerticeIndex] = static_cast<unsigned int>(lVertexCount);
+
+                    lCurrentVertex = lControlPoints[lControlPointIndex];
+                    lVertices[lVertexCount * VERTEX_STRIDE] = static_cast<float>(lCurrentVertex[0]);
+                    lVertices[lVertexCount * VERTEX_STRIDE + 1] = static_cast<float>(lCurrentVertex[1]);
+                    lVertices[lVertexCount * VERTEX_STRIDE + 2] = static_cast<float>(lCurrentVertex[2]);
+                    lVertices[lVertexCount * VERTEX_STRIDE + 3] = 1;
+
+                    if (mHasNormal)
+                    {
+                        pMesh->GetPolygonVertexNormal(lPolygonIndex, lVerticeIndex, lCurrentNormal);
+                        lNormals[lVertexCount * NORMAL_STRIDE] = static_cast<float>(lCurrentNormal[0]);
+                        lNormals[lVertexCount * NORMAL_STRIDE + 1] = static_cast<float>(lCurrentNormal[1]);
+                        lNormals[lVertexCount * NORMAL_STRIDE + 2] = static_cast<float>(lCurrentNormal[2]);
+                    }
+
+                    if (mHasUV)
+                    {
+                        bool lUnmappedUV;
+                        pMesh->GetPolygonVertexUV(lPolygonIndex, lVerticeIndex, lUVName, lCurrentUV, lUnmappedUV);
+                        lUVs[lVertexCount * UV_STRIDE] = static_cast<float>(lCurrentUV[0]);
+                        lUVs[lVertexCount * UV_STRIDE + 1] = static_cast<float>(lCurrentUV[1]);
+                    }
+                }
+            }
+            ++lVertexCount;
+        }
+        mSubMeshes[lMaterialIndex]->TriangleCount += 1;
     }
 }
 
