@@ -7,7 +7,7 @@
 
 class FBXMesh {
 public:
-	FBXMesh();
+	FBXMesh(bool isDrawArray = false);
 	~FBXMesh();
 	bool Load(std::string fileName);
 	void BindVertexArray();
@@ -36,15 +36,17 @@ private:
 		unsigned int BaseVertex;
 		unsigned int BaseIndex;
 		unsigned int IndexOffset;
+		unsigned int VertexOffset;	// DrawArraysÇ≈égÇ§í∏ì_offset
+		unsigned int NumVertices;	// í∏ì_ÇÃêî
 		unsigned int TriangleCount;
 	};
 
-	std::vector<BasicMeshEntry*> mSubMeshes;
 
 	void ShowNodeNames(FbxNode* node, int indent);
 	void LoadNode(FbxNode* node);
 	void LoadMesh(FbxMesh* mesh);
 	bool LoadMeshElement(FbxMesh* mesh);
+	bool LoadMeshArray(FbxMesh* mesh);
 
 	void LoadMaterial(FbxSurfaceMaterial* material);
 
@@ -61,10 +63,15 @@ private:
 	std::vector<glm::vec2> mTexCoords;
 	std::vector<unsigned int> mIndices;
 	std::vector<Material> mMaterials;
+	std::vector<BasicMeshEntry> mBasicMeshEntries;
+	
+	
 
 	unsigned int mVertexArray;
 	unsigned int mDrawArrayVAO;
 
 	FbxManager* mManager;
 	std::string mMeshFileName;
+
+	bool mIsDrawArray;
 };

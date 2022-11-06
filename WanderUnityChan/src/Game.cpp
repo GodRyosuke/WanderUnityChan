@@ -263,7 +263,6 @@ bool Game::LoadData()
 	}
 
 
-
 	// Unity Chan world
 	{
 		Mesh* mesh = new Mesh();

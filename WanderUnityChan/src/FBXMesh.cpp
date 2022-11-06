@@ -4,7 +4,8 @@
 #include "GLUtil.hpp"
 #include "Texture.hpp"
 
-FBXMesh::FBXMesh()
+FBXMesh::FBXMesh(bool setIsDrawArray)
+    :mIsDrawArray(setIsDrawArray)
 {
     mPositions.resize(0);
     mNormals.resize(0);
@@ -74,7 +75,7 @@ bool FBXMesh::Load(std::string fileName)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    DrawArrayPB();
+    //DrawArrayPB();
 
     // マネージャ解放
     // 関連するすべてのオブジェクトが解放される
@@ -147,13 +148,18 @@ void FBXMesh::LoadNode(FbxNode* node)
         if (type == FbxNodeAttribute::EType::eMesh) {   // Mesh Nodeなら
             FbxMesh* pMesh = static_cast<FbxMesh*>(attr);
             //LoadMesh(pMesh);
-            LoadMeshElement(pMesh);
+            if (mIsDrawArray) {
+                LoadMeshArray(pMesh);
+            }
+            else {
+                LoadMeshElement(pMesh);
+            }
             
             int materialCount = node->GetMaterialCount();
-            for (int i = 0; i < materialCount; i++) {
-                FbxSurfaceMaterial* material = node->GetMaterial(i);
-                LoadMaterial(material);
-            }
+            //for (int i = 0; i < materialCount; i++) {
+            //    FbxSurfaceMaterial* material = node->GetMaterial(i);
+            //    LoadMaterial(material);
+            //}
         }
     }
 
@@ -169,6 +175,8 @@ bool FBXMesh::LoadMeshElement(FbxMesh* mesh)
         return false;
 
     const int lPolygonCount = mesh->GetPolygonCount();
+    std::vector<BasicMeshEntry*> mSubMeshes;
+
 
     // Count the polygon count of each material
     FbxLayerElementArrayTemplate<int>* lMaterialIndice = NULL;
@@ -268,7 +276,9 @@ bool FBXMesh::LoadMeshElement(FbxMesh* mesh)
     //float* lVertices = new float[lPolygonVertexCount * VERTEX_STRIDE];
     int currentPositionSize = mPositions.size();
     mPositions.resize(currentPositionSize + lPolygonVertexCount);
-    unsigned int* lIndices = new unsigned int[lPolygonCount * 3];
+    //unsigned int* lIndices = new unsigned int[lPolygonCount * 3];
+    int currentIndicesSize = mIndices.size();
+    mIndices.resize(currentIndicesSize + lPolygonCount * 3);
     float* lNormals = NULL;
     int currentNormalSize = mNormals.size();
     if (hasNormal)
@@ -293,6 +303,7 @@ bool FBXMesh::LoadMeshElement(FbxMesh* mesh)
     FbxVector4 lCurrentVertex;
     FbxVector4 lCurrentNormal;
     FbxVector2 lCurrentUV;
+    assert(isAllByControlPoint == false);   // このフラグは絶対falseなのでは？
     if (isAllByControlPoint)
     {
         const FbxGeometryElementNormal* lNormalElement = NULL;
@@ -384,33 +395,50 @@ bool FBXMesh::LoadMeshElement(FbxMesh* mesh)
             {
                 if (isAllByControlPoint)
                 {
-                    lIndices[lIndexOffset + lVerticeIndex] = static_cast<unsigned int>(lControlPointIndex);
+                    //lIndices[lIndexOffset + lVerticeIndex] = static_cast<unsigned int>(lControlPointIndex);
+                    mIndices[currentIndicesSize + lIndexOffset + lVerticeIndex] = static_cast<unsigned int>(lControlPointIndex);
                 }
                 // Populate the array with vertex attribute, if by polygon vertex.
                 else
                 {
-                    lIndices[lIndexOffset + lVerticeIndex] = static_cast<unsigned int>(lVertexCount);
+                    //lIndices[lIndexOffset + lVerticeIndex] = static_cast<unsigned int>(lVertexCount);
+                    mIndices[currentIndicesSize + lIndexOffset + lVerticeIndex] = static_cast<unsigned int>(lVertexCount);
 
                     lCurrentVertex = lControlPoints[lControlPointIndex];
-                    lVertices[lVertexCount * VERTEX_STRIDE] = static_cast<float>(lCurrentVertex[0]);
-                    lVertices[lVertexCount * VERTEX_STRIDE + 1] = static_cast<float>(lCurrentVertex[1]);
-                    lVertices[lVertexCount * VERTEX_STRIDE + 2] = static_cast<float>(lCurrentVertex[2]);
-                    lVertices[lVertexCount * VERTEX_STRIDE + 3] = 1;
 
-                    if (mHasNormal)
+                    mPositions[currentPositionSize + lVertexCount] = glm::vec3(
+                        static_cast<float>(lCurrentVertex[0]),
+                        static_cast<float>(lCurrentVertex[1]),
+                        static_cast<float>(lCurrentVertex[2])
+                    );
+                    //lVertices[lVertexCount * VERTEX_STRIDE] = static_cast<float>(lCurrentVertex[0]);
+                    //lVertices[lVertexCount * VERTEX_STRIDE + 1] = static_cast<float>(lCurrentVertex[1]);
+                    //lVertices[lVertexCount * VERTEX_STRIDE + 2] = static_cast<float>(lCurrentVertex[2]);
+                    //lVertices[lVertexCount * VERTEX_STRIDE + 3] = 1;
+
+                    if (hasNormal)
                     {
-                        pMesh->GetPolygonVertexNormal(lPolygonIndex, lVerticeIndex, lCurrentNormal);
-                        lNormals[lVertexCount * NORMAL_STRIDE] = static_cast<float>(lCurrentNormal[0]);
-                        lNormals[lVertexCount * NORMAL_STRIDE + 1] = static_cast<float>(lCurrentNormal[1]);
-                        lNormals[lVertexCount * NORMAL_STRIDE + 2] = static_cast<float>(lCurrentNormal[2]);
+                        mesh->GetPolygonVertexNormal(lPolygonIndex, lVerticeIndex, lCurrentNormal);
+                        mNormals[currentNormalSize + lVertexCount] = glm::vec3(
+                            static_cast<float>(lCurrentNormal[0]),
+                            static_cast<float>(lCurrentNormal[1]),
+                            static_cast<float>(lCurrentNormal[2])
+                        );
+                        //lNormals[lVertexCount * NORMAL_STRIDE] = static_cast<float>(lCurrentNormal[0]);
+                        //lNormals[lVertexCount * NORMAL_STRIDE + 1] = static_cast<float>(lCurrentNormal[1]);
+                        //lNormals[lVertexCount * NORMAL_STRIDE + 2] = static_cast<float>(lCurrentNormal[2]);
                     }
 
-                    if (mHasUV)
+                    if (hasUV)
                     {
                         bool lUnmappedUV;
-                        pMesh->GetPolygonVertexUV(lPolygonIndex, lVerticeIndex, lUVName, lCurrentUV, lUnmappedUV);
-                        lUVs[lVertexCount * UV_STRIDE] = static_cast<float>(lCurrentUV[0]);
-                        lUVs[lVertexCount * UV_STRIDE + 1] = static_cast<float>(lCurrentUV[1]);
+                        mesh->GetPolygonVertexUV(lPolygonIndex, lVerticeIndex, lUVName, lCurrentUV, lUnmappedUV);
+                        mTexCoords[currentUVSize + lVertexCount] = glm::vec2(
+                            static_cast<float>(lCurrentUV[0]),
+                            static_cast<float>(lCurrentUV[1])
+                        );
+                        //lUVs[lVertexCount * UV_STRIDE] = static_cast<float>(lCurrentUV[0]);
+                        //lUVs[lVertexCount * UV_STRIDE + 1] = static_cast<float>(lCurrentUV[1]);
                     }
                 }
             }
@@ -418,6 +446,252 @@ bool FBXMesh::LoadMeshElement(FbxMesh* mesh)
         }
         mSubMeshes[lMaterialIndex]->TriangleCount += 1;
     }
+
+    {
+        BasicMeshEntry bm();
+
+        
+        mBasicMeshEntries;
+    }
+
+    return true;
+}
+
+bool FBXMesh::LoadMeshArray(FbxMesh* mesh)
+{
+    if (!mesh->GetNode())
+        return false;
+
+    const int lPolygonCount = mesh->GetPolygonCount();
+    std::vector<BasicMeshEntry*> mSubMeshes;
+
+    struct VNTData
+    {
+        VNTData()
+            :Vertices(0)
+            ,Normals(0)
+            ,Texcoords(0)
+            ,TriangleCount(0)
+            ,VNTOffset(0)
+        {
+        }
+        std::vector<glm::vec3> Vertices;
+        std::vector<glm::vec3> Normals;
+        std::vector<glm::vec2> Texcoords;
+        unsigned int TriangleCount;    // このマテリアルのポリゴンの数
+        unsigned int VNTOffset; // 頂点データのオフセット
+    };
+    std::vector<VNTData*> vntArray(0);
+
+    // Count the polygon count of each material
+    FbxLayerElementArrayTemplate<int>* lMaterialIndice = NULL;
+    FbxGeometryElement::EMappingMode lMaterialMappingMode = FbxGeometryElement::eNone;
+    if (mesh->GetElementMaterial())
+    {
+        lMaterialIndice = &mesh->GetElementMaterial()->GetIndexArray();
+        lMaterialMappingMode = mesh->GetElementMaterial()->GetMappingMode();
+        if (lMaterialIndice && lMaterialMappingMode == FbxGeometryElement::eByPolygon)
+        {
+            FBX_ASSERT(lMaterialIndice->GetCount() == lPolygonCount);
+            if (lMaterialIndice->GetCount() == lPolygonCount)
+            {
+                // 各マテリアルのポリゴンの数を求める
+                for (int lPolygonIndex = 0; lPolygonIndex < lPolygonCount; ++lPolygonIndex)
+                {
+                    const int lMaterialIndex = lMaterialIndice->GetAt(lPolygonIndex);
+                    if (mSubMeshes.size() < lMaterialIndex + 1)
+                    {
+                        mSubMeshes.resize(lMaterialIndex + 1);
+                    }
+                    if (vntArray.size() < lMaterialIndex + 1)
+                    {
+                        vntArray.resize(lMaterialIndex + 1);
+                    }
+
+                    if (mSubMeshes[lMaterialIndex] == NULL)
+                    {
+                        mSubMeshes[lMaterialIndex] = new BasicMeshEntry;
+                    }
+                    if (vntArray[lMaterialIndex] == NULL)
+                    {
+                        vntArray[lMaterialIndex] = new VNTData();
+                    }
+                    vntArray[lMaterialIndex]->TriangleCount++;
+                    mSubMeshes[lMaterialIndex]->TriangleCount += 1;
+                }
+
+                // Make sure we have no "holes" (NULL) in the mSubMeshes table. This can happen
+                // if, in the loop above, we resized the mSubMeshes by more than one slot.
+                for (int i = 0; i < mSubMeshes.size(); i++)
+                {
+                    if (mSubMeshes[i] == NULL)
+                        mSubMeshes[i] = new BasicMeshEntry;
+                }
+
+                // 各マテリアルに対する頂点のオフセット導出
+                const int lMaterialCount = mSubMeshes.size();
+                int lOffset = 0;
+                int vntOffset = 0;
+                for (int lIndex = 0; lIndex < vntArray.size(); ++lIndex)
+                {
+                    if (vntArray[lIndex] == NULL) {
+                        vntArray[lIndex] = new VNTData();
+                    }
+                    mSubMeshes[lIndex]->IndexOffset = lOffset;
+                    vntArray[lIndex]->VNTOffset = vntOffset;
+                    lOffset += mSubMeshes[lIndex]->TriangleCount * 3;
+                    vntOffset += vntArray[lIndex]->TriangleCount * 3;
+                    vntArray[lIndex]->TriangleCount = 0;
+                    // This will be used as counter in the following procedures, reset to zero
+                    mSubMeshes[lIndex]->TriangleCount = 0;
+                }
+                FBX_ASSERT(lOffset == lPolygonCount * 3);
+            }
+        }
+    }
+    else {
+        assert(false);  // ここには決して来ない
+    }
+
+    assert(mesh->GetElementMaterial() != nullptr);
+
+    // All faces will use the same material.
+    if (mSubMeshes.size() == 0)
+    {
+        mSubMeshes.resize(1);
+        mSubMeshes[0] = new BasicMeshEntry();
+    }
+    // マテリアルの指定がないとき
+    if (vntArray.size() == 0)
+    {
+        vntArray.resize(1);
+        vntArray[0] = new VNTData();
+    }
+
+
+    // Congregate all the data of a mesh to be cached in VBOs.
+    // If normal or UV is by polygon vertex, record all vertex attributes by polygon vertex.
+    bool hasNormal = mesh->GetElementNormalCount() > 0;
+    bool hasUV = mesh->GetElementUVCount() > 0;
+    FbxGeometryElement::EMappingMode lNormalMappingMode = FbxGeometryElement::eNone;
+    FbxGeometryElement::EMappingMode lUVMappingMode = FbxGeometryElement::eNone;
+    if (hasNormal)
+    {
+        lNormalMappingMode = mesh->GetElementNormal(0)->GetMappingMode();
+        if (lNormalMappingMode == FbxGeometryElement::eNone)
+        {
+            hasNormal = false;
+        }
+    }
+    if (hasUV)
+    {
+        lUVMappingMode = mesh->GetElementUV(0)->GetMappingMode();
+        if (lUVMappingMode == FbxGeometryElement::eNone)
+        {
+            hasUV = false;
+        }
+    }
+
+    // Allocate the array memory, by control point or by polygon vertex.
+    int lPolygonVertexCount = mesh->GetControlPointsCount();
+    lPolygonVertexCount = lPolygonCount * 3;
+
+    //float* lVertices = new float[lPolygonVertexCount * VERTEX_STRIDE];
+    int currentPositionSize = mPositions.size();
+    mPositions.resize(currentPositionSize + lPolygonVertexCount);
+    //unsigned int* lIndices = new unsigned int[lPolygonCount * 3];
+    float* lNormals = NULL;
+    int currentNormalSize = mNormals.size();
+    if (hasNormal)
+    {
+        //lNormals = new float[lPolygonVertexCount * NORMAL_STRIDE];
+        mNormals.resize(currentNormalSize + lPolygonVertexCount);
+    }
+    int currentUVSize = mTexCoords.size();
+    float* lUVs = NULL;
+    FbxStringList lUVNames;
+    mesh->GetUVSetNames(lUVNames);
+    const char* lUVName = NULL;
+    if (hasUV && lUVNames.GetCount())
+    {
+        mTexCoords.resize(currentUVSize + lPolygonVertexCount);
+        //lUVs = new float[lPolygonVertexCount * UV_STRIDE];
+        lUVName = lUVNames[0];
+    }
+
+    // Populate the array with vertex attribute, if by control point.
+    const FbxVector4* lControlPoints = mesh->GetControlPoints();
+    FbxVector4 lCurrentVertex;
+    FbxVector4 lCurrentNormal;
+    FbxVector2 lCurrentUV;
+
+
+
+    for (int lPolygonIndex = 0; lPolygonIndex < lPolygonCount; ++lPolygonIndex)
+    {
+        // The material for current face.
+        int lMaterialIndex = 0;
+        if (lMaterialIndice && lMaterialMappingMode == FbxGeometryElement::eByPolygon)
+        {
+            lMaterialIndex = lMaterialIndice->GetAt(lPolygonIndex);
+        }
+
+        if (vntArray.size() < lMaterialIndex + 1)
+        {
+            vntArray.resize(lMaterialIndex + 1);
+        }
+
+        const int vntOffset = vntArray[lMaterialIndex]->VNTOffset +
+            vntArray[lMaterialIndex]->TriangleCount * 3;
+
+        // Where should I save the vertex attribute index, according to the material
+        for (int lVerticeIndex = 0; lVerticeIndex < 3; ++lVerticeIndex)
+        {
+            const int lControlPointIndex = mesh->GetPolygonVertex(lPolygonIndex, lVerticeIndex);
+            // If the lControlPointIndex is -1, we probably have a corrupted mesh data. At this point,
+            // it is not guaranteed that the cache will work as expected.
+            if (lControlPointIndex >= 0)
+            {
+                lCurrentVertex = lControlPoints[lControlPointIndex];
+
+                mPositions[currentPositionSize + vntOffset + lVerticeIndex] = glm::vec3(
+                    static_cast<float>(lCurrentVertex[0]),
+                    static_cast<float>(lCurrentVertex[1]),
+                    static_cast<float>(lCurrentVertex[2])
+                );
+
+                if (hasNormal)
+                {
+                    mesh->GetPolygonVertexNormal(lPolygonIndex, lVerticeIndex, lCurrentNormal);
+                    mNormals[currentNormalSize + vntOffset + lVerticeIndex] = glm::vec3(
+                        static_cast<float>(lCurrentNormal[0]),
+                        static_cast<float>(lCurrentNormal[1]),
+                        static_cast<float>(lCurrentNormal[2])
+                    );
+                }
+
+                if (hasUV)
+                {
+                    bool lUnmappedUV;
+                    mesh->GetPolygonVertexUV(lPolygonIndex, lVerticeIndex, lUVName, lCurrentUV, lUnmappedUV);
+                    mTexCoords[currentUVSize + vntOffset + lVerticeIndex] = glm::vec2(
+                        static_cast<float>(lCurrentUV[0]),
+                        static_cast<float>(lCurrentUV[1])
+                    );
+                }
+
+            }
+        }
+        vntArray[lMaterialIndex]->TriangleCount++;
+    }
+
+    {
+        BasicMeshEntry bm();
+
+
+        mBasicMeshEntries;
+    }
+    return true;
 }
 
 void FBXMesh::LoadMesh(FbxMesh* mesh)
@@ -599,20 +873,26 @@ void FBXMesh::PopulateBuffers()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
     // Normal Map
-    glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[NORMAL_VB]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(mNormals[0]) * mNormals.size(), &mNormals[0], GL_STATIC_DRAW);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    if (mNormals.size() != 0) {
+        glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[NORMAL_VB]);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(mNormals[0]) * mNormals.size(), &mNormals[0], GL_STATIC_DRAW);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    }
 
     // UV
-    glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[TEXCOORD_VB]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(mTexCoords[0]) * mTexCoords.size(), &mTexCoords[0], GL_STATIC_DRAW);
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    if (mTexCoords.size() != 0) {
+        glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[TEXCOORD_VB]);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(mTexCoords[0]) * mTexCoords.size(), &mTexCoords[0], GL_STATIC_DRAW);
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    }
 
     // Index Buffer
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Buffers[INDEX_BUFFER]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(mIndices[0]) * mIndices.size(), &mIndices[0], GL_STATIC_DRAW);
+    if (!mIsDrawArray) {
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Buffers[INDEX_BUFFER]);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * mIndices.size(), mIndices.data(), GL_STATIC_DRAW);
+    }
 }
 
 void FBXMesh::DrawArrayPB()
@@ -642,9 +922,9 @@ void FBXMesh::DrawArrayPB()
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
     // Indef Buffer
-    unsigned int IndexBuffer;
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Buffers[INDEX_BUFFER]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(mIndices[0]) * mIndices.size(), &mIndices[0], GL_STATIC_DRAW);
+    //unsigned int IndexBuffer;
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Buffers[INDEX_BUFFER]);
+    //glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(mIndices[0]) * mIndices.size(), &mIndices[0], GL_STATIC_DRAW);
 
 
     // unbind cube vertex arrays
@@ -670,12 +950,19 @@ void FBXMesh::Draw(Shader* shader)
     //    GL_UNSIGNED_INT,
     //    (void*)(mIndices.data()),
     //    mPositions.size() * 3);
-
-    glBindVertexArray(mVertexArray);
-    glDrawElements(GL_TRIANGLES,
-        mIndices.size() * 3,
-        GL_UNSIGNED_INT,
-        (void*)(0));
+    if (mIsDrawArray) {
+        glDrawArrays(
+            GL_TRIANGLES,
+            0,
+            mPositions.size() * 3
+        );
+    }
+    else {
+        glDrawElements(GL_TRIANGLES,
+            mIndices.size() * 3,
+            GL_UNSIGNED_INT,
+            (void*)(0));
+    }
 }
 
 void FBXMesh::DrawArray()

@@ -3,16 +3,22 @@
 #include "FBXMesh.hpp"
 #include "Shader.hpp"
 #include "gtc/matrix_transform.hpp"
-
+#include "Mesh.hpp"
 
 UnityChan::UnityChan()
 {
-	mMesh = new FBXMesh();
+	mMesh = new FBXMesh(true);
 	mMesh->Load("UnityChan");
 
 	mPos = glm::vec3(2.f, 2.f, 0.f);
 	mRotate = glm::rotate(glm::mat4(1.0f), (float)M_PI / 2.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 	mScale = 0.01f;
+
+	//mAssimpMesh = new Mesh();
+	//mAssimpMesh->SetMeshPos(mPos);
+	//mAssimpMesh->SetMeshRotate(mRotate);
+	//mAssimpMesh->SetMeshScale(mScale);
+	//mAssimpMesh->Load("./resources/UnityChan/", "UnityChan.fbx");
 }
 
 void UnityChan::Update(float deltatime)
@@ -27,10 +33,13 @@ void UnityChan::Draw(Shader* shader)
 	shader->UseProgram();
 	shader->SetMatrixUniform("ModelTransform", mWorldTransform);
 
- 	//mMesh->BindVertexArray();
-	//mMesh->Draw(shader);
-	mMesh->DrawArray();
+ 	mMesh->BindVertexArray();
+	mMesh->Draw(shader);
+
+	//mMesh->DrawArray();
 	mMesh->UnBindVertexArray();
+
+	//mAssimpMesh->Draw(shader, 1000.0f);
 }
 
 
