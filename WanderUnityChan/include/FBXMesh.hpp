@@ -18,6 +18,7 @@ public:
 private:
 	struct Material {
 		std::string Name;
+		unsigned int MaterialIndex;
 		std::vector<class Texture*> Textures;
 	};
 
@@ -41,14 +42,23 @@ private:
 		unsigned int TriangleCount;
 	};
 
+	struct NodeMesh {
+		unsigned int VertexArray;
+		unsigned int VertexCount;
+		unsigned int* VertexBuffers;
+		std::vector<glm::vec3>Positions;
+		std::vector<glm::vec3>Normals;
+		std::vector<glm::vec2>TexCoords;
+		Material* material;
+	};
 
 	void ShowNodeNames(FbxNode* node, int indent);
 	void LoadNode(FbxNode* node);
 	void LoadMesh(FbxMesh* mesh);
 	bool LoadMeshElement(FbxMesh* mesh);
-	bool LoadMeshArray(FbxMesh* mesh);
+	NodeMesh* LoadMeshArray(FbxMesh* mesh, unsigned int& vertexOffset);
 
-	void LoadMaterial(FbxSurfaceMaterial* material);
+	Material* LoadMaterial(FbxSurfaceMaterial* material);
 
 	void LoadNormal(FbxLayerElementNormal* normalElem);
 	void LoadUV(FbxLayerElementUV* uvElem);
@@ -62,9 +72,25 @@ private:
 	std::vector<glm::vec3> mNormals;
 	std::vector<glm::vec2> mTexCoords;
 	std::vector<unsigned int> mIndices;
-	std::vector<Material> mMaterials;
-	std::vector<BasicMeshEntry> mBasicMeshEntries;
+	std::vector<Material*> mMaterials;
+	struct VNTOffset {
+		unsigned int MaterialIndex;
+		unsigned int VNTOffset;
+	};
+	struct deNodeMesh {
+		std::vector<VNTOffset> VNTOffsets;
+		std::vector<Material> Materials;
+	};
+	struct MeshOffset {
+		unsigned int VNTOffset;
+		Material* material;
+	};
+	std::vector<MeshOffset> mMeshOffsets;
+
+	std::vector<BasicMeshEntry*> mBasicMeshEntries;
 	
+
+	std::vector<NodeMesh*> mNodeMeshes;
 	
 
 	unsigned int mVertexArray;

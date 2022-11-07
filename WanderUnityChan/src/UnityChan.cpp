@@ -33,7 +33,7 @@ void UnityChan::Draw(Shader* shader)
 	shader->UseProgram();
 	shader->SetMatrixUniform("ModelTransform", mWorldTransform);
 
- 	mMesh->BindVertexArray();
+ 	//mMesh->BindVertexArray();
 	mMesh->Draw(shader);
 
 	//mMesh->DrawArray();

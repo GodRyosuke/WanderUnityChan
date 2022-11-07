@@ -49,11 +49,11 @@ bool FBXMesh::Load(std::string fileName)
 
     // Scene解析
     // Material 読み込み
-    int materialCount = scene->GetMaterialCount();
-    for (int i = 0; i < materialCount; i++) {
-        FbxSurfaceMaterial* material = scene->GetMaterial(i);
-        LoadMaterial(material);
-    }
+    //int materialCount = scene->GetMaterialCount();
+    //for (int i = 0; i < materialCount; i++) {
+    //    FbxSurfaceMaterial* material = scene->GetMaterial(i);
+    //    LoadMaterial(material);
+    //}
 
     FbxNode* rootNode = scene->GetRootNode();
     if (rootNode == 0) {
@@ -64,16 +64,18 @@ bool FBXMesh::Load(std::string fileName)
     LoadNode(rootNode);
 
     // Create VAO
-    glGenVertexArrays(1, &mVertexArray);
-    glBindVertexArray(mVertexArray);
+    if (!mIsDrawArray) {
+        glGenVertexArrays(1, &mVertexArray);
+        glBindVertexArray(mVertexArray);
 
-    // Vertex Bufferの作成
-    PopulateBuffers();
+        // Vertex Bufferの作成
+        PopulateBuffers();
 
-    // unbind cube vertex arrays
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        // unbind cube vertex arrays
+        glBindVertexArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    }
 
     //DrawArrayPB();
 
@@ -84,10 +86,10 @@ bool FBXMesh::Load(std::string fileName)
 	return true;
 }
 
-void FBXMesh::LoadMaterial(FbxSurfaceMaterial* material)
+FBXMesh::Material* FBXMesh::LoadMaterial(FbxSurfaceMaterial* material)
 {
-    Material MaterialData;
-    MaterialData.Name = material->GetName();
+    Material* MaterialData = new Material;
+    MaterialData->Name = material->GetName();
     printf("material name: %s\n", material->GetName());
     FbxProperty fbxProperty = material->FindProperty(FbxSurfaceMaterial::sDiffuse);
     int textureCount = fbxProperty.GetSrcObjectCount<FbxFileTexture>();
@@ -121,13 +123,14 @@ void FBXMesh::LoadMaterial(FbxSurfaceMaterial* material)
 
                 std::string texturePath = "./resources/" + mMeshFileName + "/Textures/" + split_list[split_list.size() - 1];
                 Texture* tex = new Texture(texturePath);
-                MaterialData.Textures.push_back(tex);
+                MaterialData->Textures.push_back(tex);
                 //printf("%s\n", fileTex->GetFileName());
             }
         }
     }
 
     mMaterials.push_back(MaterialData);
+    return MaterialData;
 }
 
 void FBXMesh::LoadNode(FbxNode* node)
@@ -148,18 +151,34 @@ void FBXMesh::LoadNode(FbxNode* node)
         if (type == FbxNodeAttribute::EType::eMesh) {   // Mesh Nodeなら
             FbxMesh* pMesh = static_cast<FbxMesh*>(attr);
             //LoadMesh(pMesh);
+            unsigned int vertexOffset;
+            NodeMesh* NodeMeshes = nullptr;
             if (mIsDrawArray) {
-                LoadMeshArray(pMesh);
+                NodeMeshes = LoadMeshArray(pMesh, vertexOffset);
+                if (!NodeMeshes) {
+                    printf("error: failed to load LoadMeshArray\n");
+                    exit(-1);
+                }
             }
             else {
                 LoadMeshElement(pMesh);
             }
             
+            // マテリアルの読み込み
             int materialCount = node->GetMaterialCount();
-            //for (int i = 0; i < materialCount; i++) {
-            //    FbxSurfaceMaterial* material = node->GetMaterial(i);
-            //    LoadMaterial(material);
-            //}
+            printf("material count: %d\n", materialCount);
+            Material* MaterialData = nullptr;
+            for (int materialIndex = 0; materialIndex < materialCount; materialIndex++) {
+                FbxSurfaceMaterial* material = node->GetMaterial(materialIndex);
+                MaterialData = LoadMaterial(material);
+                NodeMeshes[materialIndex].material = MaterialData;
+                mNodeMeshes.push_back(&NodeMeshes[materialIndex]);
+            }
+
+            MeshOffset mo;
+            mo.material = MaterialData;
+            mo.VNTOffset = vertexOffset;
+            mMeshOffsets.push_back(mo);
         }
     }
 
@@ -447,20 +466,14 @@ bool FBXMesh::LoadMeshElement(FbxMesh* mesh)
         mSubMeshes[lMaterialIndex]->TriangleCount += 1;
     }
 
-    {
-        BasicMeshEntry bm();
-
-        
-        mBasicMeshEntries;
-    }
-
     return true;
 }
 
-bool FBXMesh::LoadMeshArray(FbxMesh* mesh)
+FBXMesh::NodeMesh* FBXMesh::LoadMeshArray(FbxMesh* mesh, unsigned int& vertexOffset)
 {
-    if (!mesh->GetNode())
-        return false;
+    if (!mesh->GetNode()) {
+        return nullptr;
+    }
 
     const int lPolygonCount = mesh->GetPolygonCount();
     std::vector<BasicMeshEntry*> mSubMeshes;
@@ -468,89 +481,97 @@ bool FBXMesh::LoadMeshArray(FbxMesh* mesh)
     struct VNTData
     {
         VNTData()
-            :Vertices(0)
-            ,Normals(0)
-            ,Texcoords(0)
-            ,TriangleCount(0)
+            :TriangleCount(0)
             ,VNTOffset(0)
+            ,Positions(0)
+            ,Normals(0)
+            ,TexCoords(0)
         {
         }
-        std::vector<glm::vec3> Vertices;
+        //glm::vec3* Positions;
+        //glm::vec3* Normals;
+        //glm::vec2* TexCoords;
+        std::vector<glm::vec3> Positions;
         std::vector<glm::vec3> Normals;
-        std::vector<glm::vec2> Texcoords;
-        unsigned int TriangleCount;    // このマテリアルのポリゴンの数
-        unsigned int VNTOffset; // 頂点データのオフセット
+        std::vector<glm::vec2> TexCoords;
+        unsigned int TriangleCount;     // このマテリアルのポリゴンの数
+        unsigned int VNTOffset;         // 頂点データのオフセット
     };
     std::vector<VNTData*> vntArray(0);
 
     // Count the polygon count of each material
     FbxLayerElementArrayTemplate<int>* lMaterialIndice = NULL;
     FbxGeometryElement::EMappingMode lMaterialMappingMode = FbxGeometryElement::eNone;
-    if (mesh->GetElementMaterial())
+    assert(mesh->GetElementMaterial() != nullptr);
+    lMaterialIndice = &mesh->GetElementMaterial()->GetIndexArray();
+    lMaterialMappingMode = mesh->GetElementMaterial()->GetMappingMode();
+    if (lMaterialIndice && lMaterialMappingMode == FbxGeometryElement::eByPolygon)
     {
-        lMaterialIndice = &mesh->GetElementMaterial()->GetIndexArray();
-        lMaterialMappingMode = mesh->GetElementMaterial()->GetMappingMode();
-        if (lMaterialIndice && lMaterialMappingMode == FbxGeometryElement::eByPolygon)
+        FBX_ASSERT(lMaterialIndice->GetCount() == lPolygonCount);
+        if (lMaterialIndice->GetCount() == lPolygonCount)
         {
-            FBX_ASSERT(lMaterialIndice->GetCount() == lPolygonCount);
-            if (lMaterialIndice->GetCount() == lPolygonCount)
+            // 各マテリアルのポリゴンの数を求める
+            for (int lPolygonIndex = 0; lPolygonIndex < lPolygonCount; ++lPolygonIndex)
             {
-                // 各マテリアルのポリゴンの数を求める
-                for (int lPolygonIndex = 0; lPolygonIndex < lPolygonCount; ++lPolygonIndex)
+                const int lMaterialIndex = lMaterialIndice->GetAt(lPolygonIndex);
+                if (mSubMeshes.size() < lMaterialIndex + 1)
                 {
-                    const int lMaterialIndex = lMaterialIndice->GetAt(lPolygonIndex);
-                    if (mSubMeshes.size() < lMaterialIndex + 1)
-                    {
-                        mSubMeshes.resize(lMaterialIndex + 1);
-                    }
-                    if (vntArray.size() < lMaterialIndex + 1)
-                    {
-                        vntArray.resize(lMaterialIndex + 1);
-                    }
-
-                    if (mSubMeshes[lMaterialIndex] == NULL)
-                    {
-                        mSubMeshes[lMaterialIndex] = new BasicMeshEntry;
-                    }
-                    if (vntArray[lMaterialIndex] == NULL)
-                    {
-                        vntArray[lMaterialIndex] = new VNTData();
-                    }
-                    vntArray[lMaterialIndex]->TriangleCount++;
-                    mSubMeshes[lMaterialIndex]->TriangleCount += 1;
+                    mSubMeshes.resize(lMaterialIndex + 1);
+                }
+                if (vntArray.size() < lMaterialIndex + 1)
+                {
+                    vntArray.resize(lMaterialIndex + 1);
                 }
 
-                // Make sure we have no "holes" (NULL) in the mSubMeshes table. This can happen
-                // if, in the loop above, we resized the mSubMeshes by more than one slot.
-                for (int i = 0; i < mSubMeshes.size(); i++)
+                if (mSubMeshes[lMaterialIndex] == NULL)
                 {
-                    if (mSubMeshes[i] == NULL)
-                        mSubMeshes[i] = new BasicMeshEntry;
+                    mSubMeshes[lMaterialIndex] = new BasicMeshEntry;
                 }
-
-                // 各マテリアルに対する頂点のオフセット導出
-                const int lMaterialCount = mSubMeshes.size();
-                int lOffset = 0;
-                int vntOffset = 0;
-                for (int lIndex = 0; lIndex < vntArray.size(); ++lIndex)
+                if (vntArray[lMaterialIndex] == NULL)
                 {
-                    if (vntArray[lIndex] == NULL) {
-                        vntArray[lIndex] = new VNTData();
-                    }
-                    mSubMeshes[lIndex]->IndexOffset = lOffset;
-                    vntArray[lIndex]->VNTOffset = vntOffset;
-                    lOffset += mSubMeshes[lIndex]->TriangleCount * 3;
-                    vntOffset += vntArray[lIndex]->TriangleCount * 3;
-                    vntArray[lIndex]->TriangleCount = 0;
-                    // This will be used as counter in the following procedures, reset to zero
-                    mSubMeshes[lIndex]->TriangleCount = 0;
+                    vntArray[lMaterialIndex] = new VNTData();
                 }
-                FBX_ASSERT(lOffset == lPolygonCount * 3);
+                vntArray[lMaterialIndex]->TriangleCount++;
+                mSubMeshes[lMaterialIndex]->TriangleCount += 1;
             }
+
+            // Make sure we have no "holes" (NULL) in the mSubMeshes table. This can happen
+            // if, in the loop above, we resized the mSubMeshes by more than one slot.
+            for (int i = 0; i < mSubMeshes.size(); i++)
+            {
+                if (mSubMeshes[i] == NULL)
+                    mSubMeshes[i] = new BasicMeshEntry;
+            }
+
+            // 各マテリアルに対する頂点のオフセット導出
+            const int lMaterialCount = mSubMeshes.size();
+            int lOffset = 0;
+            int vntOffset = 0;
+            for (int lIndex = 0; lIndex < vntArray.size(); ++lIndex)
+            {
+                if (vntArray[lIndex] == NULL) {
+                    vntArray[lIndex] = new VNTData();
+                }
+                mSubMeshes[lIndex]->IndexOffset = lOffset;
+                vntArray[lIndex]->VNTOffset = vntOffset;
+                lOffset += mSubMeshes[lIndex]->TriangleCount * 3;
+                vntOffset += vntArray[lIndex]->TriangleCount * 3;
+
+
+                vntArray[lIndex]->Positions.resize(vntArray[lIndex]->TriangleCount * 3);
+                vntArray[lIndex]->Normals.resize(vntArray[lIndex]->TriangleCount * 3);
+                vntArray[lIndex]->TexCoords.resize(vntArray[lIndex]->TriangleCount * 3);
+
+                //vntArray[lIndex]->Positions = new glm::vec3[vntArray[lIndex]->TriangleCount * 3];
+                //vntArray[lIndex]->Normals = new glm::vec3[vntArray[lIndex]->TriangleCount * 3];
+                //vntArray[lIndex]->TexCoords = new glm::vec2[vntArray[lIndex]->TriangleCount * 3];
+
+                vntArray[lIndex]->TriangleCount = 0;
+                // This will be used as counter in the following procedures, reset to zero
+                mSubMeshes[lIndex]->TriangleCount = 0;
+            }
+            FBX_ASSERT(lOffset == lPolygonCount * 3);
         }
-    }
-    else {
-        assert(false);  // ここには決して来ない
     }
 
     assert(mesh->GetElementMaterial() != nullptr);
@@ -566,6 +587,13 @@ bool FBXMesh::LoadMeshArray(FbxMesh* mesh)
     {
         vntArray.resize(1);
         vntArray[0] = new VNTData();
+        vntArray[0]->Positions.resize(lPolygonCount * 3);
+        vntArray[0]->Normals.resize(lPolygonCount * 3);
+        vntArray[0]->TexCoords.resize(lPolygonCount * 3);
+
+        //vntArray[0]->Positions.resize(lPolygonCount * 3);
+        //vntArray[0]->Normals.resize(lPolygonCount * 3);
+        //vntArray[0]->TexCoords.resize(lPolygonCount * 3);
     }
 
 
@@ -596,9 +624,11 @@ bool FBXMesh::LoadMeshArray(FbxMesh* mesh)
     int lPolygonVertexCount = mesh->GetControlPointsCount();
     lPolygonVertexCount = lPolygonCount * 3;
 
+
     //float* lVertices = new float[lPolygonVertexCount * VERTEX_STRIDE];
-    int currentPositionSize = mPositions.size();
-    mPositions.resize(currentPositionSize + lPolygonVertexCount);
+
+    //int currentPositionSize = mPositions.size();
+    //mPositions.resize(currentPositionSize + lPolygonVertexCount);
     //unsigned int* lIndices = new unsigned int[lPolygonCount * 3];
     float* lNormals = NULL;
     int currentNormalSize = mNormals.size();
@@ -641,8 +671,9 @@ bool FBXMesh::LoadMeshArray(FbxMesh* mesh)
             vntArray.resize(lMaterialIndex + 1);
         }
 
-        const int vntOffset = vntArray[lMaterialIndex]->VNTOffset +
-            vntArray[lMaterialIndex]->TriangleCount * 3;
+        //const int vntOffset = vntArray[lMaterialIndex]->VNTOffset +
+        //    vntArray[lMaterialIndex]->TriangleCount * 3;
+        const int vntOffset = vntArray[lMaterialIndex]->TriangleCount * 3;
 
         // Where should I save the vertex attribute index, according to the material
         for (int lVerticeIndex = 0; lVerticeIndex < 3; ++lVerticeIndex)
@@ -654,27 +685,25 @@ bool FBXMesh::LoadMeshArray(FbxMesh* mesh)
             {
                 lCurrentVertex = lControlPoints[lControlPointIndex];
 
-                mPositions[currentPositionSize + vntOffset + lVerticeIndex] = glm::vec3(
+                vntArray[lMaterialIndex]->Positions[vntOffset + lVerticeIndex] = glm::vec3(
                     static_cast<float>(lCurrentVertex[0]),
                     static_cast<float>(lCurrentVertex[1]),
                     static_cast<float>(lCurrentVertex[2])
                 );
 
-                if (hasNormal)
-                {
+                if (hasNormal) {
                     mesh->GetPolygonVertexNormal(lPolygonIndex, lVerticeIndex, lCurrentNormal);
-                    mNormals[currentNormalSize + vntOffset + lVerticeIndex] = glm::vec3(
+                    vntArray[lMaterialIndex]->Normals[vntOffset + lVerticeIndex] = glm::vec3(
                         static_cast<float>(lCurrentNormal[0]),
                         static_cast<float>(lCurrentNormal[1]),
                         static_cast<float>(lCurrentNormal[2])
                     );
                 }
 
-                if (hasUV)
-                {
+                if (hasUV) {
                     bool lUnmappedUV;
                     mesh->GetPolygonVertexUV(lPolygonIndex, lVerticeIndex, lUVName, lCurrentUV, lUnmappedUV);
-                    mTexCoords[currentUVSize + vntOffset + lVerticeIndex] = glm::vec2(
+                    vntArray[lMaterialIndex]->TexCoords[vntOffset + lVerticeIndex] = glm::vec2(
                         static_cast<float>(lCurrentUV[0]),
                         static_cast<float>(lCurrentUV[1])
                     );
@@ -685,13 +714,68 @@ bool FBXMesh::LoadMeshArray(FbxMesh* mesh)
         vntArray[lMaterialIndex]->TriangleCount++;
     }
 
-    {
-        BasicMeshEntry bm();
+    // Position, Normal, Texcoordsの数はすべて同じはず
 
 
-        mBasicMeshEntries;
+    // VAO作成
+    NodeMesh* NodeMeshes = new NodeMesh[vntArray.size()];
+    for (int i = 0; i < vntArray.size(); i++) {
+        VNTData* vnt = vntArray[i];
+
+        //assert((vnt->Normals.size() == vnt->Positions.size()) && (vnt->Normals.size() == vnt->TexCoords.size()));
+
+        NodeMesh nm;
+        glGenVertexArrays(1, &nm.VertexArray);
+        glBindVertexArray(nm.VertexArray);
+
+        // Vertex Bufferの作成
+        enum BUFFER_TYPE {
+            INDEX_BUFFER = 0,
+            POS_VB = 1,
+            TEXCOORD_VB = 2,
+            NORMAL_VB = 3,
+            NUM_BUFFERS = 4,  // required only for instancing
+        };
+        GLuint m_Buffers[NUM_BUFFERS] = { 0 };
+        glGenBuffers(1, m_Buffers);
+
+        const int positionNum = vnt->TriangleCount * 3;
+        glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[POS_VB]);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vnt->Positions[0])* positionNum, &vnt->Positions[0], GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+        if (vnt->Normals.size() != 0) {
+            glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[NORMAL_VB]);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(vnt->Normals[0])* positionNum, &vnt->Normals[0], GL_STATIC_DRAW);
+            glEnableVertexAttribArray(1);
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+        }
+
+        // UV
+        if (vnt->TexCoords.size() != 0) {
+            glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[TEXCOORD_VB]);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(vnt->TexCoords[0]) * positionNum, &vnt->TexCoords[0], GL_STATIC_DRAW);
+            glEnableVertexAttribArray(2);
+            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+        }
+
+        // unbind cube vertex arrays
+        glBindVertexArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+        //nm.VertexCount = vnt->Positions.size() * 3;
+        nm.VertexCount = positionNum * 3;
+        nm.VertexBuffers = m_Buffers;
+        nm.Positions = vnt->Positions;
+        nm.Normals = vnt->Normals;
+        nm.TexCoords = vnt->TexCoords;
+
+        NodeMeshes[i] = nm;
     }
-    return true;
+
+    return NodeMeshes;
 }
 
 void FBXMesh::LoadMesh(FbxMesh* mesh)
@@ -951,11 +1035,15 @@ void FBXMesh::Draw(Shader* shader)
     //    (void*)(mIndices.data()),
     //    mPositions.size() * 3);
     if (mIsDrawArray) {
-        glDrawArrays(
-            GL_TRIANGLES,
-            0,
-            mPositions.size() * 3
-        );
+        for (auto nm : mNodeMeshes) {
+            glBindVertexArray(nm->VertexArray);
+            glDrawArrays(
+                GL_TRIANGLES,
+                0,
+                nm->VertexCount * 3
+            );
+        }
+
     }
     else {
         glDrawElements(GL_TRIANGLES,
