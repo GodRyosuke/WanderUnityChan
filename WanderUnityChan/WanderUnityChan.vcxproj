@@ -181,6 +181,7 @@ XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y</Comman
     <ClCompile Include="src\Game.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
+    <ClCompile Include="src\NodeMesh.cpp" />
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\Skinning.cpp" />
     <ClCompile Include="src\Texture.cpp" />
@@ -196,6 +197,7 @@ XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y</Comman
     <ClInclude Include="include\Skinning.hpp" />
     <ClInclude Include="include\TextureShadowMap.hpp" />
     <ClInclude Include="include\UnityChan.hpp" />
+    <ClInclude Include="include\NodeMesh.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\pos.frag" />

@@ -3,6 +3,7 @@
 #include "Shader.hpp"
 #include "GLUtil.hpp"
 #include "Texture.hpp"
+#include "NodeMesh.hpp"
 
 FBXMesh::FBXMesh(bool setIsDrawArray)
     :mIsDrawArray(setIsDrawArray)
@@ -56,32 +57,34 @@ bool FBXMesh::Load(std::string fileName)
     //}
 
     FbxNode* rootNode = scene->GetRootNode();
-    if (rootNode == 0) {
-        printf("error: cannont find root node: %s\n", fileName.c_str());
-        return false;
-    }
-    //ShowNodeNames(rootNode, 0);
-    LoadNode(rootNode);
+    mRootNodeMesh = new NodeMesh(rootNode);
 
-    // Create VAO
-    if (!mIsDrawArray) {
-        glGenVertexArrays(1, &mVertexArray);
-        glBindVertexArray(mVertexArray);
+    //if (rootNode == 0) {
+    //    printf("error: cannont find root node: %s\n", fileName.c_str());
+    //    return false;
+    //}
+    ////ShowNodeNames(rootNode, 0);
+    //LoadNode(rootNode);
 
-        // Vertex Bufferの作成
-        PopulateBuffers();
+    //// Create VAO
+    //if (!mIsDrawArray) {
+    //    glGenVertexArrays(1, &mVertexArray);
+    //    glBindVertexArray(mVertexArray);
 
-        // unbind cube vertex arrays
-        glBindVertexArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    }
+    //    // Vertex Bufferの作成
+    //    PopulateBuffers();
+
+    //    // unbind cube vertex arrays
+    //    glBindVertexArray(0);
+    //    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    //    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    //}
 
     //DrawArrayPB();
 
     // マネージャ解放
     // 関連するすべてのオブジェクトが解放される
-    mManager->Destroy();
+     mManager->Destroy();
 
 	return true;
 }
@@ -152,7 +155,7 @@ void FBXMesh::LoadNode(FbxNode* node)
             FbxMesh* pMesh = static_cast<FbxMesh*>(attr);
             //LoadMesh(pMesh);
             unsigned int vertexOffset;
-            NodeMesh* NodeMeshes = nullptr;
+            dedeMaterialVNT* NodeMeshes = nullptr;
             if (mIsDrawArray) {
                 NodeMeshes = LoadMeshArray(pMesh, vertexOffset);
                 if (!NodeMeshes) {
@@ -469,7 +472,7 @@ bool FBXMesh::LoadMeshElement(FbxMesh* mesh)
     return true;
 }
 
-FBXMesh::NodeMesh* FBXMesh::LoadMeshArray(FbxMesh* mesh, unsigned int& vertexOffset)
+FBXMesh::dedeMaterialVNT* FBXMesh::LoadMeshArray(FbxMesh* mesh, unsigned int& vertexOffset)
 {
     if (!mesh->GetNode()) {
         return nullptr;
@@ -718,13 +721,19 @@ FBXMesh::NodeMesh* FBXMesh::LoadMeshArray(FbxMesh* mesh, unsigned int& vertexOff
 
 
     // VAO作成
-    NodeMesh* NodeMeshes = new NodeMesh[vntArray.size()];
+    dedeMaterialVNT* NodeMeshes = new dedeMaterialVNT[vntArray.size()];
+    VAO* vao = nullptr;
     for (int i = 0; i < vntArray.size(); i++) {
         VNTData* vnt = vntArray[i];
 
+        vao = new VAO();
+        vao->SetVNT(vnt->Positions, vnt->Normals, vnt->TexCoords);
+        vao->CreateVAO();
+        mVAOs.push_back(vao);
+
         //assert((vnt->Normals.size() == vnt->Positions.size()) && (vnt->Normals.size() == vnt->TexCoords.size()));
 
-        NodeMesh nm;
+        dedeMaterialVNT nm;
         glGenVertexArrays(1, &nm.VertexArray);
         glBindVertexArray(nm.VertexArray);
 
@@ -1029,20 +1038,40 @@ void FBXMesh::UnBindVertexArray()
 
 void FBXMesh::Draw(Shader* shader)
 {
+    glm::vec3 mPos = glm::vec3(2.f, 2.f, 0.f);
+    glm::mat4 mRotate = glm::rotate(glm::mat4(1.0f), (float)M_PI / 2.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+    float mScale = 0.01f;
+
+    glm::mat4 ScaleMat = glm::scale(glm::mat4(1.0f), glm::vec3(mScale, mScale, mScale));
+    glm::mat4 TranslateMat = glm::translate(glm::mat4(1.0f), mPos);
+    glm::mat4 mWorldTransform = TranslateMat * mRotate * ScaleMat;
+
     //glDrawElementsBaseVertex(GL_TRIANGLES,
     //    mIndices.size(),
     //    GL_UNSIGNED_INT,
     //    (void*)(mIndices.data()),
     //    mPositions.size() * 3);
     if (mIsDrawArray) {
-        for (auto nm : mNodeMeshes) {
-            glBindVertexArray(nm->VertexArray);
-            glDrawArrays(
-                GL_TRIANGLES,
-                0,
-                nm->VertexCount * 3
-            );
-        }
+        //for (auto nm : mNodeMeshes) {
+        //    glBindVertexArray(nm->VertexArray);
+        //    glDrawArrays(
+        //        GL_TRIANGLES,
+        //        0,
+        //        nm->VertexCount * 3
+        //    );
+        //}
+        mRootNodeMesh->Draw();
+        //for (auto vao : mVAOs) {
+        //    shader->UseProgram();
+        //    shader->SetMatrixUniform("ModelTransform", mWorldTransform);
+
+        //    vao->Bind();
+        //    glDrawArrays(
+        //        GL_POINTS,
+        //        0,
+        //        vao->GetVertexCount() * 3
+        //    );
+        //}
 
     }
     else {
@@ -1103,3 +1132,67 @@ void FBXMesh::ShowNodeNames(FbxNode* node, int indent)
     }
 }
 
+VAO::VAO()
+    :mPositions(0)
+    ,mNormals(0)
+    ,mTexCoords(0)
+{}
+
+void VAO::CreateVAO()
+{
+    glGenVertexArrays(1, &mVertexArray);
+    glBindVertexArray(mVertexArray);
+
+    // Vertex Bufferの作成
+    enum BUFFER_TYPE {
+        INDEX_BUFFER = 0,
+        POS_VB = 1,
+        TEXCOORD_VB = 2,
+        NORMAL_VB = 3,
+        NUM_BUFFERS = 4,  // required only for instancing
+    };
+    //GLuint m_Buffers[NUM_BUFFERS] = { 0 };
+    mVertexBuffers = new unsigned int[NUM_BUFFERS];
+    for (int i = 0; i < NUM_BUFFERS; i++) {
+        mVertexBuffers[i] = 0;
+    }
+    glGenBuffers(1, mVertexBuffers);
+
+    //const int positionNum = vnt->TriangleCount * 3;
+    glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffers[POS_VB]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(mPositions[0]) * mPositions.size(), &mPositions[0], GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+    if (mNormals.size() != 0) {
+        glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffers[NORMAL_VB]);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(mNormals[0]) * mNormals.size(), &mNormals[0], GL_STATIC_DRAW);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    }
+
+    // UV
+    if (mTexCoords.size() != 0) {
+        glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffers[TEXCOORD_VB]);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(mTexCoords[0]) * mTexCoords.size(), &mTexCoords[0], GL_STATIC_DRAW);
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    }
+
+    // unbind cube vertex arrays
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    //nm.VertexCount = vnt->Positions.size() * 3;
+    //nm.Positions = vnt->Positions;
+    //nm.Normals = vnt->Normals;
+    //nm.TexCoords = vnt->TexCoords;
+
+    //NodeMeshes[i] = nm;
+}
+
+void VAO::Bind()
+{
+    glBindVertexArray(mVertexArray);
+}

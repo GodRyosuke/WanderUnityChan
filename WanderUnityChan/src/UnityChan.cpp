@@ -12,7 +12,8 @@ UnityChan::UnityChan()
 
 	mPos = glm::vec3(2.f, 2.f, 0.f);
 	mRotate = glm::rotate(glm::mat4(1.0f), (float)M_PI / 2.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-	mScale = 0.01f;
+	mScale = 1.f;
+	//mScale = 0.01f;
 
 	//mAssimpMesh = new Mesh();
 	//mAssimpMesh->SetMeshPos(mPos);

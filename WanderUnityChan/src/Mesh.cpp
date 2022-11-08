@@ -134,6 +134,8 @@ bool Mesh::Load(std::string RootPath, std::string ObjFileName)
 
     // Vertex Buffer�̍쐬
     PopulateBuffers();
+    GLUtil glutil;
+    glutil.GetErr();
 
 
     // unbind cube vertex arrays

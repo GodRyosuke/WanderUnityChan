@@ -42,7 +42,7 @@ private:
 		unsigned int TriangleCount;
 	};
 
-	struct NodeMesh {
+	struct dedeMaterialVNT {
 		unsigned int VertexArray;
 		unsigned int VertexCount;
 		unsigned int* VertexBuffers;
@@ -56,7 +56,7 @@ private:
 	void LoadNode(FbxNode* node);
 	void LoadMesh(FbxMesh* mesh);
 	bool LoadMeshElement(FbxMesh* mesh);
-	NodeMesh* LoadMeshArray(FbxMesh* mesh, unsigned int& vertexOffset);
+	dedeMaterialVNT* LoadMeshArray(FbxMesh* mesh, unsigned int& vertexOffset);
 
 	Material* LoadMaterial(FbxSurfaceMaterial* material);
 
@@ -77,7 +77,7 @@ private:
 		unsigned int MaterialIndex;
 		unsigned int VNTOffset;
 	};
-	struct deNodeMesh {
+	struct deMaterialVNT {
 		std::vector<VNTOffset> VNTOffsets;
 		std::vector<Material> Materials;
 	};
@@ -90,8 +90,10 @@ private:
 	std::vector<BasicMeshEntry*> mBasicMeshEntries;
 	
 
-	std::vector<NodeMesh*> mNodeMeshes;
-	
+	std::vector<dedeMaterialVNT*> mNodeMeshes;
+	std::vector<class VAO*> mVAOs;
+
+	class NodeMesh* mRootNodeMesh;
 
 	unsigned int mVertexArray;
 	unsigned int mDrawArrayVAO;
@@ -100,4 +102,26 @@ private:
 	std::string mMeshFileName;
 
 	bool mIsDrawArray;
+};
+
+class VAO {
+public:
+	VAO();
+	void Bind();
+	void CreateVAO();
+	void SetVNT(
+		std::vector<glm::vec3> positions,
+		std::vector<glm::vec3> normals,
+		std::vector<glm::vec2> texcoords
+	) {
+		mPositions = positions; mNormals = normals; mTexCoords = texcoords;
+	}
+	unsigned int GetVertexCount() { return static_cast<unsigned int>(mPositions.size()); }
+
+private:
+	unsigned int mVertexArray;
+	unsigned int* mVertexBuffers;
+	std::vector<glm::vec3> mPositions;
+	std::vector<glm::vec3> mNormals;
+	std::vector<glm::vec2> mTexCoords;
 };
