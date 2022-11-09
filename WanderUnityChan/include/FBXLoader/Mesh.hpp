@@ -5,6 +5,7 @@
 class FBXMesh {
 public:
 	FBXMesh();
+	~FBXMesh();
 	bool Load(std::string fileName);
 	void Draw(class Shader* shader);
 

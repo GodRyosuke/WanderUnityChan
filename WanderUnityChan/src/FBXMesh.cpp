@@ -137,14 +137,20 @@ bool FBXMesh::Load(std::string fileName)
 	}
 
 	// Destroy the importer to release the file.
-	mImporter->Destroy();
-	mImporter = NULL;
 
-	mSdkManager->Destroy();
 
 
 	return lResult;
 }
+
+FBXMesh::~FBXMesh()
+{
+    mImporter->Destroy();
+    mImporter = NULL;
+
+    mSdkManager->Destroy();
+}
+
 
 
 void FBXMesh::InitializeSdkObjects(FbxManager*& pManager, FbxScene*& pScene)
@@ -201,11 +207,11 @@ void FBXMesh::LoadCacheRecursive(FbxNode* pNode, FbxAnimLayer* pAnimLayer, bool 
             FbxMesh* lMesh = pNode->GetMesh();
             if (pSupportVBO && lMesh && !lMesh->GetUserDataPtr())
             {
-                //FbxAutoPtr<VBOMesh> lMeshCache(new VBOMesh);
-                //if (lMeshCache->Initialize(lMesh))
-                //{
-                //    lMesh->SetUserDataPtr(lMeshCache.Release());
-                //}
+                FbxAutoPtr<VBOMesh> lMeshCache(new VBOMesh);
+                if (lMeshCache->Initialize(lMesh))
+                {
+                    lMesh->SetUserDataPtr(lMeshCache.Release());
+                }
             }
         }
         // Bake light properties.
