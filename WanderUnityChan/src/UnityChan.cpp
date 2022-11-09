@@ -4,6 +4,7 @@
 #include "Shader.hpp"
 #include "gtc/matrix_transform.hpp"
 #include "Mesh.hpp"
+#include "FBXLoader/Mesh.hpp"
 
 UnityChan::UnityChan()
 {
@@ -13,6 +14,13 @@ UnityChan::UnityChan()
 	mPos = glm::vec3(2.f, 2.f, 0.f);
 	mRotate = glm::rotate(glm::mat4(1.0f), (float)M_PI / 2.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 	mScale = 1.f;
+
+	mFBXMesh = new FBXMesh();
+	if (!mFBXMesh->Load("UnityChan")) {
+		printf("error: failed to load UnityChan\n");
+		exit(-1);
+	}
+
 	//mScale = 0.01f;
 
 	//mAssimpMesh = new Mesh();
@@ -33,9 +41,9 @@ void UnityChan::Draw(Shader* shader)
 {
 	shader->UseProgram();
 	shader->SetMatrixUniform("ModelTransform", mWorldTransform);
-
+	mFBXMesh->Draw(shader);
  	//mMesh->BindVertexArray();
-	mMesh->Draw(shader);
+	//mMesh->Draw(shader);
 
 	//mMesh->DrawArray();
 	mMesh->UnBindVertexArray();

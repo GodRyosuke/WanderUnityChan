@@ -1,4 +1,4 @@
-#version 460 core                                                                      
+#version 330 core                                                                      
                                                                                     
 const int MAX_POINT_LIGHTS = 2;                                                     
 const int MAX_SPOT_LIGHTS = 2;                                                      

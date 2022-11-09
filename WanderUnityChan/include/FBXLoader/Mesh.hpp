@@ -14,6 +14,24 @@ private:
 	void LoadCacheRecursive(FbxScene* pScene, FbxAnimLayer* pAnimLayer, const char* pFbxFileName, bool pSupportVBO);
 	void FillPoseArray(FbxScene* pScene, FbxArray<FbxPose*>& pPoseArray);
 	void PreparePointCacheData(FbxScene* pScene, FbxTime& pCache_Start, FbxTime& pCache_Stop);
+	void DrawNodeRecursive(FbxNode* pNode, FbxAnimLayer* pAnimLayer,
+		FbxAMatrix& pParentGlobalPosition, FbxPose* pPose);
+	void DrawNode(FbxNode* pNode,
+		FbxAnimLayer* pAnimLayer,
+		FbxAMatrix& pParentGlobalPosition,
+		FbxAMatrix& pGlobalPosition,
+		FbxPose* pPose);
+	void DrawMesh(FbxNode* pNode, FbxAnimLayer* pAnimLayer,
+		FbxAMatrix& pGlobalPosition, FbxPose* pPose);
+	void ComputeShapeDeformation(FbxMesh* pMesh, FbxTime& pTime, FbxAnimLayer* pAnimLayer, FbxVector4* pVertexArray);
+	void ComputeSkinDeformation(FbxAMatrix& pGlobalPosition,
+		FbxMesh* pMesh,
+		FbxTime& pTime,
+		FbxVector4* pVertexArray,
+		FbxPose* pPose);
+	void ReadVertexCacheData(FbxMesh* pMesh,
+		FbxTime& pTime,
+		FbxVector4* pVertexArray);
 
 
 	FbxArray<FbxString*> mAnimStackNameArray;

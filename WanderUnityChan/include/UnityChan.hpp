@@ -39,4 +39,5 @@ private:
 	glm::mat4 mWorldTransform;
 	class deFBXMesh* mMesh;
 	class Mesh* mAssimpMesh;
+	class FBXMesh* mFBXMesh;
 };

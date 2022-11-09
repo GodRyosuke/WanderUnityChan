@@ -30,9 +30,6 @@
     <ClCompile Include="src\Shader.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\Mesh.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="src\TextureShadowMap.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -48,16 +45,19 @@
     <ClCompile Include="src\NodeMesh.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\FBXLoader\Mesh.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="include\FBXLoader\MaterialCache.hpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\FBXLoader\MaterialCache.cpp">
+    <ClCompile Include="src\MaterialCache.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\FBXLoader\VBOMesh.cpp">
+    <ClCompile Include="src\VBOMesh.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Mesh.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FBXMesh.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>

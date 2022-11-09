@@ -179,12 +179,12 @@ XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y</Comman
     <ClCompile Include="include\FBXLoader\MaterialCache.hpp" />
     <ClCompile Include="include\Texture.hpp" />
     <ClCompile Include="src\deFBXMesh.cpp" />
-    <ClCompile Include="src\FBXLoader\MaterialCache.cpp" />
-    <ClCompile Include="src\FBXLoader\Mesh.cpp" />
-    <ClCompile Include="src\FBXLoader\VBOMesh.cpp" />
+    <ClCompile Include="src\FBXMesh.cpp" />
+    <ClCompile Include="src\MaterialCache.cpp" />
+    <ClCompile Include="src\Mesh.cpp" />
+    <ClCompile Include="src\VBOMesh.cpp" />
     <ClCompile Include="src\Game.cpp" />
     <ClCompile Include="src\Main.cpp" />
-    <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\NodeMesh.cpp" />
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\Skinning.cpp" />

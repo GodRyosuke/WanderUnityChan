@@ -1,4 +1,4 @@
-#version 460 core
+#version 330 core
 
 // ˆÊ’u‚¾‚¯Žó‚¯Žæ‚Á‚Ä•`‰æ
 
@@ -20,8 +20,8 @@ out vec3 WorldPos0;
 
 void main()
 {
-	// gl_Position = CameraProj * CameraView * ModelTransform * vec4(Position, 1.0);
-	gl_Position = vec4(Position, 1.0);
+	gl_Position = CameraProj * CameraView * ModelTransform * vec4(Position, 1.0);
+	// gl_Position = vec4(Position, 1.0);
 	// LightSpacePos = CameraProj * LightView * ModelTransform * vec4(Position, 1.0);                                 
     // WorldPos0 = (ModelTransform * vec4(Position, 1.0)).xyz;                          
 	Normal0 = (ModelTransform * vec4(Normal, 0.0)).xyz;                            
