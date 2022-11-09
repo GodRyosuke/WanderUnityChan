@@ -94,6 +94,36 @@ Texture::Texture(std::vector<std::string> filePaths)
 	glBindTexture(texture_data, 0);
 }
 
+bool Texture::LoadTextureFromFile(std::string filePath, GLuint& texture_data)
+{
+	// Load from file
+	int numColCh;
+	stbi_set_flip_vertically_on_load(true);
+	int width, height = 0;
+	unsigned char* PictureData = stbi_load(filePath.c_str(), &width, &height, &numColCh, 0);
+
+	glGenTextures(1, &texture_data);
+	//glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture_data);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	auto colorCh = GL_RGBA;
+	if (numColCh == 3) {
+		colorCh = GL_RGB;
+	}
+
+	glTexImage2D(GL_TEXTURE_2D, 0, colorCh, width, height, 0, colorCh, GL_UNSIGNED_BYTE, PictureData);
+	// Generates MipMaps
+	//glGenerateMipmap(GL_TEXTURE_2D);
+	glBindTexture(texture_data, 0);		// unbind
+	stbi_image_free(PictureData);
+
+	return true;
+}
 
 void Texture::BindTexture(GLenum TextureUnit)
 {

@@ -16,7 +16,7 @@ public:
 	// For Cube Maps
 	Texture(std::vector<std::string> filePaths);
 
-
+	static bool LoadTextureFromFile(std::string fileName, GLuint& textureObj);
 	virtual void BindTexture(GLenum TextureUnit = GL_TEXTURE0);
 	void BindCubeMapTexture();
 	void UnBindTexture();
