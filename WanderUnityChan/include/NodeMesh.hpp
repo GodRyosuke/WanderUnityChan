@@ -30,6 +30,7 @@ private:
 
 	GLuint mVertexArray;
 	GLuint* mVertexBuffers;
+	GLuint mVertexBuffer;
 
 	bool mIsMesh;
 
@@ -37,5 +38,5 @@ private:
 	std::vector<glm::vec3> mNormals;
 	std::vector<glm::vec2> mTexCoords;
 
-	std::vector<class NodeMesh*> mChilds;
+	std::vector<NodeMesh*> mChilds;
 };

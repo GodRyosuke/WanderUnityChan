@@ -37,6 +37,6 @@ private:
 	glm::mat4 mRotate;
 	float mScale;
 	glm::mat4 mWorldTransform;
-	class FBXMesh* mMesh;
+	class deFBXMesh* mMesh;
 	class Mesh* mAssimpMesh;
 };

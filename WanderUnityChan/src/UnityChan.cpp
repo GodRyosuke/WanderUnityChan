@@ -1,13 +1,13 @@
 #define _USE_MATH_DEFINES
 #include "UnityChan.hpp"
-#include "FBXMesh.hpp"
+#include "deFBXMesh.hpp"
 #include "Shader.hpp"
 #include "gtc/matrix_transform.hpp"
 #include "Mesh.hpp"
 
 UnityChan::UnityChan()
 {
-	mMesh = new FBXMesh(true);
+	mMesh = new deFBXMesh(true);
 	mMesh->Load("UnityChan");
 
 	mPos = glm::vec3(2.f, 2.f, 0.f);

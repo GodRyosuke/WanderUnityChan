@@ -13,8 +13,6 @@ NodeMesh::NodeMesh(FbxNode* node)
     std::string NodeName = node->GetName();
     mIsMesh = false;
     //printf("NodeName: %s\n", NodeName.c_str());
-    GLUtil glutil;
-    glutil.GetErr();
     int attrCount = node->GetNodeAttributeCount();
     for (int i = 0; i < attrCount; ++i) {
         FbxNodeAttribute* attr = node->GetNodeAttributeByIndex(i);
@@ -195,29 +193,30 @@ void NodeMesh::CreateVAO()
     for (int i = 0; i < NUM_BUFFERS; i++) {
         mVertexBuffers[i] = 0;
     }
-    glGenBuffers(1, mVertexBuffers);
+    //GLuint vertexBuffer;
+    glGenBuffers(1, &mVertexBuffer);
 
     //const int positionNum = vnt->TriangleCount * 3;
-    glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffers[POS_VB]);
+    glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(mPositions[0]) * mPositions.size(), &mPositions[0], GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    //glutil.GetErr();
+    glutil.GetErr();
 
-    if (mNormals.size() != 0) {
-        glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffers[NORMAL_VB]);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(mNormals[0]) * mNormals.size(), &mNormals[0], GL_STATIC_DRAW);
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    }
+    //if (mNormals.size() != 0) {
+    //    glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffers[NORMAL_VB]);
+    //    glBufferData(GL_ARRAY_BUFFER, sizeof(mNormals[0]) * mNormals.size(), &mNormals[0], GL_STATIC_DRAW);
+    //    glEnableVertexAttribArray(1);
+    //    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    //}
 
-    // UV
-    if (mTexCoords.size() != 0) {
-        glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffers[TEXCOORD_VB]);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(mTexCoords[0]) * mTexCoords.size(), &mTexCoords[0], GL_STATIC_DRAW);
-        glEnableVertexAttribArray(2);
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
-    }
+    //// UV
+    //if (mTexCoords.size() != 0) {
+    //    glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffers[TEXCOORD_VB]);
+    //    glBufferData(GL_ARRAY_BUFFER, sizeof(mTexCoords[0]) * mTexCoords.size(), &mTexCoords[0], GL_STATIC_DRAW);
+    //    glEnableVertexAttribArray(2);
+    //    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    //}
 
     // unbind cube vertex arrays
     glBindVertexArray(0);

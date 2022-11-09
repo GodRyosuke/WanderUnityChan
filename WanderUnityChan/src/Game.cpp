@@ -1,7 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include "Game.hpp"
-#include "FBXMesh.hpp"
+#include "deFBXMesh.hpp"
 #include "Shader.hpp"
 #include "gtc/matrix_transform.hpp"
 #include "gtc/type_ptr.hpp"

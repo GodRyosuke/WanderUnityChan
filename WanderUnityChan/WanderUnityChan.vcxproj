@@ -177,7 +177,8 @@ XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y</Comman
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="include\Texture.hpp" />
-    <ClCompile Include="src\FBXMesh.cpp" />
+    <ClCompile Include="src\deFBXMesh.cpp" />
+    <ClCompile Include="src\FBXLoader\Mesh.cpp" />
     <ClCompile Include="src\Game.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
@@ -189,7 +190,8 @@ XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y</Comman
     <ClCompile Include="src\UnityChan.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\FBXMesh.hpp" />
+    <ClInclude Include="include\FBXLoader\Mesh.hpp" />
+    <ClInclude Include="include\deFBXMesh.hpp" />
     <ClInclude Include="include\Game.hpp" />
     <ClInclude Include="include\GLUtil.hpp" />
     <ClInclude Include="include\Mesh.hpp" />
