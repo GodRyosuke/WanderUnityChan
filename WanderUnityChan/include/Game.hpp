@@ -1,7 +1,8 @@
 #pragma once
 
+#include "glad/glad.h"
 #include "SDL.h"
-#include "glew.h"
+//#include "glew.h"
 #include "TextureShadowMap.hpp"
 #include "Skinning.hpp"
 #include "UnityChan.hpp"
