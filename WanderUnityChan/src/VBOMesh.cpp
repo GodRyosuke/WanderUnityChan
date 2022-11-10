@@ -281,18 +281,26 @@ bool VBOMesh::Initialize(const FbxMesh* pMesh)
         mSubMeshes[lMaterialIndex]->TriangleCount += 1;
     }
 
+    glGenVertexArrays(1, &mVertexArray);
+    glBindVertexArray(mVertexArray);
     // Create VBOs
     glGenBuffers(VBO_COUNT, mVBONames);
 
     // Save vertex attributes into GPU
     glBindBuffer(GL_ARRAY_BUFFER, mVBONames[VERTEX_VBO]);
     glBufferData(GL_ARRAY_BUFFER, lPolygonVertexCount * VERTEX_STRIDE * sizeof(float), lVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
     delete[] lVertices;
 
     if (mHasNormal)
     {
         glBindBuffer(GL_ARRAY_BUFFER, mVBONames[NORMAL_VBO]);
         glBufferData(GL_ARRAY_BUFFER, lPolygonVertexCount * NORMAL_STRIDE * sizeof(float), lNormals, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
         delete[] lNormals;
     }
 
@@ -300,6 +308,8 @@ bool VBOMesh::Initialize(const FbxMesh* pMesh)
     {
         glBindBuffer(GL_ARRAY_BUFFER, mVBONames[UV_VBO]);
         glBufferData(GL_ARRAY_BUFFER, lPolygonVertexCount * UV_STRIDE * sizeof(float), lUVs, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
         delete[] lUVs;
     }
 
@@ -371,6 +381,7 @@ void VBOMesh::Draw(int pMaterialIndex) const
 #endif
 
     // Where to start.
+    glBindVertexArray(mVertexArray);
     GLsizei lOffset = mSubMeshes[pMaterialIndex]->IndexOffset * sizeof(unsigned int);
     const GLsizei lElementCount = mSubMeshes[pMaterialIndex]->TriangleCount * 3;
     glDrawElements(GL_TRIANGLES, lElementCount, GL_UNSIGNED_INT, reinterpret_cast<const GLvoid*>(lOffset));

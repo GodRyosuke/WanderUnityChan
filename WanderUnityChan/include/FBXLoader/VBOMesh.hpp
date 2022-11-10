@@ -45,6 +45,7 @@ private:
         int TriangleCount;
     };
 
+    GLuint mVertexArray;
     GLuint mVBONames[VBO_COUNT];
     FbxArray<SubMesh*> mSubMeshes;
     bool mHasNormal;

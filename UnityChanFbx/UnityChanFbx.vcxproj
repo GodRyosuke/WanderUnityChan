@@ -104,7 +104,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)UnityChanFbx;$(SolutionDir)dependencies\fbxsdk\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)UnityChanFbx;$(SolutionDir)dependencies\fbxsdk\include;$(SolutionDir)dependencies\glm\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -160,6 +160,7 @@ XCOPY "$(SolutionDir)UnityChanFbx\shaders" %OUTPUT_DIRECTORY% /e /y</Command>
     <ClInclude Include="SceneCache.h" />
     <ClInclude Include="SceneContext.h" />
     <ClInclude Include="SetCamera.h" />
+    <ClInclude Include="Shader.hpp" />
     <ClInclude Include="targa.h" />
   </ItemGroup>
   <ItemGroup>
@@ -172,6 +173,7 @@ XCOPY "$(SolutionDir)UnityChanFbx\shaders" %OUTPUT_DIRECTORY% /e /y</Command>
     <ClCompile Include="SceneCache.cxx" />
     <ClCompile Include="SceneContext.cxx" />
     <ClCompile Include="SetCamera.cxx" />
+    <ClCompile Include="Shader.cpp" />
     <ClCompile Include="targa.cxx" />
   </ItemGroup>
   <ItemGroup>

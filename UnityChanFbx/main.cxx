@@ -39,6 +39,12 @@ this software in either electronic or hard copy form.
 
 #include "SceneContext.h"
 #include "GL/glut.h"
+#include "glm.hpp"
+#include "gtc/matrix_transform.hpp"
+#include "gtc/type_ptr.hpp"
+#include "gtx/rotate_vector.hpp"
+#include "gtx/vector_angle.hpp"
+#include "Shader.hpp"
 
 void ExitFunction();
 void CreateMenus();
@@ -160,9 +166,6 @@ static bool gAutoQuit = false;
 
 int main(int argc, char** argv)
 {
-    // Shader‚ð“Ç‚Ýž‚Þ
-
-
     // Set exit function to destroy objects created by the FBX SDK.
     atexit(ExitFunction);
 
@@ -181,6 +184,33 @@ int main(int argc, char** argv)
 
     // Initialize OpenGL.
     const bool lSupportVBO = InitializeOpenGL();
+
+    // Shader‚ð“Ç‚Ýž‚Þ
+    Shader* shader = nullptr;
+    {
+        // Shadow Lighting
+        std::string vert_file = "./Shaders/test.vert";
+        std::string frag_file = "./Shaders/test.frag";
+        //shader = new Shader();
+        //if (!shader->CreateShaderProgram(vert_file, frag_file)) {
+        //    return false;
+        //}
+    }
+    glm::mat4 CameraView = glm::lookAt(
+        glm::vec3(-1.0f, 2.5f, 1.0f),
+        glm::vec3(-1.0f, 2.5f, 1.0f) + glm::vec3(0.5f, 0, 0),
+        glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::mat4 CameraProj = glm::perspective(glm::radians(45.0f), (float)DEFAULT_WINDOW_WIDTH / DEFAULT_WINDOW_HEIGHT, 0.1f, 100.0f);
+    //glm::mat4 SpotLightView = glm::lookAt(
+    //    mSpotLight.Position,
+    //    mSpotLight.Direction,
+    //    mSpotLight.Up
+    //);
+    //shader->UseProgram();
+    //shader->SetMatrixUniform("CameraView", CameraView);
+    //shader->SetMatrixUniform("CameraProj", CameraProj);
+    ////shader->SetMatrixUniform("LightView", SpotLightView);
+    //shader->SetSamplerUniform("gShadowMap", 1);
 
 	// set glut callbacks 
     glutDisplayFunc(DisplayCallback); 
@@ -204,6 +234,7 @@ int main(int argc, char** argv)
 		exit(1);
 	}
 
+    //shader->UseProgram();
 	glutMainLoop();
 
     return 0;
