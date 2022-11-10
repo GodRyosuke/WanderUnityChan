@@ -32,6 +32,7 @@ private:
 	void ProcessInput();
 	void UpdateGame();
 	void Draw();
+	void TestDraw();
 
 	bool LoadData();
 	void SetShaderLighting();

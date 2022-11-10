@@ -104,7 +104,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)UnityChanFbx;$(SolutionDir)dependencies\fbxsdk\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)UnityChanFbx;$(SolutionDir)dependencies\fbxsdk\include;$(SolutionDir)dependencies\glm\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -115,6 +115,11 @@
     <PostBuildEvent>
       <Command>XCOPY "$(SolutionDir)dependencies\fbxsdk\lib\debug\libfbxsdk.dll" "$(OutDir)" /e /y
 XCOPY "$(SolutionDir)UnityChanFbx\libs\win\glutx64\*.dll" "$(OutDir)" /e /y
+
+
+set OUTPUT_DIRECTORY="$(OutDir)shaders"
+if not exist %OUTPUT_DIRECTORY% mkdir %OUTPUT_DIRECTORY%
+XCOPY "$(SolutionDir)UnityChanFbx\shaders" %OUTPUT_DIRECTORY% /e /y
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -136,6 +141,15 @@ XCOPY "$(SolutionDir)UnityChanFbx\libs\win\glutx64\*.dll" "$(OutDir)" /e /y
       <AdditionalLibraryDirectories>$(SolutionDir)UnityChanFbx\libs\win\glutx64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>glew32.lib;opengl32.lib;glut32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>XCOPY "$(SolutionDir)dependencies\fbxsdk\lib\release\libfbxsdk.dll" "$(OutDir)" /e /y
+XCOPY "$(SolutionDir)UnityChanFbx\libs\win\glutx64\*.dll" "$(OutDir)" /e /y
+
+
+set OUTPUT_DIRECTORY="$(OutDir)shaders"
+if not exist %OUTPUT_DIRECTORY% mkdir %OUTPUT_DIRECTORY%
+XCOPY "$(SolutionDir)UnityChanFbx\shaders" %OUTPUT_DIRECTORY% /e /y</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Common\Common.h" />
@@ -146,6 +160,7 @@ XCOPY "$(SolutionDir)UnityChanFbx\libs\win\glutx64\*.dll" "$(OutDir)" /e /y
     <ClInclude Include="SceneCache.h" />
     <ClInclude Include="SceneContext.h" />
     <ClInclude Include="SetCamera.h" />
+    <ClInclude Include="Shader.hpp" />
     <ClInclude Include="targa.h" />
   </ItemGroup>
   <ItemGroup>
@@ -158,11 +173,14 @@ XCOPY "$(SolutionDir)UnityChanFbx\libs\win\glutx64\*.dll" "$(OutDir)" /e /y
     <ClCompile Include="SceneCache.cxx" />
     <ClCompile Include="SceneContext.cxx" />
     <ClCompile Include="SetCamera.cxx" />
+    <ClCompile Include="Shader.cpp" />
     <ClCompile Include="targa.cxx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="FBX_ASCII_TEXTURE" />
     <None Include="humanoid.fbx" />
+    <None Include="shaders\test.frag" />
+    <None Include="shaders\test.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
