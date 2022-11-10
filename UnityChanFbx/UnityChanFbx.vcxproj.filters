@@ -78,5 +78,7 @@
   <ItemGroup>
     <None Include="FBX_ASCII_TEXTURE" />
     <None Include="humanoid.fbx" />
+    <None Include="shaders\test.vert" />
+    <None Include="shaders\test.frag" />
   </ItemGroup>
 </Project>

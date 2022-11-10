@@ -39,8 +39,8 @@ void UnityChan::Update(float deltatime)
 
 void UnityChan::Draw(Shader* shader)
 {
-	shader->UseProgram();
-	shader->SetMatrixUniform("ModelTransform", mWorldTransform);
+	//shader->UseProgram();
+	//shader->SetMatrixUniform("ModelTransform", mWorldTransform);
 	mFBXMesh->Draw(shader);
  	//mMesh->BindVertexArray();
 	//mMesh->Draw(shader);

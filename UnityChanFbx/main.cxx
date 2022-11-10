@@ -160,6 +160,9 @@ static bool gAutoQuit = false;
 
 int main(int argc, char** argv)
 {
+    // Shader‚ğ“Ç‚İ‚Ş
+
+
     // Set exit function to destroy objects created by the FBX SDK.
     atexit(ExitFunction);
 
