@@ -111,22 +111,22 @@ bool MaterialCache::Initialize(const FbxSurfaceMaterial * pMaterial)
 
 void MaterialCache::SetCurrentMaterial() const
 {
-    glMaterialfv(GL_FRONT, GL_EMISSION, mEmissive.mColor);
-    glMaterialfv(GL_FRONT, GL_AMBIENT, mAmbient.mColor);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, mDiffuse.mColor);
-    glMaterialfv(GL_FRONT, GL_SPECULAR, mSpecular.mColor);
-    glMaterialf(GL_FRONT, GL_SHININESS, mShinness);
+    //glMaterialfv(GL_FRONT, GL_EMISSION, mEmissive.mColor);
+    //glMaterialfv(GL_FRONT, GL_AMBIENT, mAmbient.mColor);
+    //glMaterialfv(GL_FRONT, GL_DIFFUSE, mDiffuse.mColor);
+    //glMaterialfv(GL_FRONT, GL_SPECULAR, mSpecular.mColor);
+    //glMaterialf(GL_FRONT, GL_SHININESS, mShinness);
 
     glBindTexture(GL_TEXTURE_2D, mDiffuse.mTextureName);
 }
 
 void MaterialCache::SetDefaultMaterial()
 {
-    glMaterialfv(GL_FRONT, GL_EMISSION, BLACK_COLOR);
-    glMaterialfv(GL_FRONT, GL_AMBIENT, BLACK_COLOR);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, GREEN_COLOR);
-    glMaterialfv(GL_FRONT, GL_SPECULAR, BLACK_COLOR);
-    glMaterialf(GL_FRONT, GL_SHININESS, 0);
+    //glMaterialfv(GL_FRONT, GL_EMISSION, BLACK_COLOR);
+    //glMaterialfv(GL_FRONT, GL_AMBIENT, BLACK_COLOR);
+    //glMaterialfv(GL_FRONT, GL_DIFFUSE, GREEN_COLOR);
+    //glMaterialfv(GL_FRONT, GL_SPECULAR, BLACK_COLOR);
+    //glMaterialf(GL_FRONT, GL_SHININESS, 0);
 
     glBindTexture(GL_TEXTURE_2D, 0);
 }

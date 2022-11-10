@@ -282,17 +282,24 @@ bool VBOMesh::Initialize(const FbxMesh* pMesh)
     }
 
     // Create VBOs
+    glGenVertexArrays(1, &mVertexArray);
+    glBindVertexArray(mVertexArray);
     glGenBuffers(VBO_COUNT, mVBONames);
 
     // Save vertex attributes into GPU
     glBindBuffer(GL_ARRAY_BUFFER, mVBONames[VERTEX_VBO]);
     glBufferData(GL_ARRAY_BUFFER, lPolygonVertexCount * VERTEX_STRIDE * sizeof(float), lVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
     delete[] lVertices;
 
     if (mHasNormal)
     {
         glBindBuffer(GL_ARRAY_BUFFER, mVBONames[NORMAL_VBO]);
         glBufferData(GL_ARRAY_BUFFER, lPolygonVertexCount * NORMAL_STRIDE * sizeof(float), lNormals, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
         delete[] lNormals;
     }
 
@@ -300,6 +307,8 @@ bool VBOMesh::Initialize(const FbxMesh* pMesh)
     {
         glBindBuffer(GL_ARRAY_BUFFER, mVBONames[UV_VBO]);
         glBufferData(GL_ARRAY_BUFFER, lPolygonVertexCount * UV_STRIDE * sizeof(float), lUVs, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
         delete[] lUVs;
     }
 
@@ -370,6 +379,7 @@ void VBOMesh::Draw(int pMaterialIndex) const
 #pragma warning( disable : 4312)
 #endif
 
+    glBindVertexArray(mVertexArray);
     // Where to start.
     GLsizei lOffset = mSubMeshes[pMaterialIndex]->IndexOffset * sizeof(unsigned int);
     const GLsizei lElementCount = mSubMeshes[pMaterialIndex]->TriangleCount * 3;
@@ -393,55 +403,57 @@ void VBOMesh::Draw(int pMaterialIndex) const
 
 void VBOMesh::BeginDraw() const
 {
-    // Push OpenGL attributes.
-    glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
-    glPushAttrib(GL_ENABLE_BIT);
-    glPushAttrib(GL_CURRENT_BIT);
-    glPushAttrib(GL_LIGHTING_BIT);
-    glPushAttrib(GL_TEXTURE_BIT);
+    glBindVertexArray(mVertexArray);
+    //// Push OpenGL attributes.
+    //glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
+    //glPushAttrib(GL_ENABLE_BIT);
+    //glPushAttrib(GL_CURRENT_BIT);
+    //glPushAttrib(GL_LIGHTING_BIT);
+    //glPushAttrib(GL_TEXTURE_BIT);
 
-    // Set vertex position array.
-    glBindBuffer(GL_ARRAY_BUFFER, mVBONames[VERTEX_VBO]);
-    glVertexPointer(VERTEX_STRIDE, GL_FLOAT, 0, 0);
-    glEnableClientState(GL_VERTEX_ARRAY);
+    //// Set vertex position array.
+    //glBindBuffer(GL_ARRAY_BUFFER, mVBONames[VERTEX_VBO]);
+    //glVertexPointer(VERTEX_STRIDE, GL_FLOAT, 0, 0);
+    //glEnableClientState(GL_VERTEX_ARRAY);
 
-    // Set normal array.
-    if (mHasNormal)
-    {
-        glBindBuffer(GL_ARRAY_BUFFER, mVBONames[NORMAL_VBO]);
-        glNormalPointer(GL_FLOAT, 0, 0);
-        glEnableClientState(GL_NORMAL_ARRAY);
-    }
+    //// Set normal array.
+    //if (mHasNormal)
+    //{
+    //    glBindBuffer(GL_ARRAY_BUFFER, mVBONames[NORMAL_VBO]);
+    //    glNormalPointer(GL_FLOAT, 0, 0);
+    //    glEnableClientState(GL_NORMAL_ARRAY);
+    //}
 
-    // Set UV array.
-    if (mHasUV)
-    {
-        glBindBuffer(GL_ARRAY_BUFFER, mVBONames[UV_VBO]);
-        glTexCoordPointer(UV_STRIDE, GL_FLOAT, 0, 0);
-        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    }
+    //// Set UV array.
+    //if (mHasUV)
+    //{
+    //    glBindBuffer(GL_ARRAY_BUFFER, mVBONames[UV_VBO]);
+    //    glTexCoordPointer(UV_STRIDE, GL_FLOAT, 0, 0);
+    //    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    //}
 
-    // Set index array.
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVBONames[INDEX_VBO]);
+    //// Set index array.
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVBONames[INDEX_VBO]);
 
-    glEnable(GL_LIGHTING);
+    //glEnable(GL_LIGHTING);
 
-    glEnable(GL_TEXTURE_2D);
+    //glEnable(GL_TEXTURE_2D);
 
-    glEnable(GL_NORMALIZE);
+    //glEnable(GL_NORMALIZE);
 }
 
 void VBOMesh::EndDraw() const
 {
     // Reset VBO binding.
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    //glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    // Pop OpenGL attributes.
-    glPopAttrib();
-    glPopAttrib();
-    glPopAttrib();
-    glPopAttrib();
-    glPopClientAttrib();
+    //// Pop OpenGL attributes.
+    //glPopAttrib();
+    //glPopAttrib();
+    //glPopAttrib();
+    //glPopAttrib();
+    //glPopClientAttrib();
 }

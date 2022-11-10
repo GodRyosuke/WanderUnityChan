@@ -1,6 +1,7 @@
 #include "FBXLoader/Mesh.hpp"
 #include <fbxsdk.h>
-#include "glew.h"
+#include "glad/glad.h"
+//#include "glew.h"
 #include "Texture.hpp"
 #include "FBXLoader/MaterialCache.hpp"
 #include "Shader.hpp"
@@ -391,8 +392,8 @@ void FBXMesh::FillPoseArray(FbxScene* pScene, FbxArray<FbxPose*>& pPoseArray)
 
 void FBXMesh::Draw(Shader* shader)
 {
-    glPushAttrib(GL_ENABLE_BIT);
-    glPushAttrib(GL_LIGHTING_BIT);
+    //glPushAttrib(GL_ENABLE_BIT);
+    //glPushAttrib(GL_LIGHTING_BIT);
     glEnable(GL_DEPTH_TEST);
     // Draw the front face only, except for the texts and lights.
     glEnable(GL_CULL_FACE);
@@ -425,8 +426,8 @@ void FBXMesh::Draw(Shader* shader)
     DrawNodeRecursive(mScene->GetRootNode(), mCurrentAnimLayer, lDummyGlobalPosition, lPose);
     //DisplayGrid(lDummyGlobalPosition);
 
-    glPopAttrib();
-    glPopAttrib();
+    //glPopAttrib();
+    //glPopAttrib();
 }
 
 void FBXMesh::DrawNodeRecursive(FbxNode* pNode, FbxAnimLayer* pAnimLayer,
@@ -558,8 +559,8 @@ void FBXMesh::DrawMesh(FbxNode* pNode, FbxAnimLayer* pAnimLayer,
             lMeshCache->UpdateVertexPosition(lMesh, lVertexArray);
     }
 
-    glPushMatrix();
-    glMultMatrixd((const double*)pGlobalPosition);
+    //glPushMatrix();
+    //glMultMatrixd((const double*)pGlobalPosition);
 
     lMeshCache->BeginDraw();
     const int lSubMeshCount = lMeshCache->GetSubMeshCount();
@@ -584,7 +585,7 @@ void FBXMesh::DrawMesh(FbxNode* pNode, FbxAnimLayer* pAnimLayer,
     }
     lMeshCache->EndDraw();
 
-    glPopMatrix();
+    //glPopMatrix();
 
     delete[] lVertexArray;
 }

@@ -1,7 +1,8 @@
 #pragma once
 
 #include <fbxsdk.h>
-#include <glew.h>
+#include "glad/glad.h"
+//#include <glew.h>
 
 // Cache for FBX material
 class MaterialCache

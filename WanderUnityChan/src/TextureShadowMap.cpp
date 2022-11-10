@@ -2,6 +2,8 @@
 
 TextureShadowMap::TextureShadowMap()
     :Texture()
+    ,m_fbo(0)
+    ,m_shadowMap(0)
 {}
 
 bool TextureShadowMap::Load(int width, int height)

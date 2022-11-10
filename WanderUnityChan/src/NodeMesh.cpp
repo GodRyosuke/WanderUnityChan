@@ -1,5 +1,6 @@
 #include "NodeMesh.hpp"
-#include "glew.h"
+#include "glad/glad.h"
+//#include "glew.h"
 #include "GLUtil.hpp"
 
 NodeMesh::NodeMesh(FbxNode* node)

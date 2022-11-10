@@ -68,12 +68,13 @@ bool Game::Initialize()
 	mContext = SDL_GL_CreateContext(mWindow);
 
 	// Initialize GLEW
-	glewExperimental = GL_TRUE;
-	if (glewInit() != GLEW_OK)
-	{
-		printf("Failed to initialize GLEW.");
-		return false;
-	}
+	gladLoadGL();
+	//glewExperimental = GL_TRUE;
+	//if (glewInit() != GLEW_OK)
+	//{
+	//	printf("Failed to initialize GLEW.");
+	//	return false;
+	//}
 
 	auto error_code = glGetError();
 

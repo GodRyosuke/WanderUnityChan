@@ -1,7 +1,8 @@
 #pragma once
 
 #include <fbxsdk.h>
-#include <glew.h>
+#include "glad/glad.h"
+//#include <glew.h>
 
 // Save mesh vertices, normals, UVs and indices in GPU with OpenGL Vertex Buffer Objects
 class VBOMesh
@@ -45,6 +46,7 @@ private:
         int TriangleCount;
     };
 
+    GLuint mVertexArray;
     GLuint mVBONames[VBO_COUNT];
     FbxArray<SubMesh*> mSubMeshes;
     bool mHasNormal;

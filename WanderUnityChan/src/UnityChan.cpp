@@ -46,7 +46,7 @@ void UnityChan::Draw(Shader* shader)
 	//mMesh->Draw(shader);
 
 	//mMesh->DrawArray();
-	mMesh->UnBindVertexArray();
+	//mMesh->UnBindVertexArray();
 
 	//mAssimpMesh->Draw(shader, 1000.0f);
 }

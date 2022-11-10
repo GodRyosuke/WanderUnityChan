@@ -32,12 +32,12 @@ public:
 			case GL_OUT_OF_MEMORY:
 				std::cout << "GL_OUT_OF_MEMORY\n";
 				break;
-			case GL_STACK_UNDERFLOW:
-				std::cout << "GL_STACK_UNDERFLOW\n";
-				break;
-			case GL_STACK_OVERFLOW:
-				std::cout << "GL_STACK_OVERFLOW\n";
-				break;
+			//case GL_STACK_UNDERFLOW:
+			//	std::cout << "GL_STACK_UNDERFLOW\n";
+			//	break;
+			//case GL_STACK_OVERFLOW:
+			//	std::cout << "GL_STACK_OVERFLOW\n";
+			//	break;
 			}
 		}
 	}

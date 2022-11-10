@@ -2,7 +2,8 @@
 
 
 #include <string>
-#include "glew.h"
+#include "glad/glad.h"
+//#include "glew.h"
 #include "SDL.h"
 
 #include <vector>
