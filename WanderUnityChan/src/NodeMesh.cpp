@@ -242,17 +242,17 @@ void NodeMesh::Draw()
         //glEnableClientState(GL_VERTEX_ARRAY);
         //glEnableVertexAttribArray(0);
         //glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-        //glDrawElements(GL_TRIANGLES,
-        //    mIndices.size(),
-        //    GL_UNSIGNED_INT,
-        //    reinterpret_cast<const GLvoid*>(0));
+        glDrawElements(GL_TRIANGLES,
+            mIndices.size(),
+            GL_UNSIGNED_INT,
+            reinterpret_cast<const GLvoid*>(0));
         int x = 0;
 
-        glDrawArrays(
-            GL_TRIANGLES,
-            0,
-            mPositions.size()
-        );
+        //glDrawArrays(
+        //    GL_TRIANGLES,
+        //    0,
+        //    mPositions.size()
+        //);
         glBindVertexArray(0);
     }
 
