@@ -30,11 +30,12 @@ private:
 	int mNumChild;
 
 	GLuint mVertexArray;
-	GLuint* mVertexBuffers;
+	//GLuint mVertexBuffers[NUM_BUFFERS];
 	GLuint mVertexBuffer;
 
 	bool mIsMesh;
 
+	std::vector<unsigned int> mIndices;
 	std::vector<glm::vec3> mPositions;
 	std::vector<glm::vec3> mNormals;
 	std::vector<glm::vec2> mTexCoords;

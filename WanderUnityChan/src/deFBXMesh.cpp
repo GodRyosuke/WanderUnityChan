@@ -58,28 +58,28 @@ bool deFBXMesh::Load(std::string fileName)
     //}
 
     FbxNode* rootNode = scene->GetRootNode();
-    //mRootNodeMesh = new NodeMesh(rootNode);
+    mRootNodeMesh = new NodeMesh(rootNode);
 
     //if (rootNode == 0) {
     //    printf("error: cannont find root node: %s\n", fileName.c_str());
     //    return false;
     //}
     ////ShowNodeNames(rootNode, 0);
-    LoadNode(rootNode);
+    //LoadNode(rootNode);
 
     //// Create VAO
-    if (!mIsDrawArray) {
-        glGenVertexArrays(1, &mVertexArray);
-        glBindVertexArray(mVertexArray);
+    //if (!mIsDrawArray) {
+    //    glGenVertexArrays(1, &mVertexArray);
+    //    glBindVertexArray(mVertexArray);
 
-        // Vertex Buffer�̍쐬
-        PopulateBuffers();
+    //    // Vertex Buffer�̍쐬
+    //    PopulateBuffers();
 
-        // unbind cube vertex arrays
-        glBindVertexArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    }
+    //    // unbind cube vertex arrays
+    //    glBindVertexArray(0);
+    //    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    //    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    //}
 
     //DrawArrayPB();
 
@@ -1014,7 +1014,7 @@ void deFBXMesh::Draw(Shader* shader)
         //        nm->VertexCount * 3
         //    );
         //}
-        mRootNodeMesh->Draw();
+        //mRootNodeMesh->Draw();
         //for (auto vao : mVAOs) {
         //    shader->UseProgram();
         //    shader->SetMatrixUniform("ModelTransform", mWorldTransform);
@@ -1029,14 +1029,15 @@ void deFBXMesh::Draw(Shader* shader)
 
     }
     else {
-        for (auto material : mMaterials) {
-            GLsizei lOffset = material->IndexOffset * sizeof(unsigned int);
-            glBindVertexArray(mVertexArray);
-            glDrawElements(GL_TRIANGLES,
-                material->TriangleCount * 3,
-                GL_UNSIGNED_INT,
-                (void*)(lOffset));
-        }
+        mRootNodeMesh->Draw();
+        //for (auto material : mMaterials) {
+        //    GLsizei lOffset = material->IndexOffset * sizeof(unsigned int);
+        //    glBindVertexArray(mVertexArray);
+        //    glDrawElements(GL_TRIANGLES,
+        //        material->TriangleCount * 3,
+        //        GL_UNSIGNED_INT,
+        //        (void*)(lOffset));
+        //}
     }
 }
 

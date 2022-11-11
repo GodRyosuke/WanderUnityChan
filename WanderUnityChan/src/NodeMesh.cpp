@@ -6,7 +6,7 @@
 NodeMesh::NodeMesh(FbxNode* node)
 {
     mVertexArray = 0;
-    mVertexBuffers = nullptr;
+    //mVertexBuffers = nullptr;
     mPositions.resize(0);
     mNormals.resize(0);
     mTexCoords.resize(0);
@@ -116,6 +116,9 @@ bool NodeMesh::LoadMesh(FbxMesh* mesh)
 
     const int lPolygonCount = mesh->GetPolygonCount();
 
+
+    mIndices.resize(lPolygonCount * 3);
+
     mPositions.resize(lPolygonCount * 3);
     mNormals.resize(lPolygonCount * 3);
     mTexCoords.resize(lPolygonCount * 3);
@@ -140,6 +143,8 @@ bool NodeMesh::LoadMesh(FbxMesh* mesh)
     {
         for (int lVerticeIndex = 0; lVerticeIndex < 3; ++lVerticeIndex)
         {
+            mIndices[lPolygonIndex * 3 + lVerticeIndex] = lPolygonCount * 3 + lVerticeIndex;
+
             const int lControlPointIndex = mesh->GetPolygonVertex(lPolygonIndex, lVerticeIndex);
             // If the lControlPointIndex is -1, we probably have a corrupted mesh data. At this point,
             // it is not guaranteed that the cache will work as expected.
@@ -189,13 +194,13 @@ void NodeMesh::CreateVAO()
     glBindVertexArray(mVertexArray);
     // Vertex Buffer�̍쐬
 
-    //GLuint m_Buffers[NUM_BUFFERS] = { 0 };
-    mVertexBuffers = new GLuint[NUM_BUFFERS];
+    GLuint mVertexBuffers[NUM_BUFFERS] = { 0 };
+    //mVertexBuffers = new GLuint[NUM_BUFFERS];
     for (int i = 0; i < NUM_BUFFERS; i++) {
         mVertexBuffers[i] = 0;
     }
     //GLuint vertexBuffer;
-    glGenBuffers(1, &mVertexBuffer);
+    glGenBuffers(NUM_BUFFERS, &mVertexBuffer);
 
     //const int positionNum = vnt->TriangleCount * 3;
     glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
@@ -204,25 +209,29 @@ void NodeMesh::CreateVAO()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glutil.GetErr();
 
-    //if (mNormals.size() != 0) {
-    //    glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffers[NORMAL_VB]);
-    //    glBufferData(GL_ARRAY_BUFFER, sizeof(mNormals[0]) * mNormals.size(), &mNormals[0], GL_STATIC_DRAW);
-    //    glEnableVertexAttribArray(1);
-    //    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    //}
+    if (mNormals.size() != 0) {
+        glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffers[NORMAL_VB]);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(mNormals[0]) * mNormals.size(), &mNormals[0], GL_STATIC_DRAW);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    }
 
-    //// UV
-    //if (mTexCoords.size() != 0) {
-    //    glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffers[TEXCOORD_VB]);
-    //    glBufferData(GL_ARRAY_BUFFER, sizeof(mTexCoords[0]) * mTexCoords.size(), &mTexCoords[0], GL_STATIC_DRAW);
-    //    glEnableVertexAttribArray(2);
-    //    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
-    //}
+    // UV
+    if (mTexCoords.size() != 0) {
+        glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffers[TEXCOORD_VB]);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(mTexCoords[0]) * mTexCoords.size(), &mTexCoords[0], GL_STATIC_DRAW);
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    }
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVertexBuffers[INDEX_BUFFER]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * mIndices.size(), &mIndices[0], GL_STATIC_DRAW);
+
 
     // unbind cube vertex arrays
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    //glBindVertexArray(0);
+    //glBindBuffer(GL_ARRAY_BUFFER, 0);
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 void NodeMesh::Draw()
@@ -233,10 +242,16 @@ void NodeMesh::Draw()
         //glEnableClientState(GL_VERTEX_ARRAY);
         //glEnableVertexAttribArray(0);
         //glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+        //glDrawElements(GL_TRIANGLES,
+        //    mIndices.size(),
+        //    GL_UNSIGNED_INT,
+        //    reinterpret_cast<const GLvoid*>(0));
+        int x = 0;
+
         glDrawArrays(
             GL_TRIANGLES,
             0,
-            mPositions.size() * 3
+            mPositions.size()
         );
         glBindVertexArray(0);
     }

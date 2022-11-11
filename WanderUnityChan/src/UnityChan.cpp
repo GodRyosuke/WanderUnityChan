@@ -46,9 +46,9 @@ void UnityChan::Draw(Shader* shader)
 	shader->SetMatrixUniform("ModelTransform", mWorldTransform);
 	//mAssimpMesh->Draw(shader, 0.f);
 
-	mFBXMesh->Draw(shader);
- 	mMesh->BindVertexArray();
-	//mMesh->Draw(shader);
+	//mFBXMesh->Draw(shader);
+ 	//mMesh->BindVertexArray();
+	mMesh->Draw(shader);
 
 	////mMesh->DrawArray();
 	mMesh->UnBindVertexArray();
