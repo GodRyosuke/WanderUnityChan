@@ -40,6 +40,6 @@ void main()
 		Phong += Diffuse + Specular;
 	}
     FragColor = vec4(Phong, 1.0f);
-	FragColor = vec4(1.0f);
+	// FragColor = vec4(1.0f);
 }
 

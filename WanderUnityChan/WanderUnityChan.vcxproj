@@ -194,6 +194,7 @@ XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y</Comman
     <ClCompile Include="src\UnityChan.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\FBXLoader2\FBXMesh2.hpp" />
     <ClInclude Include="include\FBXLoader\Mesh.hpp" />
     <ClInclude Include="include\deFBXMesh.hpp" />
     <ClInclude Include="include\FBXLoader\VBOMesh.hpp" />

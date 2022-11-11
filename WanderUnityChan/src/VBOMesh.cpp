@@ -281,8 +281,7 @@ bool VBOMesh::Initialize(const FbxMesh* pMesh)
         mSubMeshes[lMaterialIndex]->TriangleCount += 1;
     }
 
-    glGenVertexArrays(1, &mVertexArray);
-    glBindVertexArray(mVertexArray);
+
     // Create VBOs
     glGenVertexArrays(1, &mVertexArray);
     glBindVertexArray(mVertexArray);
@@ -383,7 +382,6 @@ void VBOMesh::Draw(int pMaterialIndex) const
 
     glBindVertexArray(mVertexArray);
     // Where to start.
-    glBindVertexArray(mVertexArray);
     GLsizei lOffset = mSubMeshes[pMaterialIndex]->IndexOffset * sizeof(unsigned int);
     const GLsizei lElementCount = mSubMeshes[pMaterialIndex]->TriangleCount * 3;
     glDrawElements(GL_TRIANGLES, lElementCount, GL_UNSIGNED_INT, reinterpret_cast<const GLvoid*>(lOffset));

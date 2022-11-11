@@ -8,7 +8,7 @@
 
 UnityChan::UnityChan()
 {
-	mMesh = new deFBXMesh(true);
+	mMesh = new deFBXMesh(false);
 	mMesh->Load("UnityChan");
 
 	mPos = glm::vec3(2.f, 2.f, 0.f);
@@ -21,7 +21,10 @@ UnityChan::UnityChan()
 		exit(-1);
 	}
 
-	//mScale = 0.01f;
+	//mAssimpMesh = new Mesh();
+	//mAssimpMesh->Load("./resources/UnityChan/", "UnityChan.fbx");
+
+	mScale = 0.01f;
 
 	//mAssimpMesh = new Mesh();
 	//mAssimpMesh->SetMeshPos(mPos);
@@ -39,14 +42,16 @@ void UnityChan::Update(float deltatime)
 
 void UnityChan::Draw(Shader* shader)
 {
-	//shader->UseProgram();
-	//shader->SetMatrixUniform("ModelTransform", mWorldTransform);
+	shader->UseProgram();
+	shader->SetMatrixUniform("ModelTransform", mWorldTransform);
+	//mAssimpMesh->Draw(shader, 0.f);
+
 	mFBXMesh->Draw(shader);
- 	//mMesh->BindVertexArray();
+ 	mMesh->BindVertexArray();
 	//mMesh->Draw(shader);
 
-	//mMesh->DrawArray();
-	//mMesh->UnBindVertexArray();
+	////mMesh->DrawArray();
+	mMesh->UnBindVertexArray();
 
 	//mAssimpMesh->Draw(shader, 1000.0f);
 }

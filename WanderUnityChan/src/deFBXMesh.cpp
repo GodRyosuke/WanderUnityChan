@@ -58,28 +58,28 @@ bool deFBXMesh::Load(std::string fileName)
     //}
 
     FbxNode* rootNode = scene->GetRootNode();
-    mRootNodeMesh = new NodeMesh(rootNode);
+    //mRootNodeMesh = new NodeMesh(rootNode);
 
     //if (rootNode == 0) {
     //    printf("error: cannont find root node: %s\n", fileName.c_str());
     //    return false;
     //}
     ////ShowNodeNames(rootNode, 0);
-    //LoadNode(rootNode);
+    LoadNode(rootNode);
 
     //// Create VAO
-    //if (!mIsDrawArray) {
-    //    glGenVertexArrays(1, &mVertexArray);
-    //    glBindVertexArray(mVertexArray);
+    if (!mIsDrawArray) {
+        glGenVertexArrays(1, &mVertexArray);
+        glBindVertexArray(mVertexArray);
 
-    //    // Vertex Bufferの作成
-    //    PopulateBuffers();
+        // Vertex Bufferの作成
+        PopulateBuffers();
 
-    //    // unbind cube vertex arrays
-    //    glBindVertexArray(0);
-    //    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    //    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    //}
+        // unbind cube vertex arrays
+        glBindVertexArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    }
 
     //DrawArrayPB();
 
@@ -169,20 +169,22 @@ void deFBXMesh::LoadNode(FbxNode* node)
             }
             
             // マテリアルの読み込み
-            int materialCount = node->GetMaterialCount();
-            printf("material count: %d\n", materialCount);
-            Material* MaterialData = nullptr;
-            for (int materialIndex = 0; materialIndex < materialCount; materialIndex++) {
-                FbxSurfaceMaterial* material = node->GetMaterial(materialIndex);
-                MaterialData = LoadMaterial(material);
-                NodeMeshes[materialIndex].material = MaterialData;
-                mNodeMeshes.push_back(&NodeMeshes[materialIndex]);
+            if (mIsDrawArray) {
+                int materialCount = node->GetMaterialCount();
+                printf("material count: %d\n", materialCount);
+                Material* MaterialData = nullptr;
+                for (int materialIndex = 0; materialIndex < materialCount; materialIndex++) {
+                    FbxSurfaceMaterial* material = node->GetMaterial(materialIndex);
+                    MaterialData = LoadMaterial(material);
+                    NodeMeshes[materialIndex].material = MaterialData;
+                    mNodeMeshes.push_back(&NodeMeshes[materialIndex]);
+                }
             }
 
-            MeshOffset mo;
-            mo.material = MaterialData;
-            mo.VNTOffset = vertexOffset;
-            mMeshOffsets.push_back(mo);
+            //MeshOffset mo;
+            //mo.material = MaterialData;
+            //mo.VNTOffset = vertexOffset;
+            //mMeshOffsets.push_back(mo);
         }
     }
 
@@ -192,14 +194,14 @@ void deFBXMesh::LoadNode(FbxNode* node)
     }
 }
 
-bool deFBXMesh::LoadMeshElement(FbxMesh* mesh)
+deFBXMesh::dedeMaterialVNT* deFBXMesh::LoadMeshElement(FbxMesh* mesh)
 {
     if (!mesh->GetNode())
-        return false;
+        return nullptr;
 
     const int lPolygonCount = mesh->GetPolygonCount();
     std::vector<BasicMeshEntry*> mSubMeshes;
-
+    std::vector<Material*> Materials;
 
     // Count the polygon count of each material
     FbxLayerElementArrayTemplate<int>* lMaterialIndice = NULL;
@@ -217,34 +219,34 @@ bool deFBXMesh::LoadMeshElement(FbxMesh* mesh)
                 for (int lPolygonIndex = 0; lPolygonIndex < lPolygonCount; ++lPolygonIndex)
                 {
                     const int lMaterialIndex = lMaterialIndice->GetAt(lPolygonIndex);
-                    if (mSubMeshes.size() < lMaterialIndex + 1)
+                    if (Materials.size() < lMaterialIndex + 1)
                     {
-                        mSubMeshes.resize(lMaterialIndex + 1);
+                        Materials.resize(lMaterialIndex + 1);
                     }
-                    if (mSubMeshes[lMaterialIndex] == NULL)
+                    if (Materials[lMaterialIndex] == NULL)
                     {
-                        mSubMeshes[lMaterialIndex] = new BasicMeshEntry;
+                        Materials[lMaterialIndex] = new Material;
                     }
-                    mSubMeshes[lMaterialIndex]->TriangleCount += 1;
+                    Materials[lMaterialIndex]->TriangleCount += 1;
                 }
 
                 // Make sure we have no "holes" (NULL) in the mSubMeshes table. This can happen
                 // if, in the loop above, we resized the mSubMeshes by more than one slot.
-                for (int i = 0; i < mSubMeshes.size(); i++)
+                for (int i = 0; i < Materials.size(); i++)
                 {
-                    if (mSubMeshes[i] == NULL)
-                        mSubMeshes[i] = new BasicMeshEntry;
+                    if (Materials[i] == NULL)
+                        Materials[i] = new Material;
                 }
 
                 // Record the offset (how many vertex)
-                const int lMaterialCount = mSubMeshes.size();
+                const int lMaterialCount = Materials.size();
                 int lOffset = 0;
                 for (int lIndex = 0; lIndex < lMaterialCount; ++lIndex)
                 {
-                    mSubMeshes[lIndex]->IndexOffset = lOffset;
-                    lOffset += mSubMeshes[lIndex]->TriangleCount * 3;
+                    Materials[lIndex]->IndexOffset = lOffset;
+                    lOffset += Materials[lIndex]->TriangleCount * 3;
                     // This will be used as counter in the following procedures, reset to zero
-                    mSubMeshes[lIndex]->TriangleCount = 0;
+                    Materials[lIndex]->TriangleCount = 0;
                 }
                 FBX_ASSERT(lOffset == lPolygonCount * 3);
             }
@@ -252,10 +254,10 @@ bool deFBXMesh::LoadMeshElement(FbxMesh* mesh)
     }
 
     // All faces will use the same material.
-    if (mSubMeshes.size() == 0)
+    if (Materials.size() == 0)
     {
-        mSubMeshes.resize(1);
-        mSubMeshes[0] = new BasicMeshEntry();
+        Materials.resize(1);
+        Materials[0] = new Material();
     }
 
     // Congregate all the data of a mesh to be cached in VBOs.
@@ -290,6 +292,7 @@ bool deFBXMesh::LoadMeshElement(FbxMesh* mesh)
         }
     }
 
+    dedeMaterialVNT* NodeMeshes = new dedeMaterialVNT[Materials.size()];
     // Allocate the array memory, by control point or by polygon vertex.
     int lPolygonVertexCount = mesh->GetControlPointsCount();
     if (!isAllByControlPoint)
@@ -299,6 +302,7 @@ bool deFBXMesh::LoadMeshElement(FbxMesh* mesh)
     //float* lVertices = new float[lPolygonVertexCount * VERTEX_STRIDE];
     int currentPositionSize = mPositions.size();
     mPositions.resize(currentPositionSize + lPolygonVertexCount);
+    NodeMeshes->Positions.resize(lPolygonVertexCount);
     //unsigned int* lIndices = new unsigned int[lPolygonCount * 3];
     int currentIndicesSize = mIndices.size();
     mIndices.resize(currentIndicesSize + lPolygonCount * 3);
@@ -327,73 +331,8 @@ bool deFBXMesh::LoadMeshElement(FbxMesh* mesh)
     FbxVector4 lCurrentNormal;
     FbxVector2 lCurrentUV;
     assert(isAllByControlPoint == false);   // このフラグは絶対falseなのでは？
-    if (isAllByControlPoint)
-    {
-        const FbxGeometryElementNormal* lNormalElement = NULL;
-        const FbxGeometryElementUV* lUVElement = NULL;
-        if (hasNormal)
-        {
-            lNormalElement = mesh->GetElementNormal(0);
-        }
-        if (hasUV)
-        {
-            lUVElement = mesh->GetElementUV(0);
-        }
 
 
-        for (int lIndex = 0; lIndex < lPolygonVertexCount; ++lIndex)
-        {
-            // Save the vertex position.
-            lCurrentVertex = lControlPoints[lIndex];
-            
-            mPositions[currentPositionSize + lIndex] = glm::vec3(
-                static_cast<float>(lCurrentVertex[0]),
-                static_cast<float>(lCurrentVertex[1]),
-                static_cast<float>(lCurrentVertex[2])
-            );
-
-            //lVertices[lIndex * VERTEX_STRIDE] = static_cast<float>(lCurrentVertex[0]);
-            //lVertices[lIndex * VERTEX_STRIDE + 1] = static_cast<float>(lCurrentVertex[1]);
-            //lVertices[lIndex * VERTEX_STRIDE + 2] = static_cast<float>(lCurrentVertex[2]);
-            //lVertices[lIndex * VERTEX_STRIDE + 3] = 1;
-
-            // Save the normal.
-            if (hasNormal)
-            {
-                int lNormalIndex = lIndex;
-                if (lNormalElement->GetReferenceMode() == FbxLayerElement::eIndexToDirect)
-                {
-                    lNormalIndex = lNormalElement->GetIndexArray().GetAt(lIndex);
-                }
-                lCurrentNormal = lNormalElement->GetDirectArray().GetAt(lNormalIndex);
-                mNormals[currentNormalSize + lIndex] = glm::vec3(
-                    static_cast<float>(lCurrentNormal[0]),
-                    static_cast<float>(lCurrentNormal[1]),
-                    static_cast<float>(lCurrentNormal[2])
-                );
-                //lNormals[lIndex * NORMAL_STRIDE] = static_cast<float>(lCurrentNormal[0]);
-                //lNormals[lIndex * NORMAL_STRIDE + 1] = static_cast<float>(lCurrentNormal[1]);
-                //lNormals[lIndex * NORMAL_STRIDE + 2] = static_cast<float>(lCurrentNormal[2]);
-            }
-
-            // Save the UV.
-            if (hasUV)
-            {
-                int lUVIndex = lIndex;
-                if (lUVElement->GetReferenceMode() == FbxLayerElement::eIndexToDirect)
-                {
-                    lUVIndex = lUVElement->GetIndexArray().GetAt(lIndex);
-                }
-                lCurrentUV = lUVElement->GetDirectArray().GetAt(lUVIndex);
-                mTexCoords[currentUVSize + lIndex] = glm::vec2(
-                    static_cast<float>(lCurrentUV[0]),
-                    static_cast<float>(lCurrentUV[1])
-                );
-                //lUVs[lIndex * UV_STRIDE] = static_cast<float>(lCurrentUV[0]);
-                //lUVs[lIndex * UV_STRIDE + 1] = static_cast<float>(lCurrentUV[1]);
-            }
-        }
-    }
 
 
     int lVertexCount = 0;
@@ -407,8 +346,8 @@ bool deFBXMesh::LoadMeshElement(FbxMesh* mesh)
         }
 
         // Where should I save the vertex attribute index, according to the material
-        const int lIndexOffset = mSubMeshes[lMaterialIndex]->IndexOffset +
-            mSubMeshes[lMaterialIndex]->TriangleCount * 3;
+        const int lIndexOffset = Materials[lMaterialIndex]->IndexOffset +
+            Materials[lMaterialIndex]->TriangleCount * 3;
         for (int lVerticeIndex = 0; lVerticeIndex < 3; ++lVerticeIndex)
         {
             const int lControlPointIndex = mesh->GetPolygonVertex(lPolygonIndex, lVerticeIndex);
@@ -430,6 +369,11 @@ bool deFBXMesh::LoadMeshElement(FbxMesh* mesh)
                     lCurrentVertex = lControlPoints[lControlPointIndex];
 
                     mPositions[currentPositionSize + lVertexCount] = glm::vec3(
+                        static_cast<float>(lCurrentVertex[0]),
+                        static_cast<float>(lCurrentVertex[1]),
+                        static_cast<float>(lCurrentVertex[2])
+                    );
+                    NodeMeshes->Positions[lVertexCount] = glm::vec3(
                         static_cast<float>(lCurrentVertex[0]),
                         static_cast<float>(lCurrentVertex[1]),
                         static_cast<float>(lCurrentVertex[2])
@@ -467,10 +411,18 @@ bool deFBXMesh::LoadMeshElement(FbxMesh* mesh)
             }
             ++lVertexCount;
         }
-        mSubMeshes[lMaterialIndex]->TriangleCount += 1;
+        Materials[lMaterialIndex]->TriangleCount += 1;
     }
 
-    return true;
+    for (auto material : Materials) {
+        Material* materialData = new Material;
+        materialData->IndexOffset = material->IndexOffset + currentIndicesSize;
+        materialData->TriangleCount = material->TriangleCount;
+        mMaterials.push_back(materialData);
+    }
+
+
+    return NodeMeshes;
 }
 
 deFBXMesh::dedeMaterialVNT* deFBXMesh::LoadMeshArray(FbxMesh* mesh, unsigned int& vertexOffset)
@@ -985,8 +937,9 @@ void deFBXMesh::PopulateBuffers()
     // Index Buffer
     if (!mIsDrawArray) {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Buffers[INDEX_BUFFER]);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * mIndices.size(), mIndices.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * mIndices.size(), &mIndices[0], GL_STATIC_DRAW);
     }
+    mVertexBuffers = m_Buffers;
 }
 
 void deFBXMesh::DrawArrayPB()
@@ -1076,10 +1029,14 @@ void deFBXMesh::Draw(Shader* shader)
 
     }
     else {
-        glDrawElements(GL_TRIANGLES,
-            mIndices.size() * 3,
-            GL_UNSIGNED_INT,
-            (void*)(0));
+        for (auto material : mMaterials) {
+            GLsizei lOffset = material->IndexOffset * sizeof(unsigned int);
+            glBindVertexArray(mVertexArray);
+            glDrawElements(GL_TRIANGLES,
+                material->TriangleCount * 3,
+                GL_UNSIGNED_INT,
+                (void*)(lOffset));
+        }
     }
 }
 

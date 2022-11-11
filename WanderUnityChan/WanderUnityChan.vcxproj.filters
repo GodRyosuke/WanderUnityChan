@@ -98,6 +98,9 @@
     <ClInclude Include="include\FBXLoader\VBOMesh.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="include\FBXLoader2\FBXMesh2.hpp">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\ShadowMap.frag" />

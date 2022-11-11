@@ -20,6 +20,8 @@ private:
 		std::string Name;
 		unsigned int MaterialIndex;
 		std::vector<class Texture*> Textures;
+		unsigned int IndexOffset;
+		unsigned int TriangleCount;
 	};
 
 	struct BasicMeshEntry {
@@ -49,13 +51,14 @@ private:
 		std::vector<glm::vec3>Positions;
 		std::vector<glm::vec3>Normals;
 		std::vector<glm::vec2>TexCoords;
+		std::vector<unsigned int> Indices;
 		Material* material;
 	};
 
 	void ShowNodeNames(FbxNode* node, int indent);
 	void LoadNode(FbxNode* node);
 	void LoadMesh(FbxMesh* mesh);
-	bool LoadMeshElement(FbxMesh* mesh);
+	dedeMaterialVNT* LoadMeshElement(FbxMesh* mesh);
 	dedeMaterialVNT* LoadMeshArray(FbxMesh* mesh, unsigned int& vertexOffset);
 
 	Material* LoadMaterial(FbxSurfaceMaterial* material);
@@ -89,13 +92,13 @@ private:
 
 	std::vector<BasicMeshEntry*> mBasicMeshEntries;
 	
-
 	std::vector<dedeMaterialVNT*> mNodeMeshes;
 	std::vector<class VAO*> mVAOs;
 
 	class NodeMesh* mRootNodeMesh;
 
 	unsigned int mVertexArray;
+	unsigned int* mVertexBuffers;
 	unsigned int mDrawArrayVAO;
 
 	FbxManager* mManager;
