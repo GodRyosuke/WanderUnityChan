@@ -212,7 +212,7 @@ bool FBXMesh::Load(std::string fileName)
 
 		// Convert any .PC2 point cache data into the .MC format for 
 		// vertex cache deformer playback.
-		PreparePointCacheData(mScene, mCache_Start, mCache_Stop);
+		//PreparePointCacheData(mScene, mCache_Start, mCache_Stop);
 
 		// Get the list of pose in the scene
 		FillPoseArray(mScene, mPoseArray);
