@@ -3,6 +3,7 @@
 //#include "glew.h"
 #include "GLUtil.hpp"
 
+
 NodeMesh::NodeMesh(FbxNode* node)
 {
     mVertexArray = 0;
@@ -87,10 +88,66 @@ NodeMesh::NodeMesh(FbxNode* node)
 
 bool NodeMesh::LoadMesh(FbxMesh* mesh)
 {
-    // Ç–Ç∆Ç¬ÇÃNodeMeshÇ…Ç–Ç∆Ç¬ÇÃMaterialÇÃèÍçáÇÃÇ›ëŒâûÅBUnityChanêÍóp
-
     if (!mesh->GetNode()) {
         return false;
+    }
+    const int lPolygonCount = mesh->GetPolygonCount();
+
+    // Count the polygon count of each material
+    FbxLayerElementArrayTemplate<int>* lMaterialIndice = NULL;
+    FbxGeometryElement::EMappingMode lMaterialMappingMode = FbxGeometryElement::eNone;
+    if (mesh->GetElementMaterial())
+    {
+        lMaterialIndice = &mesh->GetElementMaterial()->GetIndexArray();
+        lMaterialMappingMode = mesh->GetElementMaterial()->GetMappingMode();
+        if (lMaterialIndice && lMaterialMappingMode == FbxGeometryElement::eByPolygon)
+        {
+            FBX_ASSERT(lMaterialIndice->GetCount() == lPolygonCount);
+            if (lMaterialIndice->GetCount() == lPolygonCount)
+            {
+                // Count the faces of each material
+                for (int lPolygonIndex = 0; lPolygonIndex < lPolygonCount; ++lPolygonIndex)
+                {
+                    const int lMaterialIndex = lMaterialIndice->GetAt(lPolygonIndex);
+                    if (mSubMeshes.GetCount() < lMaterialIndex + 1)
+                    {
+                        mSubMeshes.Resize(lMaterialIndex + 1);
+                    }
+                    if (mSubMeshes[lMaterialIndex] == NULL)
+                    {
+                        mSubMeshes[lMaterialIndex] = new SubMesh;
+                    }
+                    mSubMeshes[lMaterialIndex]->TriangleCount += 1;
+                }
+
+                // Make sure we have no "holes" (NULL) in the mSubMeshes table. This can happen
+                // if, in the loop above, we resized the mSubMeshes by more than one slot.
+                for (int i = 0; i < mSubMeshes.GetCount(); i++)
+                {
+                    if (mSubMeshes[i] == NULL)
+                        mSubMeshes[i] = new SubMesh;
+                }
+
+                // Record the offset (how many vertex)
+                const int lMaterialCount = mSubMeshes.GetCount();
+                int lOffset = 0;
+                for (int lIndex = 0; lIndex < lMaterialCount; ++lIndex)
+                {
+                    mSubMeshes[lIndex]->IndexOffset = lOffset;
+                    lOffset += mSubMeshes[lIndex]->TriangleCount * 3;
+                    // This will be used as counter in the following procedures, reset to zero
+                    mSubMeshes[lIndex]->TriangleCount = 0;
+                }
+                FBX_ASSERT(lOffset == lPolygonCount * 3);
+            }
+        }
+    }
+
+    // All faces will use the same material.
+    if (mSubMeshes.GetCount() == 0)
+    {
+        mSubMeshes.Resize(1);
+        mSubMeshes[0] = new SubMesh();
     }
 
     bool hasNormal = mesh->GetElementNormalCount() > 0;
@@ -114,7 +171,7 @@ bool NodeMesh::LoadMesh(FbxMesh* mesh)
         }
     }
 
-    const int lPolygonCount = mesh->GetPolygonCount();
+
 
 
     mIndices.resize(lPolygonCount * 3);
@@ -123,14 +180,23 @@ bool NodeMesh::LoadMesh(FbxMesh* mesh)
     mNormals.resize(lPolygonCount * 3);
     mTexCoords.resize(lPolygonCount * 3);
 
+    unsigned int* lIndices = new unsigned int[lPolygonCount * 3];
+    float* lVertices = new float[lPolygonCount * 3 * 3];
+    float* lNormals = nullptr;
 
+    if (hasNormal) {
+        lNormals = new float[lPolygonCount * 3 * 3];
+    }
 
+    float* lUVs = nullptr;
     FbxStringList lUVNames;
     mesh->GetUVSetNames(lUVNames);
     const char* lUVName = NULL;
     if (hasUV && lUVNames.GetCount())
     {
         mTexCoords.resize(lPolygonCount * 3);
+        lUVs = new float[lPolygonCount * 3 * 2];
+
         lUVName = lUVNames[0];
     }
 
@@ -139,18 +205,54 @@ bool NodeMesh::LoadMesh(FbxMesh* mesh)
     FbxVector4 lCurrentNormal;
     FbxVector2 lCurrentUV;
 
+    int lVertexCount = 0;
     for (int lPolygonIndex = 0; lPolygonIndex < lPolygonCount; ++lPolygonIndex)
     {
+        int lMaterialIndex = 0;
+        if (lMaterialIndice && lMaterialMappingMode == FbxGeometryElement::eByPolygon)
+        {
+            lMaterialIndex = lMaterialIndice->GetAt(lPolygonIndex);
+        }
+
+        const int lIndexOffset = mSubMeshes[lMaterialIndex]->IndexOffset +
+            mSubMeshes[lMaterialIndex]->TriangleCount * 3;
+
         for (int lVerticeIndex = 0; lVerticeIndex < 3; ++lVerticeIndex)
         {
-            mIndices[lPolygonIndex * 3 + lVerticeIndex] = lPolygonCount * 3 + lVerticeIndex;
-
             const int lControlPointIndex = mesh->GetPolygonVertex(lPolygonIndex, lVerticeIndex);
-            // If the lControlPointIndex is -1, we probably have a corrupted mesh data. At this point,
-            // it is not guaranteed that the cache will work as expected.
+
             if (lControlPointIndex < 0) {
+                lVertexCount++;
                 continue;
             }
+
+            // If the lControlPointIndex is -1, we probably have a corrupted mesh data. At this point,
+            // it is not guaranteed that the cache will work as expected.
+            lIndices[lIndexOffset + lVerticeIndex] = static_cast<unsigned int>(lVertexCount);
+
+            lCurrentVertex = lControlPoints[lControlPointIndex];
+            lVertices[lVertexCount * 3] = static_cast<float>(lCurrentVertex[0]);
+            lVertices[lVertexCount * 3+ 1] = static_cast<float>(lCurrentVertex[1]);
+            lVertices[lVertexCount * 3+ 2] = static_cast<float>(lCurrentVertex[2]);
+
+            if (hasNormal)
+            {
+                mesh->GetPolygonVertexNormal(lPolygonIndex, lVerticeIndex, lCurrentNormal);
+                lNormals[lVertexCount * 3] = static_cast<float>(lCurrentNormal[0]);
+                lNormals[lVertexCount * 3+ 1] = static_cast<float>(lCurrentNormal[1]);
+                lNormals[lVertexCount * 3+ 2] = static_cast<float>(lCurrentNormal[2]);
+            }
+
+            if (hasUV)
+            {
+                bool lUnmappedUV;
+                mesh->GetPolygonVertexUV(lPolygonIndex, lVerticeIndex, lUVName, lCurrentUV, lUnmappedUV);
+                lUVs[lVertexCount * 2] = static_cast<float>(lCurrentUV[0]);
+                lUVs[lVertexCount * 2+ 1] = static_cast<float>(lCurrentUV[1]);
+            }
+
+
+            mIndices[lPolygonIndex * 3 + lVerticeIndex] = lPolygonIndex * 3 + lVerticeIndex;
             lCurrentVertex = lControlPoints[lControlPointIndex];
 
             FbxVector4 position = mesh->GetControlPointAt(lControlPointIndex);
@@ -177,14 +279,78 @@ bool NodeMesh::LoadMesh(FbxMesh* mesh)
                     static_cast<float>(lCurrentUV[1])
                 );
             }
+
+            lVertexCount++;
         }
+        mSubMeshes[lMaterialIndex]->TriangleCount += 1;
     }
 
+    assert(mSubMeshes.GetCount() == 1);
+
+    //CreateVAO(lPolygonCount,
+    //    lIndices,
+    //    lVertices,
+    //    lNormals,
+    //    lUVs,
+    //    hasNormal,
+    //    hasUV);
+
+    //delete[] lIndices;
+    //delete[] lVertices;
+    //if (hasNormal) {
+    //    delete[] lNormals;
+    //}
+    //if (hasUV) {
+    //    delete[] lUVs;
+    //}
     CreateVAO();
 
 
 
     return true;
+}
+
+void NodeMesh::CreateVAO(
+    const int lPolygonCount,
+    unsigned int* lIndices,
+    float* lVertices,
+    float* lNormals,
+    float* lUVs,
+    bool hasNormal,
+    bool hasUV
+)
+{
+
+    // Create VBOs
+    glGenVertexArrays(1, &mVertexArray);
+    glBindVertexArray(mVertexArray);
+    glGenBuffers(NUM_BUFFERS, mVertexBuffers);
+
+    // Save vertex attributes into GPU
+    glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffers[POS_VB]);
+    glBufferData(GL_ARRAY_BUFFER, lPolygonCount * 3 * 3 * sizeof(float), lVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+
+    if (hasNormal)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffers[NORMAL_VB]);
+        glBufferData(GL_ARRAY_BUFFER, lPolygonCount * 3 * 3* sizeof(float), lNormals, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    }
+
+    if (hasUV)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffers[TEXCOORD_VB]);
+        glBufferData(GL_ARRAY_BUFFER, lPolygonCount * 3 * 2 * sizeof(float), lUVs, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    }
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVertexBuffers[INDEX_BUFFER]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, lPolygonCount * 3 * sizeof(unsigned int), lIndices, GL_STATIC_DRAW);
 }
 
 void NodeMesh::CreateVAO()
@@ -194,16 +360,16 @@ void NodeMesh::CreateVAO()
     glBindVertexArray(mVertexArray);
     // Vertex BufferÇÃçÏê¨
 
-    GLuint mVertexBuffers[NUM_BUFFERS] = { 0 };
+    //GLuint mVertexBuffers[NUM_BUFFERS] = { 0 };
     //mVertexBuffers = new GLuint[NUM_BUFFERS];
     for (int i = 0; i < NUM_BUFFERS; i++) {
         mVertexBuffers[i] = 0;
     }
     //GLuint vertexBuffer;
-    glGenBuffers(NUM_BUFFERS, &mVertexBuffer);
+    glGenBuffers(NUM_BUFFERS, mVertexBuffers);
 
     //const int positionNum = vnt->TriangleCount * 3;
-    glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffers[POS_VB]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(mPositions[0]) * mPositions.size(), &mPositions[0], GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -229,24 +395,31 @@ void NodeMesh::CreateVAO()
 
 
     // unbind cube vertex arrays
-    //glBindVertexArray(0);
-    //glBindBuffer(GL_ARRAY_BUFFER, 0);
-    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 void NodeMesh::Draw()
 {
     if (mIsMesh) {
+#if _MSC_VER >= 1900 && defined(_WIN64)
+        // this warning occurs when building 64bit.
+#pragma warning( push )
+#pragma warning( disable : 4312)
+#endif
         glBindVertexArray(mVertexArray);
         //glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffers[POS_VB]);
         //glEnableClientState(GL_VERTEX_ARRAY);
         //glEnableVertexAttribArray(0);
         //glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+        GLsizei lOffset = mSubMeshes[0]->IndexOffset * sizeof(unsigned int);
+        const GLsizei lElementCount = mSubMeshes[0]->TriangleCount * 3;
+
         glDrawElements(GL_TRIANGLES,
-            mIndices.size(),
+            lElementCount,
             GL_UNSIGNED_INT,
-            reinterpret_cast<const GLvoid*>(0));
-        int x = 0;
+            reinterpret_cast<const GLvoid*>(lOffset));
 
         //glDrawArrays(
         //    GL_TRIANGLES,
@@ -254,6 +427,9 @@ void NodeMesh::Draw()
         //    mPositions.size()
         //);
         glBindVertexArray(0);
+#if _MSC_VER >= 1900 && defined(_WIN64)
+#pragma warning( pop )
+#endif
     }
 
     for (auto child : mChilds) {

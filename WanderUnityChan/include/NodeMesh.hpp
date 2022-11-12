@@ -14,8 +14,12 @@ public:
 	int GetNumChild() { return mNumChild; }
 
 private:
-	struct SubMesh {
-		unsigned int TriangleCount;
+	struct SubMesh
+	{
+		SubMesh() : IndexOffset(0), TriangleCount(0) {}
+
+		int IndexOffset;
+		int TriangleCount;
 	};
 	enum BUFFER_TYPE {
 		INDEX_BUFFER = 0,
@@ -26,14 +30,26 @@ private:
 	};
 	bool LoadMesh(FbxMesh* mesh);
 	void CreateVAO();
+	void CreateVAO(
+		const int lPolygonCount,
+		unsigned int* lIndices,
+		float* lVertices,
+		float* lNormals,
+		float* lUV,
+		bool hasNormal,
+		bool hasUV
+	);
 
 	int mNumChild;
 
 	GLuint mVertexArray;
-	//GLuint mVertexBuffers[NUM_BUFFERS];
+	GLuint mVertexBuffers[NUM_BUFFERS];
 	GLuint mVertexBuffer;
 
 	bool mIsMesh;
+
+	FbxArray<SubMesh*> mSubMeshes;
+
 
 	std::vector<unsigned int> mIndices;
 	std::vector<glm::vec3> mPositions;

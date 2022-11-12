@@ -31,19 +31,87 @@ bool deFBXMesh::Load(std::string fileName)
 
     // IOSettingを生成
     FbxIOSettings* ioSettings = FbxIOSettings::Create(mManager, IOSROOT);
+    mManager->SetIOSettings(ioSettings);
+    {
+        FbxString lPath = FbxGetApplicationDirectory();
+        mManager->LoadPluginsDirectory(lPath.Buffer());
+    }
+    FbxScene* scene = FbxScene::Create(mManager, "scene");
+
 
     // Importerを生成
     FbxImporter* importer = FbxImporter::Create(mManager, "");
     std::string filePath = "./resources/" + fileName + "/" + fileName + ".fbx";
-    if (importer->Initialize(filePath.c_str(), -1, mManager->GetIOSettings()) == false) {
-        // インポートエラー
-        return -1;
+    int lFileFormat = -1;
+    if (!mManager->GetIOPluginRegistry()->DetectReaderFileFormat(filePath.c_str(), lFileFormat))
+    {
+        // Unrecognizable file format. Try to fall back to FbxImporter::eFBX_BINARY
+        lFileFormat = mManager->GetIOPluginRegistry()->FindReaderIDByDescription("FBX binary (*.fbx)");;
     }
 
+    // Initialize the importer by providing a filename.
+    if (importer->Initialize(filePath.c_str(), lFileFormat) == true)
+    {
+        printf("Importing file...\n");
+    }
+    else
+    {
+        printf("Failed to open file: %s\n", fileName.c_str());
+        return false;
+    }
+
+
     // SceneオブジェクトにFBXファイル内の情報を流し込む
-    FbxScene* scene = FbxScene::Create(mManager, "scene");
     importer->Import(scene);
-    importer->Destroy(); // シーンを流し込んだらImporterは解放してOK
+    {
+        // Check the scene integrity!
+        FbxStatus status;
+        FbxArray< FbxString*> details;
+        FbxSceneCheckUtility sceneCheck(FbxCast<FbxScene>(scene), &status, &details);
+        bool lNotify = (!sceneCheck.Validate(FbxSceneCheckUtility::eCkeckData) && details.GetCount() > 0) || (importer->GetStatus().GetCode() != FbxStatus::eSuccess);
+        if (lNotify)
+        {
+            FBXSDK_printf("\n");
+            FBXSDK_printf("********************************************************************************\n");
+            if (details.GetCount())
+            {
+                FBXSDK_printf("Scene integrity verification failed with the following errors:\n");
+
+                for (int i = 0; i < details.GetCount(); i++)
+                    FBXSDK_printf("   %s\n", details[i]->Buffer());
+
+                FbxArrayDelete<FbxString*>(details);
+            }
+
+            if (importer->GetStatus().GetCode() != FbxStatus::eSuccess)
+            {
+                FBXSDK_printf("\n");
+                FBXSDK_printf("WARNING:\n");
+                FBXSDK_printf("   The importer was able to read the file but with errors.\n");
+                FBXSDK_printf("   Loaded scene may be incomplete.\n\n");
+                FBXSDK_printf("   Last error message:'%s'\n", importer->GetStatus().GetErrorString());
+            }
+
+            FBXSDK_printf("********************************************************************************\n");
+            FBXSDK_printf("\n");
+        }
+    }
+
+
+    FbxAxisSystem SceneAxisSystem = scene->GetGlobalSettings().GetAxisSystem();
+    FbxAxisSystem OurAxisSystem(FbxAxisSystem::eYAxis, FbxAxisSystem::eParityOdd, FbxAxisSystem::eRightHanded);
+    if (SceneAxisSystem != OurAxisSystem)
+    {
+        OurAxisSystem.ConvertScene(scene);
+    }
+
+    // Convert Unit System to what is used in this example, if needed
+    FbxSystemUnit SceneSystemUnit = scene->GetGlobalSettings().GetSystemUnit();
+    if (SceneSystemUnit.GetScaleFactor() != 1.0)
+    {
+        //The unit in this example is centimeter.
+        FbxSystemUnit::cm.ConvertScene(scene);
+    }
 
     // 三角面化
     FbxGeometryConverter geometryConv = FbxGeometryConverter(mManager);
@@ -83,6 +151,8 @@ bool deFBXMesh::Load(std::string fileName)
 
     //DrawArrayPB();
 
+    importer->Destroy(); // シーンを流し込んだらImporterは解放してOK
+    importer = NULL;
     // マネージャ解放
     // 関連するすべてのオブジェクトが解放される
      mManager->Destroy();

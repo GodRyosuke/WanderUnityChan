@@ -8,8 +8,8 @@
 
 UnityChan::UnityChan()
 {
-	mMesh = new deFBXMesh(false);
-	mMesh->Load("UnityChan");
+	mdeFBXMesh = new deFBXMesh(false);
+	mdeFBXMesh->Load("UnityChan");
 
 	mPos = glm::vec3(2.f, 2.f, 0.f);
 	mRotate = glm::rotate(glm::mat4(1.0f), (float)M_PI / 2.0f, glm::vec3(1.0f, 0.0f, 0.0f));
@@ -46,12 +46,12 @@ void UnityChan::Draw(Shader* shader)
 	shader->SetMatrixUniform("ModelTransform", mWorldTransform);
 	//mAssimpMesh->Draw(shader, 0.f);
 
-	mFBXMesh->Draw(shader);
- 	//mMesh->BindVertexArray();
-	//mMesh->Draw(shader);
+	//mFBXMesh->Draw(shader);
+	mdeFBXMesh->Draw(shader);
+ 	//mdeFBXMesh->BindVertexArray();
 
 	////mMesh->DrawArray();
-	mMesh->UnBindVertexArray();
+	mdeFBXMesh->UnBindVertexArray();
 
 	//mAssimpMesh->Draw(shader, 1000.0f);
 }

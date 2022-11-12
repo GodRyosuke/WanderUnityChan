@@ -63,6 +63,9 @@
     <ClCompile Include="src\glad.c">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="src\FBXNodeMesh.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Game.hpp">
@@ -99,6 +102,9 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="include\FBXLoader2\FBXMesh2.hpp">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="include\FBXNodeMesh.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

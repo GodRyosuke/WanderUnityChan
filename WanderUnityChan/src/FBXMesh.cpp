@@ -626,7 +626,7 @@ void FBXMesh::DrawMesh(FbxNode* pNode, FbxAnimLayer* pAnimLayer,
             {
                 // Deform the vertex array with the shapes.
                 FbxTime time = 0;
-                ComputeShapeDeformation(lMesh, time, pAnimLayer, lVertexArray);
+                //ComputeShapeDeformation(lMesh, time, pAnimLayer, lVertexArray);
             }
 
             ////we need to get the number of clusters
@@ -643,8 +643,9 @@ void FBXMesh::DrawMesh(FbxNode* pNode, FbxAnimLayer* pAnimLayer,
             //}
         }
 
-        if (lMeshCache)
-            lMeshCache->UpdateVertexPosition(lMesh, lVertexArray);
+        if (lMeshCache) {
+            //lMeshCache->UpdateVertexPosition(lMesh, lVertexArray);
+        }
     }
 
     //glPushMatrix();
