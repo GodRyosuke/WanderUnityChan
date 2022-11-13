@@ -52,6 +52,8 @@ namespace
             if (lTextureCount)
             {
                 const FbxFileTexture* lTexture = lProperty.GetSrcObject<FbxFileTexture>();
+                std::string texFileName = lTexture->GetFileName();
+                printf("tex name: %s\n", texFileName.c_str());
                 if (lTexture && lTexture->GetUserDataPtr())
                 {
                     pTextureName = *(static_cast<GLuint*>(lTexture->GetUserDataPtr()));

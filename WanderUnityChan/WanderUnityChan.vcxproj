@@ -116,7 +116,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)WanderUnityChan\include;%(AdditionalIncludeDirectories);$(SolutionDir)WanderUnityChan\include;$(SolutionDir)dependencies\SDL2\include;$(SolutionDir)dependencies\fmod\include;$(SolutionDir)dependencies\glew\include;$(SolutionDir)dependencies\glm\glm;$(SolutionDir)dependencies\assimp\include;$(SolutionDir)dependencies\STB_Image;$(SolutionDir)dependencies\fbxsdk\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)WanderUnityChan\include;%(AdditionalIncludeDirectories);$(SolutionDir)dependencies\SDL2\include;$(SolutionDir)dependencies\fmod\include;$(SolutionDir)dependencies\glew\include;$(SolutionDir)dependencies\glm\glm;$(SolutionDir)dependencies\assimp\include;$(SolutionDir)dependencies\STB_Image;$(SolutionDir)dependencies\fbxsdk\include;$(SolutionDir)dependencies\nlohmann</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -149,7 +149,7 @@ XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y</Comman
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>;$(SolutionDir)WanderUnityChan\include;$(SolutionDir)dependencies\SDL2\include;$(SolutionDir)dependencies\fmod\include;$(SolutionDir)dependencies\glew\include;$(SolutionDir)dependencies\glm\glm;$(SolutionDir)dependencies\assimp\include;$(SolutionDir)dependencies\STB_Image;$(SolutionDir)dependencies\fbxsdk\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)WanderUnityChan\include;$(SolutionDir)dependencies\SDL2\include;$(SolutionDir)dependencies\fmod\include;$(SolutionDir)dependencies\glew\include;$(SolutionDir)dependencies\glm\glm;$(SolutionDir)dependencies\assimp\include;$(SolutionDir)dependencies\STB_Image;$(SolutionDir)dependencies\fbxsdk\include;$(SolutionDir)dependencies\nlohmann</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -210,6 +210,7 @@ XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y</Comman
     <ClInclude Include="include\NodeMesh.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="resources\UnityChan\Material.json" />
     <None Include="shaders\pos.frag" />
     <None Include="shaders\pos.vert" />
     <None Include="shaders\ShadowLighting.vert" />

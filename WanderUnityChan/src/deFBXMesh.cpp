@@ -5,6 +5,7 @@
 #include "GLUtil.hpp"
 #include "Texture.hpp"
 #include "NodeMesh.hpp"
+#include <fstream>
 
 deFBXMesh::deFBXMesh(bool setIsDrawArray)
     :mIsDrawArray(setIsDrawArray)
@@ -118,15 +119,35 @@ bool deFBXMesh::Load(std::string fileName)
     geometryConv.Triangulate(scene, true);
 
     // Scene解析
-    // Material 読み込み
-    //int materialCount = scene->GetMaterialCount();
+    // Texture 読み込み
+    printf("=== textures ===\n");
+    for (int i = 0; i < scene->GetTextureCount(); i++) {
+        LoadTexture(scene->GetTexture(i));
+    }
+    printf("=== material === \n");
+
+    int materialCount = scene->GetMaterialCount();
     //for (int i = 0; i < materialCount; i++) {
     //    FbxSurfaceMaterial* material = scene->GetMaterial(i);
     //    LoadMaterial(material);
     //}
 
     FbxNode* rootNode = scene->GetRootNode();
-    mRootNodeMesh = new NodeMesh(rootNode);
+    mRootNodeMesh = new NodeMesh(rootNode, this);
+
+    // マテリアルとtextureとの対応関係を読み込む
+    {
+        std::string filePath = "./resources/" + fileName + "/Material.json";
+        std::ifstream ifs(filePath.c_str());
+        if (ifs.good())
+        {
+            ifs >> mMaterialJsonMap;
+        }
+        else {
+            printf("error: failed to material.josn\n");
+        }
+        ifs.close();
+    }
 
     //if (rootNode == 0) {
     //    printf("error: cannont find root node: %s\n", fileName.c_str());
@@ -160,7 +181,46 @@ bool deFBXMesh::Load(std::string fileName)
 	return true;
 }
 
-deFBXMesh::Material* deFBXMesh::LoadMaterial(FbxSurfaceMaterial* material)
+void deFBXMesh::LoadTexture(FbxTexture* lTexture)
+{
+    FbxFileTexture* lFileTexture = FbxCast<FbxFileTexture>(lTexture);
+    if (lFileTexture && !lFileTexture->GetUserDataPtr())
+    {
+        // Try to load the texture from absolute path
+        std::string texturePathData = lFileTexture->GetFileName();
+        GLUtil glutil;
+        char buffer[512];
+        memset(buffer, 0, 512 * sizeof(char));
+        memcpy(buffer, texturePathData.c_str(), sizeof(char) * 512);
+        glutil.Replace('\\', '/', buffer);
+        std::vector<std::string> split_list;
+        std::string replace_file_name = buffer;
+        // 「/」で分解
+        glutil.Split('/', buffer, split_list);
+
+        std::string texturePath = "./resources/" + mMeshFileName + "/Textures/" + split_list[split_list.size() - 1];
+        std::string texFileName = split_list[split_list.size() - 1];
+        Texture* tex = new Texture(texturePath);
+        mTextures.emplace(texFileName, tex);
+        printf("%s\n", texFileName.c_str());
+    }
+}
+
+void deFBXMesh::BindTexture(std::string materialName)
+{
+    std::string diffuseTexName = mMaterialJsonMap[materialName]["Diffuse"];
+    Texture* diffuseTexture = mTextures[diffuseTexName];
+    diffuseTexture->BindTexture();
+}
+
+void deFBXMesh::UnBindTexture(std::string materialName)
+{
+    std::string diffuseTexName = mMaterialJsonMap[materialName]["Diffuse"];
+    Texture* diffuseTexture = mTextures[diffuseTexName];
+    diffuseTexture->UnBindTexture();
+}
+
+void deFBXMesh::LoadMaterial(FbxSurfaceMaterial* material)
 {
     Material* MaterialData = new Material;
     MaterialData->Name = material->GetName();
@@ -196,15 +256,18 @@ deFBXMesh::Material* deFBXMesh::LoadMaterial(FbxSurfaceMaterial* material)
                 glutil.Split('/', buffer, split_list);
 
                 std::string texturePath = "./resources/" + mMeshFileName + "/Textures/" + split_list[split_list.size() - 1];
+                std::string texFileName = split_list[split_list.size() - 1];
                 Texture* tex = new Texture(texturePath);
+                mTextures.emplace(texFileName, tex);
                 MaterialData->Textures.push_back(tex);
+
+                printf("tex name: %s\n", texFileName.c_str());
                 //printf("%s\n", fileTex->GetFileName());
             }
         }
     }
 
     mMaterials.push_back(MaterialData);
-    return MaterialData;
 }
 
 void deFBXMesh::LoadNode(FbxNode* node)
@@ -245,7 +308,7 @@ void deFBXMesh::LoadNode(FbxNode* node)
                 Material* MaterialData = nullptr;
                 for (int materialIndex = 0; materialIndex < materialCount; materialIndex++) {
                     FbxSurfaceMaterial* material = node->GetMaterial(materialIndex);
-                    MaterialData = LoadMaterial(material);
+                    LoadMaterial(material);
                     NodeMeshes[materialIndex].material = MaterialData;
                     mNodeMeshes.push_back(&NodeMeshes[materialIndex]);
                 }

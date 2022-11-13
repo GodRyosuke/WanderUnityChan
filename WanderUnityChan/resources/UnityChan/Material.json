@@ -1,0 +1,47 @@
+{
+    "face": {
+        "Diffuse":"face_00.tga",
+        "Normal": "",
+        "Specular": ""
+    },
+    "eyebase": {
+        "Diffuse":"eyeline_00.tga",
+        "Normal": "",
+        "Specular": ""
+    },
+    "eye_L1": {
+        "Diffuse":"eye_iris_L_00.tga",
+        "Normal": "",
+        "Specular": ""
+    },
+    "eye_R1": {
+        "Diffuse":"eye_iris_R_00.tga",
+        "Normal": "",
+        "Specular": ""
+    },
+    "eyeline": {
+        "Diffuse":"eyeline_00.tga",
+        "Normal": "",
+        "Specular": ""
+    },
+    "hair": {
+        "Diffuse":"hair_01.tga",
+        "Normal": "hair_01_NRM.tga",
+        "Specular": ""
+    },
+    "body": {
+        "Diffuse":"body_01.tga",
+        "Normal": "body_01_NRM.tga",
+        "Specular": "body_01_SPEC.tga"
+    },
+    "skin1": {
+        "Diffuse":"skin_01.tga",
+        "Normal": "",
+        "Specular": ""
+    },
+    "mat_cheek": {
+        "Diffuse":"cheek_00.tga",
+        "Normal": "",
+        "Specular": ""
+    }
+}

@@ -9,6 +9,8 @@ in vec3 Normal0;
 in vec3 WorldPos0;                                                                  
                          
 uniform vec3 gEyeWorldPos;
+uniform sampler2D gSampler;                                                                 
+
 						 
 out vec4 FragColor;
 
@@ -39,7 +41,11 @@ void main()
 		vec3 Specular = SpecColor * pow(max(0.0, dot(R, V)), SpecPower);
 		Phong += Diffuse + Specular;
 	}
-    FragColor = vec4(Phong, 1.0f);
+
+	vec4 SampledColor = texture2D(gSampler, TexCoord0.xy); 
+	// FragColor = SampledColor * vec4(Phong, 1.0f);
+	FragColor = SampledColor;
+    //FragColor = vec4(Phong, 1.0f);
 	// FragColor = vec4(1.0f);
 }
 

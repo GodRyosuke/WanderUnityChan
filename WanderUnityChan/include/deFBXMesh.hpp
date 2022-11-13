@@ -4,6 +4,10 @@
 #include "fbxsdk.h"
 #include "glm.hpp"
 #include <vector>
+#include <map>
+#include "json.hpp"
+
+namespace nl = nlohmann;
 
 class deFBXMesh {
 public:
@@ -14,6 +18,9 @@ public:
 	void UnBindVertexArray();
 	void Draw(class Shader* shader);
 	void DrawArray();
+
+	void BindTexture(std::string MaterialName);
+	void UnBindTexture(std::string materialName);
 
 private:
 	struct Material {
@@ -61,10 +68,12 @@ private:
 	dedeMaterialVNT* LoadMeshElement(FbxMesh* mesh);
 	dedeMaterialVNT* LoadMeshArray(FbxMesh* mesh, unsigned int& vertexOffset);
 
-	Material* LoadMaterial(FbxSurfaceMaterial* material);
+	void LoadMaterial(FbxSurfaceMaterial* material);
+	void LoadTexture(FbxTexture* lTexture);
 
 	void LoadNormal(FbxLayerElementNormal* normalElem);
 	void LoadUV(FbxLayerElementUV* uvElem);
+
 
 
 
@@ -94,8 +103,11 @@ private:
 	
 	std::vector<dedeMaterialVNT*> mNodeMeshes;
 	std::vector<class VAO*> mVAOs;
+	std::map<std::string, class Texture*> mTextures;
 
 	class NodeMesh* mRootNodeMesh;
+
+	nl::json mMaterialJsonMap;
 
 	unsigned int mVertexArray;
 	unsigned int* mVertexBuffers;

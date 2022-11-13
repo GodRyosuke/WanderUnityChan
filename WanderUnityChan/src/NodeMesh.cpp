@@ -2,9 +2,22 @@
 #include "glad/glad.h"
 //#include "glew.h"
 #include "GLUtil.hpp"
+#include "Texture.hpp"
+#include "deFBXMesh.hpp"
 
+namespace
+{
+    //const float ANGLE_TO_RADIAN = 3.1415926f / 180.f;
+    const GLfloat BLACK_COLOR[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+    const GLfloat GREEN_COLOR[] = { 0.0f, 1.0f, 0.0f, 1.0f };
+    const GLfloat WHITE_COLOR[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    const GLfloat WIREFRAME_COLOR[] = { 0.5f, 0.5f, 0.5f, 1.0f };
 
-NodeMesh::NodeMesh(FbxNode* node)
+ 
+}
+
+NodeMesh::NodeMesh(FbxNode* node, deFBXMesh* fbxmesh)
+    :mOwnerMesh(fbxmesh)
 {
     mVertexArray = 0;
     //mVertexBuffers = nullptr;
@@ -42,6 +55,8 @@ NodeMesh::NodeMesh(FbxNode* node)
             //Material* MaterialData = nullptr;
             for (int materialIndex = 0; materialIndex < materialCount; materialIndex++) {
                 FbxSurfaceMaterial* material = node->GetMaterial(materialIndex);
+                mSubMeshes[materialIndex]->Material = LoadMaterial(material);
+                mSubMeshes[materialIndex]->MaterialName = material->GetName();
                 //MaterialData = LoadMaterial(material);
                 //NodeMeshes[materialIndex].material = MaterialData;
                 //mNodeMeshes.push_back(&NodeMeshes[materialIndex]);
@@ -58,7 +73,7 @@ NodeMesh::NodeMesh(FbxNode* node)
     NodeMesh* nodeMesh = nullptr;
     mChilds.resize(childCount);
     for (int nodeIdx = 0; nodeIdx < childCount; ++nodeIdx) {
-        nodeMesh = new NodeMesh(node->GetChild(nodeIdx));
+        nodeMesh = new NodeMesh(node->GetChild(nodeIdx), fbxmesh);
         mChilds[nodeIdx] = nodeMesh;
         //LoadNode(node->GetChild(nodeIdx));
     }
@@ -109,9 +124,9 @@ bool NodeMesh::LoadMesh(FbxMesh* mesh)
                 for (int lPolygonIndex = 0; lPolygonIndex < lPolygonCount; ++lPolygonIndex)
                 {
                     const int lMaterialIndex = lMaterialIndice->GetAt(lPolygonIndex);
-                    if (mSubMeshes.GetCount() < lMaterialIndex + 1)
+                    if (mSubMeshes.size() < lMaterialIndex + 1)
                     {
-                        mSubMeshes.Resize(lMaterialIndex + 1);
+                        mSubMeshes.resize(lMaterialIndex + 1);
                     }
                     if (mSubMeshes[lMaterialIndex] == NULL)
                     {
@@ -122,14 +137,14 @@ bool NodeMesh::LoadMesh(FbxMesh* mesh)
 
                 // Make sure we have no "holes" (NULL) in the mSubMeshes table. This can happen
                 // if, in the loop above, we resized the mSubMeshes by more than one slot.
-                for (int i = 0; i < mSubMeshes.GetCount(); i++)
+                for (int i = 0; i < mSubMeshes.size(); i++)
                 {
                     if (mSubMeshes[i] == NULL)
                         mSubMeshes[i] = new SubMesh;
                 }
 
                 // Record the offset (how many vertex)
-                const int lMaterialCount = mSubMeshes.GetCount();
+                const int lMaterialCount = mSubMeshes.size();
                 int lOffset = 0;
                 for (int lIndex = 0; lIndex < lMaterialCount; ++lIndex)
                 {
@@ -144,9 +159,9 @@ bool NodeMesh::LoadMesh(FbxMesh* mesh)
     }
 
     // All faces will use the same material.
-    if (mSubMeshes.GetCount() == 0)
+    if (mSubMeshes.size() == 0)
     {
-        mSubMeshes.Resize(1);
+        mSubMeshes.resize(1);
         mSubMeshes[0] = new SubMesh();
     }
 
@@ -272,12 +287,21 @@ bool NodeMesh::LoadMesh(FbxMesh* mesh)
             }
 
             if (hasUV) {
-                bool lUnmappedUV;
+                lCurrentUV[0] = 0.f; lCurrentUV[1] = 0.f;
+                bool lUnmappedUV = false;
+                lUVName = lUVNames.GetStringAt(lPolygonIndex);
+                printf("uv name: %s\n", lUVName);
                 mesh->GetPolygonVertexUV(lPolygonIndex, lVerticeIndex, lUVName, lCurrentUV, lUnmappedUV);
                 mTexCoords[lPolygonIndex * 3 + lVerticeIndex] = glm::vec2(
                     static_cast<float>(lCurrentUV[0]),
                     static_cast<float>(lCurrentUV[1])
                 );
+                if (lUnmappedUV) {
+                    printf("not assosiated uv\n");
+                }
+                else {
+                    printf("uv‚ ‚è\n");
+                }
             }
 
             lVertexCount++;
@@ -285,7 +309,6 @@ bool NodeMesh::LoadMesh(FbxMesh* mesh)
         mSubMeshes[lMaterialIndex]->TriangleCount += 1;
     }
 
-    assert(mSubMeshes.GetCount() == 1);
 
     //CreateVAO(lPolygonCount,
     //    lIndices,
@@ -320,7 +343,6 @@ void NodeMesh::CreateVAO(
     bool hasUV
 )
 {
-
     // Create VBOs
     glGenVertexArrays(1, &mVertexArray);
     glBindVertexArray(mVertexArray);
@@ -400,26 +422,133 @@ void NodeMesh::CreateVAO()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
+NodeMesh::Material* NodeMesh::LoadMaterial(FbxSurfaceMaterial* material)
+{
+    //const FbxDouble3 lEmissive = GetMaterialProperty(pMaterial,
+    //    FbxSurfaceMaterial::sEmissive, FbxSurfaceMaterial::sEmissiveFactor, mEmissive.mTextureName);
+    //mEmissive.mColor[0] = static_cast<GLfloat>(lEmissive[0]);
+    //mEmissive.mColor[1] = static_cast<GLfloat>(lEmissive[1]);
+    //mEmissive.mColor[2] = static_cast<GLfloat>(lEmissive[2]);
+    printf("%s\n", material->GetName());
+
+    std::string AmbientTexName = "";
+    std::string DiffuseTexName = "";
+    std::string SpecTexName = "";
+    Material* materialData = new Material;
+    const FbxDouble3 lAmbient = GetMaterialProperty(material,
+        FbxSurfaceMaterial::sAmbient, FbxSurfaceMaterial::sAmbientFactor, AmbientTexName);
+    materialData->AmbientColor[0] = static_cast<float>(lAmbient[0]);
+    materialData->AmbientColor[1] = static_cast<float>(lAmbient[1]);
+    materialData->AmbientColor[2] = static_cast<float>(lAmbient[2]);
+
+    const FbxDouble3 lDiffuse = GetMaterialProperty(material,
+        FbxSurfaceMaterial::sDiffuse, FbxSurfaceMaterial::sDiffuseFactor, DiffuseTexName);
+    materialData->DiffuseColor[0] = static_cast<GLfloat>(lDiffuse[0]);
+    materialData->DiffuseColor[1] = static_cast<GLfloat>(lDiffuse[1]);
+    materialData->DiffuseColor[2] = static_cast<GLfloat>(lDiffuse[2]);
+
+    const FbxDouble3 lSpecular = GetMaterialProperty(material,
+        FbxSurfaceMaterial::sSpecular, FbxSurfaceMaterial::sSpecularFactor, SpecTexName);
+    materialData->SpecColor[0] = static_cast<GLfloat>(lSpecular[0]);
+    materialData->SpecColor[1] = static_cast<GLfloat>(lSpecular[1]);
+    materialData->SpecColor[2] = static_cast<GLfloat>(lSpecular[2]);
+
+    FbxProperty lShininessProperty = material->FindProperty(FbxSurfaceMaterial::sShininess);
+    if (lShininessProperty.IsValid())
+    {
+        double lShininess = lShininessProperty.Get<FbxDouble>();
+        materialData->Shinness = static_cast<GLfloat>(lShininess);
+    }
+
+    //printf("ambient tex name: %s\n", AmbientTexName.c_str());
+    //printf("diffuse tex name: %s\n", DiffuseTexName.c_str());
+    //printf("spec tex name:    %s\n", SpecTexName.c_str());
+
+    return materialData;
+}
+
+FbxDouble3 NodeMesh::GetMaterialProperty(const FbxSurfaceMaterial* pMaterial,
+    const char* pPropertyName,
+    const char* pFactorPropertyName,
+    std::string& textureName)
+{
+    FbxDouble3 lResult(0, 0, 0);
+    const FbxProperty lProperty = pMaterial->FindProperty(pPropertyName);
+    const FbxProperty lFactorProperty = pMaterial->FindProperty(pFactorPropertyName);
+    if (lProperty.IsValid() && lFactorProperty.IsValid())
+    {
+        lResult = lProperty.Get<FbxDouble3>();
+        double lFactor = lFactorProperty.Get<FbxDouble>();
+        if (lFactor != 1)
+        {
+            lResult[0] *= lFactor;
+            lResult[1] *= lFactor;
+            lResult[2] *= lFactor;
+        }
+    }
+
+    const int lTextureCount = lProperty.GetSrcObjectCount<FbxFileTexture>();
+    if (lProperty.IsValid())
+    {
+        if (lTextureCount)
+        {
+            assert(lTextureCount == 1);
+
+            const FbxFileTexture* lFileTexture = lProperty.GetSrcObject<FbxFileTexture>();
+            if (lFileTexture) {
+                const FbxString lFileName = lFileTexture->GetFileName();
+                std::string texFileName = lFileName.Buffer();
+
+                GLUtil glutil;
+                char buffer[512];
+                memset(buffer, 0, 512 * sizeof(char));
+                memcpy(buffer, texFileName.c_str(), sizeof(char) * 512);
+                glutil.Replace('\\', '/', buffer);
+                std::vector<std::string> split_list;
+                std::string replace_file_name = buffer;
+                // u/v‚Å•ª‰ð
+                glutil.Split('/', buffer, split_list);
+                textureName = split_list[split_list.size() - 1];
+
+            //    std::string texturePath = "./resources/" + mMeshName +"/Textures/" + split_list[split_list.size() - 1];
+            //    Texture* textureData = new Texture(texturePath);
+            //    tex = textureData;
+            }
+
+            //if (lTexture && lTexture->GetUserDataPtr())
+            //{
+            //    pTextureName = *(static_cast<GLuint*>(lTexture->GetUserDataPtr()));
+            //}
+        }
+    }
+
+    return lResult;
+}
+
 void NodeMesh::Draw()
 {
     if (mIsMesh) {
-#if _MSC_VER >= 1900 && defined(_WIN64)
-        // this warning occurs when building 64bit.
-#pragma warning( push )
-#pragma warning( disable : 4312)
-#endif
         glBindVertexArray(mVertexArray);
         //glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffers[POS_VB]);
         //glEnableClientState(GL_VERTEX_ARRAY);
         //glEnableVertexAttribArray(0);
         //glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-        GLsizei lOffset = mSubMeshes[0]->IndexOffset * sizeof(unsigned int);
-        const GLsizei lElementCount = mSubMeshes[0]->TriangleCount * 3;
 
-        glDrawElements(GL_TRIANGLES,
-            lElementCount,
-            GL_UNSIGNED_INT,
-            reinterpret_cast<const GLvoid*>(lOffset));
+        for (int materialIdx = 0; materialIdx < mSubMeshes.size(); materialIdx++) {
+            std::string materialName = mSubMeshes[materialIdx]->MaterialName;
+            mOwnerMesh->BindTexture(materialName);
+
+            GLsizei lOffset = mSubMeshes[materialIdx]->IndexOffset * sizeof(unsigned int);
+            const GLsizei lElementCount = mSubMeshes[materialIdx]->TriangleCount * 3;
+
+            glDrawElements(GL_TRIANGLES,
+                lElementCount,
+                GL_UNSIGNED_INT,
+                reinterpret_cast<const GLvoid*>(lOffset));
+
+            mOwnerMesh->UnBindTexture(materialName);
+        }
+
 
         //glDrawArrays(
         //    GL_TRIANGLES,
@@ -427,9 +556,6 @@ void NodeMesh::Draw()
         //    mPositions.size()
         //);
         glBindVertexArray(0);
-#if _MSC_VER >= 1900 && defined(_WIN64)
-#pragma warning( pop )
-#endif
     }
 
     for (auto child : mChilds) {

@@ -17,6 +17,7 @@ Texture::Texture(std::string filePath)
 	stbi_set_flip_vertically_on_load(true);
 	unsigned char* PictureData = stbi_load(filePath.c_str(), &width, &height, &numColCh, 0);
 
+	
 	glGenTextures(1, &texture_data);
 	//glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture_data);
@@ -30,7 +31,10 @@ Texture::Texture(std::string filePath)
 	if (numColCh == 3) {
 		colorCh = GL_RGB;
 	}
-
+	//auto colorCh = GL_BGRA;
+	//if (numColCh == 3) {
+	//	colorCh = GL_BGR;
+	//}
 	glTexImage2D(GL_TEXTURE_2D, 0, colorCh, width, height, 0, colorCh, GL_UNSIGNED_BYTE, PictureData);
 	// Generates MipMaps
 	//glGenerateMipmap(GL_TEXTURE_2D);

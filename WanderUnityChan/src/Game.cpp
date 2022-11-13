@@ -543,13 +543,14 @@ void Game::Draw()
 	// ---------------------------------
 	glEnable(GL_DEPTH_TEST);
 
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
 	glClearColor(0, 0.5, 0.7, 1.0f);
 	// Clear the color buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	//glEnable(GL_DEPTH_TEST);
 	glDisable(GL_BLEND);
 
-	mUnityChan->Draw(mShaders["TestShader"]);
 	mShaders["ShadowLighting"]->UseProgram();
 	mTextureShadowMapFBO->BindTexture(GL_TEXTURE1);
 	for (auto mesh : mMeshes) {
@@ -561,6 +562,7 @@ void Game::Draw()
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	mUnityChan->Draw(mShaders["TestShader"]);
 	//mAnimUnityChan->Draw(mUnityChanShader, mTicksCount / 1000.0f);
 
 
