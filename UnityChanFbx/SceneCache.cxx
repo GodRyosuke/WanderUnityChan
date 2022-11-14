@@ -321,6 +321,7 @@ bool VBOMesh::Initialize(const FbxMesh *pMesh)
 						pMesh->GetPolygonVertexUV(lPolygonIndex, lVerticeIndex, lUVName, lCurrentUV, lUnmappedUV);
 						lUVs[lVertexCount * UV_STRIDE] = static_cast<float>(lCurrentUV[0]);
 						lUVs[lVertexCount * UV_STRIDE + 1] = static_cast<float>(lCurrentUV[1]);
+                        //printf("%f %f\n", lCurrentUV[0], lCurrentUV[1]);
 					}
 				}
 			}

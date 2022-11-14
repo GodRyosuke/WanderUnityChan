@@ -287,21 +287,14 @@ bool NodeMesh::LoadMesh(FbxMesh* mesh)
             }
 
             if (hasUV) {
-                lCurrentUV[0] = 0.f; lCurrentUV[1] = 0.f;
+                //lCurrentUV[0] = 0.f; lCurrentUV[1] = 0.f;
                 bool lUnmappedUV = false;
-                lUVName = lUVNames.GetStringAt(lPolygonIndex);
-                printf("uv name: %s\n", lUVName);
+                //lUVName = lUVNames.GetStringAt(lPolygonIndex);
                 mesh->GetPolygonVertexUV(lPolygonIndex, lVerticeIndex, lUVName, lCurrentUV, lUnmappedUV);
                 mTexCoords[lPolygonIndex * 3 + lVerticeIndex] = glm::vec2(
                     static_cast<float>(lCurrentUV[0]),
                     static_cast<float>(lCurrentUV[1])
                 );
-                if (lUnmappedUV) {
-                    printf("not assosiated uv\n");
-                }
-                else {
-                    printf("uv‚ ‚è\n");
-                }
             }
 
             lVertexCount++;
@@ -546,15 +539,15 @@ void NodeMesh::Draw()
                 GL_UNSIGNED_INT,
                 reinterpret_cast<const GLvoid*>(lOffset));
 
+            //glDrawArrays(
+            //    GL_TRIANGLES,
+            //    0,
+            //    mPositions.size()
+            //);
             mOwnerMesh->UnBindTexture(materialName);
         }
 
 
-        //glDrawArrays(
-        //    GL_TRIANGLES,
-        //    0,
-        //    mPositions.size()
-        //);
         glBindVertexArray(0);
     }
 

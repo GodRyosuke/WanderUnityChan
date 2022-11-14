@@ -255,7 +255,7 @@ bool Game::LoadData()
 	{
 		// Treasure Box
 		Mesh* mesh = new Mesh();
-		if (mesh->Load("./resources/TreasureBox3/", "scene.gltf")) {
+		if (mesh->Load("./resources/TreasureBox2/", "TreasureBox2.fbx")) {
 			mesh->SetMeshPos(glm::vec3(4.0f, 5.0f / 2.0f, 0.0f));
 			mesh->SetMeshRotate(glm::mat4(1.0f));
 			mesh->SetMeshScale(0.01f / 2.0f);
