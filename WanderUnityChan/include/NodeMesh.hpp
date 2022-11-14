@@ -10,7 +10,7 @@ class NodeMesh {
 public:
 	NodeMesh(FbxNode* pNode, class deFBXMesh* fbxmesh);
 
-	void Draw();
+	void Draw(class Shader* shader);
 	int GetNumChild() { return mNumChild; }
 
 private:

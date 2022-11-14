@@ -1163,7 +1163,7 @@ void deFBXMesh::Draw(Shader* shader)
 
     }
     else {
-        mRootNodeMesh->Draw();
+        mRootNodeMesh->Draw(shader);
         //for (auto material : mMaterials) {
         //    GLsizei lOffset = material->IndexOffset * sizeof(unsigned int);
         //    glBindVertexArray(mVertexArray);

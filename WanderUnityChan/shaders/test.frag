@@ -8,6 +8,10 @@ in vec2 TexCoord0;
 in vec3 Normal0;                                                                    
 in vec3 WorldPos0;                                                                  
                          
+uniform vec3 matAmbientColor;
+uniform vec3 matDiffuseColor;
+uniform vec3 matSpecColor;
+
 uniform vec3 gEyeWorldPos;
 uniform sampler2D gSampler;                                                                 
 
@@ -43,9 +47,8 @@ void main()
 	}
 
 	vec4 SampledColor = texture2D(gSampler, TexCoord0.xy); 
-	// vec4 SampledColor = texture2D(gSampler, vec2(TexCoord0.x, 1.f - TexCoord0.y)); 
-	// FragColor = SampledColor * vec4(Phong, 1.0f);
-	FragColor = SampledColor;
+	FragColor = SampledColor * vec4(Phong, 1.0f);
+	// FragColor = SampledColor;
     //FragColor = vec4(Phong, 1.0f);
 	// FragColor = vec4(1.0f);
 }

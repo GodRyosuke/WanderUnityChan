@@ -4,6 +4,7 @@
 #include "GLUtil.hpp"
 #include "Texture.hpp"
 #include "deFBXMesh.hpp"
+#include "Shader.hpp"
 
 namespace
 {
@@ -320,7 +321,9 @@ bool NodeMesh::LoadMesh(FbxMesh* mesh)
     //    delete[] lUVs;
     //}
     CreateVAO();
-
+    mPositions.clear();
+    mNormals.clear();
+    mTexCoords.clear();
 
 
     return true;
@@ -518,7 +521,7 @@ FbxDouble3 NodeMesh::GetMaterialProperty(const FbxSurfaceMaterial* pMaterial,
     return lResult;
 }
 
-void NodeMesh::Draw()
+void NodeMesh::Draw(Shader* shader)
 {
     if (mIsMesh) {
         glBindVertexArray(mVertexArray);
@@ -528,8 +531,15 @@ void NodeMesh::Draw()
         //glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
         for (int materialIdx = 0; materialIdx < mSubMeshes.size(); materialIdx++) {
+            // Bind Texture
             std::string materialName = mSubMeshes[materialIdx]->MaterialName;
             mOwnerMesh->BindTexture(materialName);
+            //  Bind Material
+            Material* material = mSubMeshes[materialIdx]->Material;
+            shader->SetVectorUniform("matAmbientColor", material->AmbientColor);
+            shader->SetVectorUniform("matDiffuseColor", material->DiffuseColor);
+            shader->SetVectorUniform("matSpecColor", material->SpecColor);
+
 
             GLsizei lOffset = mSubMeshes[materialIdx]->IndexOffset * sizeof(unsigned int);
             const GLsizei lElementCount = mSubMeshes[materialIdx]->TriangleCount * 3;
@@ -552,7 +562,7 @@ void NodeMesh::Draw()
     }
 
     for (auto child : mChilds) {
-        child->Draw();
+        child->Draw(shader);
     }
 }
 
