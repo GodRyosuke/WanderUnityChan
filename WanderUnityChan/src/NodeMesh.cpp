@@ -325,6 +325,12 @@ bool NodeMesh::LoadMesh(FbxMesh* mesh)
     mNormals.clear();
     mTexCoords.clear();
 
+    const bool lHasVertexCache = mesh->GetDeformerCount(FbxDeformer::eVertexCache) &&
+        (static_cast<FbxVertexCacheDeformer*>(mesh->GetDeformer(0, FbxDeformer::eVertexCache)))->Active.Get();
+    assert(lHasVertexCache == false);
+    const bool lHasShape = mesh->GetShapeCount() > 0;
+    assert(lHasShape == false);
+
 
     return true;
 }
@@ -505,6 +511,7 @@ FbxDouble3 NodeMesh::GetMaterialProperty(const FbxSurfaceMaterial* pMaterial,
                 // u/v‚Å•ª‰ð
                 glutil.Split('/', buffer, split_list);
                 textureName = split_list[split_list.size() - 1];
+                printf("\ttexture name: %s\n", textureName.c_str());
 
             //    std::string texturePath = "./resources/" + mMeshName +"/Textures/" + split_list[split_list.size() - 1];
             //    Texture* textureData = new Texture(texturePath);
@@ -524,6 +531,7 @@ FbxDouble3 NodeMesh::GetMaterialProperty(const FbxSurfaceMaterial* pMaterial,
 void NodeMesh::Draw(Shader* shader)
 {
     if (mIsMesh) {
+        shader->UseProgram();
         glBindVertexArray(mVertexArray);
         //glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffers[POS_VB]);
         //glEnableClientState(GL_VERTEX_ARRAY);
@@ -536,9 +544,24 @@ void NodeMesh::Draw(Shader* shader)
             mOwnerMesh->BindTexture(materialName);
             //  Bind Material
             Material* material = mSubMeshes[materialIdx]->Material;
-            shader->SetVectorUniform("matAmbientColor", material->AmbientColor);
-            shader->SetVectorUniform("matDiffuseColor", material->DiffuseColor);
-            shader->SetVectorUniform("matSpecColor", material->SpecColor);
+            if (material->AmbientColor != glm::vec3(0.f)) {
+                shader->SetVectorUniform("matAmbientColor", material->AmbientColor);
+            }
+            else {
+                shader->SetVectorUniform("matAmbientColor", glm::vec3(1.f));
+            }
+            if (material->DiffuseColor != glm::vec3(0.f)) {
+                shader->SetVectorUniform("matDiffuseColor", material->DiffuseColor);
+            }
+            else {
+                shader->SetVectorUniform("matDiffuseColor", glm::vec3(1.f));
+            }
+            if (material->SpecColor != glm::vec3(0.f)) {
+                shader->SetVectorUniform("matSpecColor", material->SpecColor);
+            }
+            else {
+                shader->SetVectorUniform("matSpecColor", glm::vec3(1.f));
+            }
 
 
             GLsizei lOffset = mSubMeshes[materialIdx]->IndexOffset * sizeof(unsigned int);

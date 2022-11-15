@@ -7,12 +7,17 @@
 #include "FBXLoader/Mesh.hpp"
 
 UnityChan::UnityChan()
+	:z_rot(0.f)
 {
 	mdeFBXMesh = new deFBXMesh(false);
 	mdeFBXMesh->Load("UnityChan");
+	//mdeFBXMesh->Load("cacti");
+	//mdeFBXMesh->Load("TreasureChest");
 	//mdeFBXMesh->Load("TreasureBox2");
+	//mdeFBXMesh->Load("SchoolDesk");
 
 	mPos = glm::vec3(2.f, 2.f, 0.f);
+	mRotate = glm::mat4(1.f);
 	mRotate = glm::rotate(glm::mat4(1.0f), (float)M_PI / 2.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 	mRotate *= glm::rotate(glm::mat4(1.0f), -(float)M_PI / 2.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 	mScale = 1.f;
@@ -37,6 +42,11 @@ UnityChan::UnityChan()
 
 void UnityChan::Update(float deltatime)
 {
+	z_rot += 0.01f;
+	if (z_rot < 2 * M_PI) {
+		z_rot -= 2 * M_PI;
+	}
+	mRotate = glm::rotate(glm::mat4(1.0f), z_rot, glm::vec3(0.0f, 0.0f, 1.0f));
 	glm::mat4 ScaleMat = glm::scale(glm::mat4(1.0f), glm::vec3(mScale, mScale, mScale));
 	glm::mat4 TranslateMat = glm::translate(glm::mat4(1.0f), mPos);
 	mWorldTransform = TranslateMat * mRotate * ScaleMat;

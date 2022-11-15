@@ -211,8 +211,6 @@ XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y</Comman
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\UnityChan\Material.json" />
-    <None Include="shaders\pos.frag" />
-    <None Include="shaders\pos.vert" />
     <None Include="shaders\ShadowLighting.vert" />
     <None Include="shaders\ShadowLighting.frag" />
     <None Include="shaders\ShadowMap.frag" />

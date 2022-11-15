@@ -35,6 +35,7 @@ private:
 
 	glm::vec3 mPos;
 	glm::mat4 mRotate;
+	float z_rot;
 	float mScale;
 	glm::mat4 mWorldTransform;
 	class deFBXMesh* mdeFBXMesh;

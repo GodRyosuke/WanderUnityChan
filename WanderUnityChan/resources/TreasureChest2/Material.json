@@ -1,0 +1,8 @@
+{
+    "M_Chest_Reinforcment":{
+        "Diffuse":"M_Chest_Reinforcment_albedo.jpg"
+    },
+    "M_Chest_Wood":{
+        "Diffuse": "M_Chest_Wood_albedo.jpg"
+    }
+}

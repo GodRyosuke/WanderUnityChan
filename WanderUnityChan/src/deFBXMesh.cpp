@@ -122,6 +122,7 @@ bool deFBXMesh::Load(std::string fileName)
     // Scene‰ðÍ
     // Texture “Ç‚Ýž‚Ý
     printf("=== textures ===\n");
+    printf("texture num: %d\n", scene->GetTextureCount());
     for (int i = 0; i < scene->GetTextureCount(); i++) {
         LoadTexture(scene->GetTexture(i));
     }
@@ -145,7 +146,7 @@ bool deFBXMesh::Load(std::string fileName)
             ifs >> mMaterialJsonMap;
         }
         else {
-            printf("error: failed to material.josn\n");
+            printf("error: failed to load material.josn\n");
         }
         ifs.close();
     }
@@ -209,13 +210,35 @@ void deFBXMesh::LoadTexture(FbxTexture* lTexture)
 
 void deFBXMesh::BindTexture(std::string materialName)
 {
+    {
+        auto iter = mMaterialJsonMap.find(materialName);
+        if (iter == mMaterialJsonMap.end()) {
+            return;
+        }
+    }
+
     std::string diffuseTexName = mMaterialJsonMap[materialName]["Diffuse"];
-    Texture* diffuseTexture = mTextures[diffuseTexName];
-    diffuseTexture->BindTexture();
+
+    {
+        auto iter = mTextures.find(diffuseTexName);
+        if (iter == mTextures.end()) {
+            std::string texFilePath = "./resources/" + mMeshFileName + "/Textures/" + diffuseTexName;
+            Texture* tex = new Texture(texFilePath);
+            mTextures.emplace(diffuseTexName, tex);
+            tex->BindTexture();
+        }
+        else {
+            iter->second->BindTexture();
+        }
+    }
 }
 
 void deFBXMesh::UnBindTexture(std::string materialName)
 {
+    auto iter = mMaterialJsonMap.find(materialName);
+    if (iter == mMaterialJsonMap.end()) {
+        return;
+    }
     std::string diffuseTexName = mMaterialJsonMap[materialName]["Diffuse"];
     Texture* diffuseTexture = mTextures[diffuseTexName];
     diffuseTexture->UnBindTexture();

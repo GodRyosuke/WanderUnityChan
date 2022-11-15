@@ -212,7 +212,7 @@ bool FBXMesh::Load(std::string fileName)
 
 		// Convert any .PC2 point cache data into the .MC format for 
 		// vertex cache deformer playback.
-		//PreparePointCacheData(mScene, mCache_Start, mCache_Stop);
+		PreparePointCacheData(mScene, mCache_Start, mCache_Stop);
 
 		// Get the list of pose in the scene
 		FillPoseArray(mScene, mPoseArray);
@@ -427,6 +427,7 @@ void FBXMesh::PreparePointCacheData(FbxScene* pScene, FbxTime& pCache_Start, Fbx
                         // This code show how to convert from MC to PC2 point cache format
                         // turn it on if you need it.
                         //#if 0 
+                        assert(false);
                         if (!lCache->ConvertFromMCToPC2(FbxTime::GetFrameRate(pScene->GetGlobalSettings().GetTimeMode()), 0, &lStatus))
                         {
                             // Conversion failed, retrieve the error here
