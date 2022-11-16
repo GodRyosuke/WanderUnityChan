@@ -329,7 +329,8 @@ bool NodeMesh::LoadMesh(FbxMesh* mesh)
         (static_cast<FbxVertexCacheDeformer*>(mesh->GetDeformer(0, FbxDeformer::eVertexCache)))->Active.Get();
     assert(lHasVertexCache == false);
     const bool lHasShape = mesh->GetShapeCount() > 0;
-
+    //assert(mesh->GetElementPolygonGroupCount() == 3);
+    //printf("vertex color num: %d\n", mesh->GetElementVertexColorCount());
 
     return true;
 }
@@ -530,7 +531,6 @@ FbxDouble3 NodeMesh::GetMaterialProperty(const FbxSurfaceMaterial* pMaterial,
 void NodeMesh::Draw(Shader* shader)
 {
     if (mIsMesh) {
-        shader->UseProgram();
         glBindVertexArray(mVertexArray);
         //glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffers[POS_VB]);
         //glEnableClientState(GL_VERTEX_ARRAY);
@@ -538,6 +538,8 @@ void NodeMesh::Draw(Shader* shader)
         //glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
         for (int materialIdx = 0; materialIdx < mSubMeshes.size(); materialIdx++) {
+            shader->UseProgram();
+            //materialIdx = 2;
             // Bind Texture
             std::string materialName = mSubMeshes[materialIdx]->MaterialName;
             mOwnerMesh->BindTexture(materialName);
@@ -577,6 +579,7 @@ void NodeMesh::Draw(Shader* shader)
             //    mPositions.size()
             //);
             mOwnerMesh->UnBindTexture(materialName);
+            //break;
         }
 
 

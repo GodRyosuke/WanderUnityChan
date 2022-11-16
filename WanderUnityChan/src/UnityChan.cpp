@@ -10,11 +10,11 @@ UnityChan::UnityChan()
 	:z_rot(0.f)
 {
 	mdeFBXMesh = new deFBXMesh(false);
-	mdeFBXMesh->Load("UnityChan");
+	//mdeFBXMesh->Load("UnityChan");
 	//mdeFBXMesh->Load("cacti");
 	//mdeFBXMesh->Load("TreasureChest");
 	//mdeFBXMesh->Load("TreasureBox2");
-	//mdeFBXMesh->Load("SchoolDesk");
+	mdeFBXMesh->Load("SchoolDesk");
 
 	mPos = glm::vec3(2.f, 2.f, 0.f);
 	mRotate = glm::mat4(1.f);
@@ -31,7 +31,7 @@ UnityChan::UnityChan()
 	//mAssimpMesh = new Mesh();
 	//mAssimpMesh->Load("./resources/UnityChan/", "UnityChan.fbx");
 
-	mScale = 0.01f;
+	//mScale = 0.01f;
 
 	//mAssimpMesh = new Mesh();
 	//mAssimpMesh->SetMeshPos(mPos);

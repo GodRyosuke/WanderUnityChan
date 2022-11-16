@@ -118,6 +118,7 @@ bool deFBXMesh::Load(std::string fileName)
     FbxGeometryConverter geometryConv = FbxGeometryConverter(mManager);
     geometryConv.Triangulate(scene, true);
     geometryConv.RemoveBadPolygonsFromMeshes(scene);
+    //geometryConv.SplitMeshesPerMaterial(scene, true);
 
     // Scene‰ğÍ
     // Texture “Ç‚İ‚İ
