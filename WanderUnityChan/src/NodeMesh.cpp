@@ -329,7 +329,6 @@ bool NodeMesh::LoadMesh(FbxMesh* mesh)
         (static_cast<FbxVertexCacheDeformer*>(mesh->GetDeformer(0, FbxDeformer::eVertexCache)))->Active.Get();
     assert(lHasVertexCache == false);
     const bool lHasShape = mesh->GetShapeCount() > 0;
-    assert(lHasShape == false);
 
 
     return true;

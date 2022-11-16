@@ -46,7 +46,9 @@ void UnityChan::Update(float deltatime)
 	if (z_rot < 2 * M_PI) {
 		z_rot -= 2 * M_PI;
 	}
-	mRotate = glm::rotate(glm::mat4(1.0f), z_rot, glm::vec3(0.0f, 0.0f, 1.0f));
+	mRotate = glm::rotate(glm::mat4(1.0f), (float)M_PI / 2.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+	mRotate *= glm::rotate(glm::mat4(1.0f), z_rot, glm::vec3(0.0f, 1.0f, 0.0f));
+
 	glm::mat4 ScaleMat = glm::scale(glm::mat4(1.0f), glm::vec3(mScale, mScale, mScale));
 	glm::mat4 TranslateMat = glm::translate(glm::mat4(1.0f), mPos);
 	mWorldTransform = TranslateMat * mRotate * ScaleMat;
