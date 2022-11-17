@@ -14,7 +14,7 @@ UnityChan::UnityChan()
 	//mdeFBXMesh->Load("cacti");
 	//mdeFBXMesh->Load("TreasureChest");
 	//mdeFBXMesh->Load("TreasureBox2");
-	mdeFBXMesh->Load("SchoolDesk");
+	mdeFBXMesh->Load("Bush_1");
 
 	mPos = glm::vec3(2.f, 2.f, 0.f);
 	mRotate = glm::mat4(1.f);
@@ -22,16 +22,16 @@ UnityChan::UnityChan()
 	mRotate *= glm::rotate(glm::mat4(1.0f), -(float)M_PI / 2.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 	mScale = 1.f;
 
-	mFBXMesh = new FBXMesh();
-	if (!mFBXMesh->Load("UnityChan")) {
-		printf("error: failed to load UnityChan\n");
-		exit(-1);
-	}
+	//mFBXMesh = new FBXMesh();
+	//if (!mFBXMesh->Load("UnityChan")) {
+	//	printf("error: failed to load UnityChan\n");
+	//	exit(-1);
+	//}
 
 	//mAssimpMesh = new Mesh();
 	//mAssimpMesh->Load("./resources/UnityChan/", "UnityChan.fbx");
 
-	//mScale = 0.01f;
+	mScale = 0.010f;
 
 	//mAssimpMesh = new Mesh();
 	//mAssimpMesh->SetMeshPos(mPos);

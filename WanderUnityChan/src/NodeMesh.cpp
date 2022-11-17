@@ -55,6 +55,9 @@ NodeMesh::NodeMesh(FbxNode* node, deFBXMesh* fbxmesh)
             //printf("material count: %d\n", materialCount);
             //Material* MaterialData = nullptr;
             for (int materialIndex = 0; materialIndex < materialCount; materialIndex++) {
+                if (mSubMeshes.size() <= materialIndex) {
+                    break;
+                }
                 FbxSurfaceMaterial* material = node->GetMaterial(materialIndex);
                 mSubMeshes[materialIndex]->Material = LoadMaterial(material);
                 mSubMeshes[materialIndex]->MaterialName = material->GetName();
@@ -168,6 +171,7 @@ bool NodeMesh::LoadMesh(FbxMesh* mesh)
 
     bool hasNormal = mesh->GetElementNormalCount() > 0;
     bool hasUV = mesh->GetElementUVCount() > 0;
+    bool allByControlPoint = true;
     FbxGeometryElement::EMappingMode lNormalMappingMode = FbxGeometryElement::eNone;
     FbxGeometryElement::EMappingMode lUVMappingMode = FbxGeometryElement::eNone;
     if (hasNormal)
@@ -177,6 +181,10 @@ bool NodeMesh::LoadMesh(FbxMesh* mesh)
         {
             hasNormal = false;
         }
+        if (hasNormal && lNormalMappingMode != FbxGeometryElement::eByControlPoint)
+        {
+            allByControlPoint = false;
+        }
     }
     if (hasUV)
     {
@@ -185,9 +193,13 @@ bool NodeMesh::LoadMesh(FbxMesh* mesh)
         {
             hasUV = false;
         }
+        if (hasNormal && lUVMappingMode != FbxGeometryElement::eByControlPoint)
+        {
+            allByControlPoint = false;
+        }
     }
 
-
+    assert(allByControlPoint == false);
 
 
     mIndices.resize(lPolygonCount * 3);
@@ -530,6 +542,7 @@ FbxDouble3 NodeMesh::GetMaterialProperty(const FbxSurfaceMaterial* pMaterial,
 
 void NodeMesh::Draw(Shader* shader)
 {
+    unsigned int currentEelementCount = 0;
     if (mIsMesh) {
         glBindVertexArray(mVertexArray);
         //glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffers[POS_VB]);
@@ -572,7 +585,12 @@ void NodeMesh::Draw(Shader* shader)
                 lElementCount,
                 GL_UNSIGNED_INT,
                 reinterpret_cast<const GLvoid*>(lOffset));
-
+            //glDrawElementsBaseVertex(GL_TRIANGLES,
+            //    lElementCount,
+            //    GL_UNSIGNED_INT,
+            //    reinterpret_cast<const GLvoid*>(lOffset),
+            //    currentEelementCount);
+            currentEelementCount += lElementCount;
             //glDrawArrays(
             //    GL_TRIANGLES,
             //    0,
