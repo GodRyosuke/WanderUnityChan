@@ -12,9 +12,9 @@ UnityChan::UnityChan()
 	mdeFBXMesh = new deFBXMesh(false);
 	//mdeFBXMesh->Load("UnityChan");
 	//mdeFBXMesh->Load("cacti");
-	//mdeFBXMesh->Load("TreasureChest");
+	mdeFBXMesh->Load("TreasureChest");
 	//mdeFBXMesh->Load("TreasureBox2");
-	mdeFBXMesh->Load("Bush_1");
+	//mdeFBXMesh->Load("Bush_1");
 
 	mPos = glm::vec3(2.f, 2.f, 0.f);
 	mRotate = glm::mat4(1.f);
