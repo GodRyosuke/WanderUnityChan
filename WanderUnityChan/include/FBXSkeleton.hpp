@@ -1,5 +1,8 @@
+#pragma once
+
 #include <vector>
 #include <fbxsdk.h>
+#include <glm.hpp>
 
 #define MAX_NUM_BONES_PER_VERTEX 4
 
@@ -8,6 +11,15 @@ public:
 	FBXSkeleton();
 
 	bool Load(FbxMesh* mesh);
+    void GetBoneIdexWeightArray(std::vector<glm::ivec4>& boneIndices,
+        std::vector<glm::vec4>& boneWeights) {
+        boneIndices = mBoneIndices;
+        boneWeights = mBoneWeights;
+    }
+    void DeleteBoneData() {
+        mBoneIndices.clear();
+        mBoneWeights.clear();
+    }
 
 private:
     struct VertexBoneData
@@ -22,7 +34,7 @@ private:
         void AddBoneData(unsigned int BoneID, float Weight)
         {
             for (unsigned int i = 0; i < MAX_NUM_BONES_PER_VERTEX; i++) {
-                //if ((BoneIDs[i] == BoneID) && (Weights[i] != 0.0)) { // ���łɏ������Ă�����ǉ����Ȃ�
+                //if ((BoneIDs[i] == BoneID) && (Weights[i] != 0.0)) { // すでに所持していたら追加しない
                 //    return;
                 //}
                 if (Weights[i] == 0.0) {
@@ -38,5 +50,10 @@ private:
         }
     };
 
+
     std::vector<VertexBoneData> mBones;
+    // 各頂点に影響を与えるBoneの数
+    std::vector<glm::ivec4> mBoneIndices;
+    // 影響を与えるBoneのWeight
+    std::vector<glm::vec4> mBoneWeights;
 };

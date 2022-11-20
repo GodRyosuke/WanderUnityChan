@@ -35,7 +35,7 @@ NodeMesh::NodeMesh(FbxNode* node, deFBXMesh* fbxmesh)
     for (int i = 0; i < attrCount; ++i) {
         FbxNodeAttribute* attr = node->GetNodeAttributeByIndex(i);
         FbxNodeAttribute::EType type = attr->GetAttributeType();
-        if (type == FbxNodeAttribute::EType::eMesh) {   // Mesh Node‚È‚ç
+        if (type == FbxNodeAttribute::EType::eMesh) {   // Mesh Nodeãªã‚‰
             mIsMesh = true;
             FbxMesh* pMesh = static_cast<FbxMesh*>(attr);
             LoadMesh(pMesh);
@@ -52,7 +52,7 @@ NodeMesh::NodeMesh(FbxNode* node, deFBXMesh* fbxmesh)
             //    LoadMeshElement(pMesh);
             //}
 
-            // ƒ}ƒeƒŠƒAƒ‹‚Ì“Ç‚İ‚İ
+            // ãƒãƒ†ãƒªã‚¢ãƒ«ã®èª­ã¿è¾¼ã¿
             int materialCount = node->GetMaterialCount();
             //printf("material count: %d\n", materialCount);
             //Material* MaterialData = nullptr;
@@ -347,12 +347,15 @@ bool NodeMesh::LoadMesh(FbxMesh* mesh)
     mPositions.clear();
     mNormals.clear();
     mTexCoords.clear();
+    
+    if (mOwnerMesh->GetIsSkinMesh()) {
+        mFBXSkeleton->DeleteBoneData();
+    }
 
     const bool lHasVertexCache = mesh->GetDeformerCount(FbxDeformer::eVertexCache) &&
         (static_cast<FbxVertexCacheDeformer*>(mesh->GetDeformer(0, FbxDeformer::eVertexCache)))->Active.Get();
     assert(lHasVertexCache == false);
     const bool lHasShape = mesh->GetShapeCount() > 0;
-
 
 
 
@@ -411,7 +414,7 @@ void NodeMesh::CreateVAO()
     GLUtil glutil;
     glGenVertexArrays(1, &mVertexArray);
     glBindVertexArray(mVertexArray);
-    // Vertex Buffer‚Ìì¬
+    // Vertex Bufferã®ä½œæˆ
 
     //GLuint mVertexBuffers[NUM_BUFFERS] = { 0 };
     //mVertexBuffers = new GLuint[NUM_BUFFERS];
@@ -443,9 +446,32 @@ void NodeMesh::CreateVAO()
         glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
     }
 
+    // Index Buffer
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVertexBuffers[INDEX_BUFFER]);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * mIndices.size(), &mIndices[0], GL_STATIC_DRAW);
 
+    // BoneIdx
+    if (mOwnerMesh->GetIsSkinMesh()) {
+        std::vector<glm::ivec4> BoneIndices;
+        std::vector<glm::vec4> BoneWeights;
+        mFBXSkeleton->GetBoneIdexWeightArray(BoneIndices, BoneWeights);
+
+        if ((BoneIndices.size() != 0) && (BoneWeights.size() != 0)) {
+            // Bind Buffer
+            GLuint BoneBuffers[2] = { 0 };
+            glGenBuffers(2, BoneBuffers);
+
+            glBindBuffer(GL_ARRAY_BUFFER, BoneBuffers[0]);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(glm::ivec4) * BoneIndices.size(), &BoneIndices[0], GL_STATIC_DRAW);
+            glEnableVertexAttribArray(3);
+            glVertexAttribIPointer(3, 4, GL_INT, 0, 0);
+
+            glBindBuffer(GL_ARRAY_BUFFER, BoneBuffers[1]);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4) * BoneWeights.size(), &BoneWeights[0], GL_STATIC_DRAW);
+            glEnableVertexAttribArray(4);
+            glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 0, 0);
+        }
+    }
 
     // unbind cube vertex arrays
     glBindVertexArray(0);
@@ -537,7 +563,7 @@ FbxDouble3 NodeMesh::GetMaterialProperty(const FbxSurfaceMaterial* pMaterial,
                 glutil.Replace('\\', '/', buffer);
                 std::vector<std::string> split_list;
                 std::string replace_file_name = buffer;
-                // u/v‚Å•ª‰ğ
+                // ã€Œ/ã€ã§åˆ†è§£
                 glutil.Split('/', buffer, split_list);
                 textureName = split_list[split_list.size() - 1];
                 printf("\ttexture name: %s\n", textureName.c_str());
@@ -657,7 +683,7 @@ void NodeMesh::Draw(Shader* shader)
 //        FBX_ASSERT(lMaterialIndice->GetCount() == lPolygonCount);
 //        if (lMaterialIndice->GetCount() == lPolygonCount)
 //        {
-//            // Šeƒ}ƒeƒŠƒAƒ‹‚Ìƒ|ƒŠƒSƒ“‚Ì”‚ğ‹‚ß‚é
+//            // å„ãƒãƒ†ãƒªã‚¢ãƒ«ã®ãƒãƒªã‚´ãƒ³ã®æ•°ã‚’æ±‚ã‚ã‚‹
 //            for (int lPolygonIndex = 0; lPolygonIndex < lPolygonCount; ++lPolygonIndex)
 //            {
 //                const int lMaterialIndex = lMaterialIndice->GetAt(lPolygonIndex);
@@ -690,7 +716,7 @@ void NodeMesh::Draw(Shader* shader)
 //                    mSubMeshes[i] = new BasicMeshEntry;
 //            }
 //
-//            // Šeƒ}ƒeƒŠƒAƒ‹‚É‘Î‚·‚é’¸“_‚ÌƒIƒtƒZƒbƒg“±o
+//            // å„ãƒãƒ†ãƒªã‚¢ãƒ«ã«å¯¾ã™ã‚‹é ‚ç‚¹ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆå°å‡º
 //            const int lMaterialCount = mSubMeshes.size();
 //            int lOffset = 0;
 //            int vntOffset = 0;
@@ -729,7 +755,7 @@ void NodeMesh::Draw(Shader* shader)
 //        mSubMeshes.resize(1);
 //        mSubMeshes[0] = new BasicMeshEntry();
 //    }
-//    // ƒ}ƒeƒŠƒAƒ‹‚Ìw’è‚ª‚È‚¢‚Æ‚«
+//    // ãƒãƒ†ãƒªã‚¢ãƒ«ã®æŒ‡å®šãŒãªã„ã¨ã
 //    if (vntArray.size() == 0)
 //    {
 //        vntArray.resize(1);
@@ -859,10 +885,10 @@ void NodeMesh::Draw(Shader* shader)
 //        vntArray[lMaterialIndex]->TriangleCount++;
 //    }
 //
-//    // Position, Normal, Texcoords‚Ì”‚Í‚·‚×‚Ä“¯‚¶‚Í‚¸
+//    // Position, Normal, Texcoordsã®æ•°ã¯ã™ã¹ã¦åŒã˜ã¯ãš
 //
 //
-//    // VAOì¬
+//    // VAOä½œæˆ
 //    dedeMaterialVNT* NodeMeshes = new dedeMaterialVNT[vntArray.size()];
 //    VAO* vao = nullptr;
 //    for (int i = 0; i < vntArray.size(); i++) {
@@ -879,7 +905,7 @@ void NodeMesh::Draw(Shader* shader)
 //        glGenVertexArrays(1, &nm.VertexArray);
 //        glBindVertexArray(nm.VertexArray);
 //
-//        // Vertex Buffer‚Ìì¬
+//        // Vertex Bufferã®ä½œæˆ
 //        enum BUFFER_TYPE {
 //            INDEX_BUFFER = 0,
 //            POS_VB = 1,
