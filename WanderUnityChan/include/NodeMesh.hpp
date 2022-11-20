@@ -79,6 +79,7 @@ private:
 
 	class deFBXMesh* mOwnerMesh;
 	std::string mMeshName;
+	class FBXSkeleton* mFBXSkeleton;
 
 	std::vector<NodeMesh*> mChilds;
 };

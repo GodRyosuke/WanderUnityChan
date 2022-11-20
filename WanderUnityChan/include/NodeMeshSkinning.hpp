@@ -1,6 +1,6 @@
 #include "NodeMesh.hpp"
 
-class NodeMeshSkinning {
+class NodeMeshSkinning : public NodeMesh {
 public:
 	NodeMeshSkinning();
 

@@ -7,8 +7,9 @@
 #include "NodeMesh.hpp"
 #include <fstream>
 
-deFBXMesh::deFBXMesh(bool setIsDrawArray)
+deFBXMesh::deFBXMesh(bool setIsDrawArray, bool isSkeletal)
     :mIsDrawArray(setIsDrawArray)
+    ,mIsSkeletal(isSkeletal)
 {
     mPositions.resize(0);
     mNormals.resize(0);

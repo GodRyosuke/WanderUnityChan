@@ -11,7 +11,7 @@ namespace nl = nlohmann;
 
 class deFBXMesh {
 public:
-	deFBXMesh(bool isDrawArray = false);
+	deFBXMesh(bool isDrawArray = false, bool isSkeletal = false);
 	~deFBXMesh();
 	bool Load(std::string fileName);
 	void BindVertexArray();
@@ -21,6 +21,8 @@ public:
 
 	void BindTexture(std::string MaterialName);
 	void UnBindTexture(std::string materialName);
+
+	bool GetIsSkinMesh() const { return mIsSkeletal; }
 
 private:
 	struct Material {
@@ -117,6 +119,7 @@ private:
 	std::string mMeshFileName;
 
 	bool mIsDrawArray;
+	bool mIsSkeletal;
 };
 
 class VAO {

@@ -182,6 +182,7 @@ XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y</Comman
     <ClCompile Include="src\deFBXMeshSkinning.cpp" />
     <ClCompile Include="src\FBXMesh.cpp" />
     <ClCompile Include="src\FBXNodeMesh.cpp" />
+    <ClCompile Include="src\FBXSkeleton.cpp" />
     <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\MaterialCache.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
@@ -203,6 +204,7 @@ XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y</Comman
     <ClInclude Include="include\deFBXMesh.hpp" />
     <ClInclude Include="include\FBXLoader\VBOMesh.hpp" />
     <ClInclude Include="include\FBXNodeMesh.hpp" />
+    <ClInclude Include="include\FBXSkeleton.hpp" />
     <ClInclude Include="include\Game.hpp" />
     <ClInclude Include="include\GLUtil.hpp" />
     <ClInclude Include="include\Mesh.hpp" />

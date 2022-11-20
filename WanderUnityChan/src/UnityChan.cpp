@@ -9,10 +9,10 @@
 UnityChan::UnityChan()
 	:z_rot(0.f)
 {
-	mdeFBXMesh = new deFBXMesh(false);
-	//mdeFBXMesh->Load("UnityChan");
+	mdeFBXMesh = new deFBXMesh(false, true);
+	mdeFBXMesh->Load("UnityChan");
 	//mdeFBXMesh->Load("cacti");
-	mdeFBXMesh->Load("TreasureChest");
+	//mdeFBXMesh->Load("TreasureChest");
 	//mdeFBXMesh->Load("TreasureBox2");
 	//mdeFBXMesh->Load("Bush_1");
 

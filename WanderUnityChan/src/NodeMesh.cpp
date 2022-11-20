@@ -5,6 +5,7 @@
 #include "Texture.hpp"
 #include "deFBXMesh.hpp"
 #include "Shader.hpp"
+#include "FBXSkeleton.hpp"
 
 namespace
 {
@@ -19,6 +20,7 @@ namespace
 
 NodeMesh::NodeMesh(FbxNode* node, deFBXMesh* fbxmesh)
     :mOwnerMesh(fbxmesh)
+    ,mFBXSkeleton(nullptr)
 {
     mVertexArray = 0;
     //mVertexBuffers = nullptr;
@@ -332,6 +334,15 @@ bool NodeMesh::LoadMesh(FbxMesh* mesh)
     //if (hasUV) {
     //    delete[] lUVs;
     //}
+
+    if (mOwnerMesh->GetIsSkinMesh()) {
+        mFBXSkeleton = new FBXSkeleton();
+        if (!mFBXSkeleton->Load(mesh)) {
+            printf("error: failed to load fbx skeleton\n");
+            return false;
+        }
+    }
+
     CreateVAO();
     mPositions.clear();
     mNormals.clear();
@@ -341,6 +352,12 @@ bool NodeMesh::LoadMesh(FbxMesh* mesh)
         (static_cast<FbxVertexCacheDeformer*>(mesh->GetDeformer(0, FbxDeformer::eVertexCache)))->Active.Get();
     assert(lHasVertexCache == false);
     const bool lHasShape = mesh->GetShapeCount() > 0;
+
+
+
+
+
+
     //assert(mesh->GetElementPolygonGroupCount() == 3);
     //printf("vertex color num: %d\n", mesh->GetElementVertexColorCount());
 
