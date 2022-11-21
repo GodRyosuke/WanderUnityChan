@@ -22,8 +22,8 @@ namespace
 {
     // Default file of ViewScene example
     //const char* SAMPLE_FILENAME = "humanoid.fbx";
-    //const char * SAMPLE_FILENAME = "UnityChan.fbx";
-    const char * SAMPLE_FILENAME = "running.fbx";
+    const char * SAMPLE_FILENAME = "UnityChan.fbx";
+    //const char * SAMPLE_FILENAME = "running.fbx";
 
     // Button and action definition
     const int LEFT_BUTTON = 0;

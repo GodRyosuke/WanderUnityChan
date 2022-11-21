@@ -74,6 +74,103 @@ namespace {
         return lPoseMatrix;
     }
 
+    void ComputeShapeDeformation(FbxMesh* pMesh, FbxTime& pTime, FbxAnimLayer* pAnimLayer, FbxVector4* pVertexArray)
+    {
+        int lVertexCount = pMesh->GetControlPointsCount();
+
+        FbxVector4* lSrcVertexArray = pVertexArray;
+        FbxVector4* lDstVertexArray = new FbxVector4[lVertexCount];
+        memcpy(lDstVertexArray, pVertexArray, lVertexCount * sizeof(FbxVector4));
+
+        int lBlendShapeDeformerCount = pMesh->GetDeformerCount(FbxDeformer::eBlendShape);
+        for (int lBlendShapeIndex = 0; lBlendShapeIndex < lBlendShapeDeformerCount; ++lBlendShapeIndex)
+        {
+            FbxBlendShape* lBlendShape = (FbxBlendShape*)pMesh->GetDeformer(lBlendShapeIndex, FbxDeformer::eBlendShape);
+
+            int lBlendShapeChannelCount = lBlendShape->GetBlendShapeChannelCount();
+            for (int lChannelIndex = 0; lChannelIndex < lBlendShapeChannelCount; ++lChannelIndex)
+            {
+                FbxBlendShapeChannel* lChannel = lBlendShape->GetBlendShapeChannel(lChannelIndex);
+                if (lChannel)
+                {
+                    // Get the percentage of influence on this channel.
+                    FbxAnimCurve* lFCurve = pMesh->GetShapeChannel(lBlendShapeIndex, lChannelIndex, pAnimLayer);
+                    if (!lFCurve) continue;
+                    double lWeight = lFCurve->Evaluate(pTime);
+
+
+                    int lShapeCount = lChannel->GetTargetShapeCount();
+                    double* lFullWeights = lChannel->GetTargetShapeFullWeights();
+
+                    // Find out which scope the lWeight falls in.
+                    int lStartIndex = -1;
+                    int lEndIndex = -1;
+                    for (int lShapeIndex = 0; lShapeIndex < lShapeCount; ++lShapeIndex)
+                    {
+                        if (lWeight > 0 && lWeight <= lFullWeights[0])
+                        {
+                            lEndIndex = 0;
+                            break;
+                        }
+                        if (lWeight > lFullWeights[lShapeIndex] && lWeight < lFullWeights[lShapeIndex + 1])
+                        {
+                            lStartIndex = lShapeIndex;
+                            lEndIndex = lShapeIndex + 1;
+                            break;
+                        }
+                    }
+
+                    FbxShape* lStartShape = NULL;
+                    FbxShape* lEndShape = NULL;
+                    if (lStartIndex > -1)
+                    {
+                        lStartShape = lChannel->GetTargetShape(lStartIndex);
+                    }
+                    if (lEndIndex > -1)
+                    {
+                        lEndShape = lChannel->GetTargetShape(lEndIndex);
+                    }
+
+                    //The weight percentage falls between base geometry and the first target shape.
+                    if (lStartIndex == -1 && lEndShape)
+                    {
+                        double lEndWeight = lFullWeights[0];
+                        // Calculate the real weight.
+                        lWeight = (lWeight / lEndWeight) * 100;
+                        // Initialize the lDstVertexArray with vertex of base geometry.
+                        memcpy(lDstVertexArray, lSrcVertexArray, lVertexCount * sizeof(FbxVector4));
+                        for (int j = 0; j < lVertexCount; j++)
+                        {
+                            // Add the influence of the shape vertex to the mesh vertex.
+                            FbxVector4 lInfluence = (lEndShape->GetControlPoints()[j] - lSrcVertexArray[j]) * lWeight * 0.01;
+                            lDstVertexArray[j] += lInfluence;
+                        }
+                    }
+                    //The weight percentage falls between two target shapes.
+                    else if (lStartShape && lEndShape)
+                    {
+                        double lStartWeight = lFullWeights[lStartIndex];
+                        double lEndWeight = lFullWeights[lEndIndex];
+                        // Calculate the real weight.
+                        lWeight = ((lWeight - lStartWeight) / (lEndWeight - lStartWeight)) * 100;
+                        // Initialize the lDstVertexArray with vertex of the previous target shape geometry.
+                        memcpy(lDstVertexArray, lStartShape->GetControlPoints(), lVertexCount * sizeof(FbxVector4));
+                        for (int j = 0; j < lVertexCount; j++)
+                        {
+                            // Add the influence of the shape vertex to the previous shape vertex.
+                            FbxVector4 lInfluence = (lEndShape->GetControlPoints()[j] - lStartShape->GetControlPoints()[j]) * lWeight * 0.01;
+                            lDstVertexArray[j] += lInfluence;
+                        }
+                    }
+                }//If lChannel is valid
+            }//For each blend shape channel
+        }//For each blend shape deformer
+
+        memcpy(pVertexArray, lDstVertexArray, lVertexCount * sizeof(FbxVector4));
+
+        delete[] lDstVertexArray;
+    }
+
 }
 
 FBXSkeleton::FBXSkeleton()
@@ -85,6 +182,14 @@ FBXSkeleton::FBXSkeleton()
 
 bool FBXSkeleton::Load(FbxMesh* mesh)
 {
+    const bool lHasShape = mesh->GetShapeCount() > 0;
+    if (lHasShape)
+    {
+        // Deform the vertex array with the shapes.
+        ComputeShapeDeformation(mesh, pTime, pAnimLayer, lVertexArray);
+    }
+
+
 	int lSkinCount = mesh->GetDeformerCount(FbxDeformer::eSkin);
 	if (lSkinCount == 0) {
 		printf("this mesh doesnt have skin\n");
