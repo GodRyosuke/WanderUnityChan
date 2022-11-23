@@ -415,12 +415,12 @@ bool FBXSkeleton::Load(FbxMesh* mesh)
             mBoneMatrixPallete[lPolygonIndex * 3 + lVerticeIndex] = deBoneMatrixPallete[lControlPointIndex];
             BoneIdxArray[lPolygonIndex * 3 + lVerticeIndex] = lControlPointIndex;
 
+            mBones[lPolygonIndex * 3 + lVerticeIndex] = deBones[lControlPointIndex];
 
-
-            mBones[lPolygonIndex * 3 + lVerticeIndex].AddBoneData(
-                deBoneIdxArray[lControlPointIndex],
-                deBoneWeightArray[lControlPointIndex]
-            );
+            //mBones[lPolygonIndex * 3 + lVerticeIndex].AddBoneData(
+            //    deBoneIdxArray[lControlPointIndex],
+            //    deBoneWeightArray[lControlPointIndex]
+            //);
 
             // 実際に使う
             glm::mat4 mat = deBoneMatrixPallete[BoneIdxArray[lPolygonIndex * 3 + lVerticeIndex]];
