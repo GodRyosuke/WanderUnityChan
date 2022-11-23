@@ -52,6 +52,8 @@ void UnityChan::Update(float deltatime)
 	glm::mat4 ScaleMat = glm::scale(glm::mat4(1.0f), glm::vec3(mScale, mScale, mScale));
 	glm::mat4 TranslateMat = glm::translate(glm::mat4(1.0f), mPos);
 	mWorldTransform = TranslateMat * mRotate * ScaleMat;
+
+    mdeFBXMesh->Update(deltatime);
 }
 
 void UnityChan::Draw(Shader* shader)
@@ -75,12 +77,12 @@ void UnityChan::Draw(Shader* shader)
 //
 //bool UnityChan::Load(std::string FileRoot, std::string MeshFile, std::vector<std::string>AnimationFiles)
 //{
-//	// Mesh‚Ì’¸“_ƒf[ƒ^‚È‚Ç‚ğ“Ç‚İ‚¾‚·
+//	// Meshã®é ‚ç‚¹ãƒ‡ãƒ¼ã‚¿ãªã©ã‚’èª­ã¿ã ã™
 //	if (!SkinMesh::Load(FileRoot, MeshFile)) {
 //		printf("error: failed to load skin mesh file\n");
 //		return false;
 //	}
-//	// Animation“Ç‚İo‚µ
+//	// Animationèª­ã¿å‡ºã—
 //	for (auto animFile : AnimationFiles) {
 //		std::string filePath = FileRoot + animFile;
 //		AnimationData* animData = new AnimationData(filePath);
@@ -103,7 +105,7 @@ void UnityChan::Draw(Shader* shader)
 //	Mesh::UpdateTransform(shader, timeInSeconds);
 //
 //
-//	// Œ»İ‚ÌBone Transform‚ğæ“¾
+//	// ç¾åœ¨æ™‚åˆ»ã®Bone Transformã‚’å–å¾—
 //	std::vector<glm::mat4> BoneMatrixPalete;
 //	const aiScene* animScene = mAnimationData[mAnimIndex]->animScene;
 //	int innerAnimIndex = mAnimationData[mAnimIndex]->innerAnimIndex;
@@ -120,13 +122,13 @@ void UnityChan::Draw(Shader* shader)
 //	float TicksPerSecond = (float)(animScene->mAnimations[innerAnimIndex]->mTicksPerSecond != NULL ?
 //		animScene->mAnimations[innerAnimIndex]->mTicksPerSecond : 25.0f);
 //	float TimeInTicks = timeInSeconds * TicksPerSecond;
-//	float Duration = 0.0f;  // Animation‚ÌDuration‚Ì®”•”•ª‚ª“ü‚é
+//	float Duration = 0.0f;  // Animationã®Durationã®æ•´æ•°éƒ¨åˆ†ãŒå…¥ã‚‹
 //	float fraction = modf((float)animScene->mAnimations[innerAnimIndex]->mDuration, &Duration);
 //	float AnimationTimeTicks = fmod(TimeInTicks, Duration);
 //
 //
 //	glm::mat4 Identity = glm::mat4(1);
-//	// Node‚ÌŠK‘w\‘¢‚É‚µ‚½‚ª‚Á‚ÄAAnimationTicks‚É‚¨‚¯‚éŠeBone‚ÌTransform‚ğ‹‚ß‚é
+//	// Nodeã®éšå±¤æ§‹é€ ã«ã—ãŸãŒã£ã¦ã€AnimationTicksæ™‚åˆ»ã«ãŠã‘ã‚‹å„Boneã®Transformã‚’æ±‚ã‚ã‚‹
 //	ReadNodeHierarchy(AnimationTimeTicks, animScene->mRootNode, Identity);
 //	BoneMatrixPalete.resize(m_BoneInfo.size());
 //
@@ -135,7 +137,7 @@ void UnityChan::Draw(Shader* shader)
 //	}
 //
 //
-//	// Shader‚É“n‚·
+//	// Shaderã«æ¸¡ã™
 //	for (int i = 0; i < BoneMatrixPalete.size(); i++) {
 //		std::string uniformName = "uMatrixPalette[" + std::to_string(i) + ']';
 //		shader->SetMatrixUniform(uniformName, BoneMatrixPalete[i]);

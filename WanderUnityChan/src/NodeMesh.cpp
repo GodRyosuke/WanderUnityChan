@@ -652,6 +652,17 @@ void NodeMesh::Draw(Shader* shader)
     }
 }
 
+void NodeMesh::Update(float deltatime)
+{
+    if (mOwnerMesh->GetIsSkinMesh()) {
+        mFBXSkeleton->Update(deltatime);
+    }
+
+    for (auto child : mChilds) {
+        child->Update(deltatime);
+    }
+}
+
 //
 //bool NodeMesh::LoadMesh(FbxMesh* mesh)
 //{

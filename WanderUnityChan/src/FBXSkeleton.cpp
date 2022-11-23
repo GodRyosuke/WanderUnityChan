@@ -4,6 +4,27 @@
 
 
 namespace {
+    FbxAMatrix GetGeometry(FbxNode* pNode)
+    {
+        const FbxVector4 lT = pNode->GetGeometricTranslation(FbxNode::eSourcePivot);
+        const FbxVector4 lR = pNode->GetGeometricRotation(FbxNode::eSourcePivot);
+        const FbxVector4 lS = pNode->GetGeometricScaling(FbxNode::eSourcePivot);
+
+        return FbxAMatrix(lT, lR, lS);
+    }
+
+
+    // Get the matrix of the given pose
+    FbxAMatrix GetPoseMatrix(FbxPose* pPose, int pNodeIndex)
+    {
+        FbxAMatrix lPoseMatrix;
+        FbxMatrix lMatrix = pPose->GetMatrix(pNodeIndex);
+
+        memcpy((double*)lPoseMatrix, (double*)lMatrix, sizeof(lMatrix.mData));
+
+        return lPoseMatrix;
+    }
+
     FbxAMatrix GetGlobalPosition(FbxNode* pNode, const FbxTime& pTime, FbxPose* pPose, FbxAMatrix* pParentGlobalPosition)
     {
         FbxAMatrix lGlobalPosition;
@@ -63,16 +84,6 @@ namespace {
         return lGlobalPosition;
     }
 
-    // Get the matrix of the given pose
-    FbxAMatrix GetPoseMatrix(FbxPose* pPose, int pNodeIndex)
-    {
-        FbxAMatrix lPoseMatrix;
-        FbxMatrix lMatrix = pPose->GetMatrix(pNodeIndex);
-
-        memcpy((double*)lPoseMatrix, (double*)lMatrix, sizeof(lMatrix.mData));
-
-        return lPoseMatrix;
-    }
 
     void ComputeShapeDeformation(FbxMesh* pMesh, FbxTime& pTime, FbxAnimLayer* pAnimLayer, FbxVector4* pVertexArray)
     {
@@ -186,7 +197,8 @@ bool FBXSkeleton::Load(FbxMesh* mesh)
     if (lHasShape)
     {
         // Deform the vertex array with the shapes.
-        ComputeShapeDeformation(mesh, pTime, pAnimLayer, lVertexArray);
+        // おそらく各時刻のBoneMatrixの補完処理？
+        //ComputeShapeDeformation(mesh, pTime, pAnimLayer, lVertexArray);
     }
 
 
@@ -204,10 +216,23 @@ bool FBXSkeleton::Load(FbxMesh* mesh)
     // Linear Deformation
 	FbxCluster::ELinkMode lClusterMode = ((FbxSkin*)mesh->GetDeformer(0, FbxDeformer::eSkin))->GetCluster(0)->GetLinkMode();
 
+    assert(lClusterMode != FbxCluster::eAdditive);
+
 	int lVertexCount = mesh->GetControlPointsCount();
 	//glm::vec4* controlPointNodeIndices = new glm::vec4[lVertexCount];
 	mBoneIndices.resize(lVertexCount);
 	mBoneWeights.resize(lVertexCount);
+    deBoneMatrixPallete.resize(lVertexCount);
+    std::vector<VertexBoneData> deBones(lVertexCount);
+    std::vector<unsigned int> deBoneIdxArray(lVertexCount);
+    std::vector<float> deBoneWeightArray(lVertexCount);
+
+    mBoneWeightSchalar.resize(lVertexCount);
+    for (int i = 0; i < lVertexCount; i++) {
+        mBoneWeightSchalar[i] = 0.f;
+        deBoneMatrixPallete[i] = glm::mat4(1.0f);
+        deBoneWeightArray[i] = 0.f;
+    }
 
 	const int lPolygonCount = mesh->GetPolygonCount();
 
@@ -217,21 +242,21 @@ bool FBXSkeleton::Load(FbxMesh* mesh)
 
 	double* lClusterWeight = new double[lVertexCount];
 	memset(lClusterWeight, 0, lVertexCount * sizeof(double));
+    FbxAMatrix pGlobalPosition;
 
-	if (lClusterMode == FbxCluster::eAdditive)
-	{
-		for (int i = 0; i < lVertexCount; ++i)
-		{
-			lClusterDeformation[i].SetIdentity();
-		}
-	}
+	//if (lClusterMode == FbxCluster::eAdditive)
+	//{
+	//	for (int i = 0; i < lVertexCount; ++i)
+	//	{
+	//		lClusterDeformation[i].SetIdentity();
+	//	}
+	//}
 
 
 	// For all skins and all clusters, accumulate their deformation and weight
 	// on each vertices and store them in lClusterDeformation and lClusterWeight.
 	mBones.resize(mesh->GetPolygonCount() * 3);
 	assert(lSkinCount == 1);
-	printf("skin clout: %d\n", lSkinCount);
 
 	for (int lSkinIndex = 0; lSkinIndex < lSkinCount; ++lSkinIndex)
 	{
@@ -251,27 +276,62 @@ bool FBXSkeleton::Load(FbxMesh* mesh)
             if (pose->IsBindPose()) {
                 int x = 0;
             }
-
-
+            FbxTime pTime = 0;
 
 			//ComputeClusterDeformation(pGlobalPosition, mesh, lCluster, lVertexTransformMatrix, pTime, pPose);
+            {
+                // とりあえず，Bind PoseのMatrixを取得
+                FbxAMatrix lReferenceGlobalInitPosition;
+                FbxAMatrix lReferenceGlobalCurrentPosition;
+                FbxAMatrix lAssociateGlobalInitPosition;
+                FbxAMatrix lAssociateGlobalCurrentPosition;
+                FbxAMatrix lClusterGlobalInitPosition;
+                FbxAMatrix lClusterGlobalCurrentPosition;
+
+                FbxAMatrix lReferenceGeometry;
+                FbxAMatrix lAssociateGeometry;
+                FbxAMatrix lClusterGeometry;
+
+                FbxAMatrix lClusterRelativeInitPosition;
+                FbxAMatrix lClusterRelativeCurrentPositionInverse;
+
+                lCluster->GetTransformMatrix(lReferenceGlobalInitPosition);
+                lReferenceGlobalCurrentPosition = pGlobalPosition;
+                // Multiply lReferenceGlobalInitPosition by Geometric Transformation
+                lReferenceGeometry = GetGeometry(mesh->GetNode());
+                lReferenceGlobalInitPosition *= lReferenceGeometry;
+
+                // Get the link initial global position and the link current global position.
+                lCluster->GetTransformLinkMatrix(lClusterGlobalInitPosition);
+                lClusterGlobalCurrentPosition = GetGlobalPosition(lCluster->GetLink(), pTime, nullptr, nullptr);
+
+                // Compute the initial position of the link relative to the reference.
+                lClusterRelativeInitPosition = lClusterGlobalInitPosition.Inverse() * lReferenceGlobalInitPosition;
+
+                // Compute the current position of the link relative to the reference.
+                lClusterRelativeCurrentPositionInverse = lReferenceGlobalCurrentPosition.Inverse() * lClusterGlobalCurrentPosition;
+
+                // Compute the shift of the link relative to the reference.
+                lVertexTransformMatrix = lClusterRelativeCurrentPositionInverse * lClusterRelativeInitPosition;
+            }
 
 			int lVertexIndexCount = lCluster->GetControlPointIndicesCount();
 			for (int k = 0; k < lVertexIndexCount; ++k)
 			{
 				int vertexIdx = lCluster->GetControlPointIndices()[k];
-				if (vertexIdx >= lVertexCount)
-					continue;
+                assert(vertexIdx < lVertexCount);
+                deBoneIdxArray[vertexIdx] = lClusterIndex;
 
-				// Sometimes, the mesh can have less points than at the time of the skinning
-				// because a smooth operator was active when skinning but has been deactivated during export.
 
 				double lWeight = lCluster->GetControlPointWeights()[k];
+                deBones[vertexIdx].AddBoneData(lClusterIndex, lWeight);
 
 				if (lWeight == 0.0)
 				{
 					continue;
 				}
+
+                deBoneWeightArray[vertexIdx] = lWeight;
 
 				for (int idx = 0; idx < 4; idx++) {
 					// もしまだこの頂点に登録されていないBoneなら
@@ -289,25 +349,23 @@ bool FBXSkeleton::Load(FbxMesh* mesh)
 				// Compute the influence of the link on the vertex.
 				// おそらくこれがMatrixPalleteであろう
 				FbxAMatrix lInfluence = lVertexTransformMatrix;
+                glm::mat4 boneMat = CopyFbxAMat(lVertexTransformMatrix);
+                if (lWeight != 1.f) {
+                    int x = 0;
+                }
+                boneMat *= lWeight;
 				//MatrixScale(lInfluence, lWeight);
+                deBoneMatrixPallete[vertexIdx] += boneMat;
+                //MatrixAdd(lClusterDeformation[lIndex], lInfluence);
 
-				if (lClusterMode == FbxCluster::eAdditive)
-				{
-					// Multiply with the product of the deformations on the vertex.
-					//MatrixAddToDiagonal(lInfluence, 1.0 - lWeight);
-					lClusterDeformation[vertexIdx] = lInfluence * lClusterDeformation[vertexIdx];
 
-					// Set the link to 1.0 just to know this vertex is influenced by a link.
-					lClusterWeight[vertexIdx] = 1.0;
-				}
-				else // lLinkMode == FbxCluster::eNormalize || lLinkMode == FbxCluster::eTotalOne
-				{
-					// Add to the sum of the deformations on the vertex.
-					//MatrixAdd(lClusterDeformation[lIndex], lInfluence);
+                mBoneWeightSchalar[vertexIdx] += lWeight;
+                lClusterWeight[vertexIdx] += lWeight;
 
-					// Add to the sum of weights to either normalize or complete the vertex.
-					lClusterWeight[vertexIdx] += lWeight;
-				}
+
+                // Add to the sum of the deformations on the vertex.
+                // Add to the sum of weights to either normalize or complete the vertex.
+
 			}//For each vertex			
 		}//lClusterCount
 	}
@@ -315,6 +373,62 @@ bool FBXSkeleton::Load(FbxMesh* mesh)
 	//Actually deform each vertices here by information stored in lClusterDeformation and lClusterWeight
 	// ここで各頂点にweightを考慮してmatrixが計算される？
 	// vertex ahaderでの処理
+
+    FbxVector4* lVertexArray = NULL;
+    lVertexArray = new FbxVector4[lVertexCount];
+    memcpy(lVertexArray, mesh->GetControlPoints(), lVertexCount * sizeof(FbxVector4));
+
+
+    for (int i = 0; i < lVertexCount; i++) {
+        if (lClusterMode == FbxCluster::eNormalize) {
+            //double lWeight = lClusterWeight[i];
+            double lWeight = mBoneWeightSchalar[i];
+            if (lWeight != 0.f) {
+                glm::mat4 weightMat(1.f);
+                weightMat /= lWeight;   
+                deBoneMatrixPallete[i] = weightMat * deBoneMatrixPallete[i];
+            }
+        }
+        glm::vec4 vec = CopyFbxVec(lVertexArray[i]);
+        glm::vec4 mVec = deBoneMatrixPallete[i] * vec;
+    }
+
+    // Control PointsとPolygon, Verticeとの対応付け
+    lVertexCount = lPolygonCount * 3;
+    float* lVertices = new float[lVertexCount * 4];
+    mBoneMatrixPallete.resize(lPolygonCount * 3);
+    std::vector<unsigned int> BoneIdxArray(lPolygonCount * 3);
+
+    lVertexCount = 0;
+    for (int lPolygonIndex = 0; lPolygonIndex < lPolygonCount; ++lPolygonIndex)
+    {
+        for (int lVerticeIndex = 0; lVerticeIndex < 3; ++lVerticeIndex)
+        {
+            const int lControlPointIndex = mesh->GetPolygonVertex(lPolygonIndex, lVerticeIndex);
+            // If the lControlPointIndex is -1, we probably have a corrupted mesh data. At this point,
+            // it is not guaranteed that the cache will work as expected.
+            assert(lControlPointIndex >= 0);
+            lVertices[lVertexCount * 4]     = static_cast<float>(lVertexArray[lControlPointIndex][0]);
+            lVertices[lVertexCount * 4 + 1] = static_cast<float>(lVertexArray[lControlPointIndex][1]);
+            lVertices[lVertexCount * 4 + 2] = static_cast<float>(lVertexArray[lControlPointIndex][2]);
+            lVertices[lVertexCount * 4 + 3] = 1;
+            mBoneMatrixPallete[lPolygonIndex * 3 + lVerticeIndex] = deBoneMatrixPallete[lControlPointIndex];
+            BoneIdxArray[lPolygonIndex * 3 + lVerticeIndex] = lControlPointIndex;
+
+
+
+            mBones[lPolygonIndex * 3 + lVerticeIndex].AddBoneData(
+                deBoneIdxArray[lControlPointIndex],
+                deBoneWeightArray[lControlPointIndex]
+            );
+
+            // 実際に使う
+            glm::mat4 mat = deBoneMatrixPallete[BoneIdxArray[lPolygonIndex * 3 + lVerticeIndex]];
+            ++lVertexCount;
+        }
+    }
+
+
 	//for (int i = 0; i < lVertexCount; i++)
 	//{
 	//	FbxVector4 lSrcVertex = pVertexArray[i];
@@ -339,9 +453,14 @@ bool FBXSkeleton::Load(FbxMesh* mesh)
 	//	}
 	//}
 
-		delete[] lClusterDeformation;
-		delete[] lClusterWeight;
+	delete[] lClusterDeformation;
+	delete[] lClusterWeight;
 
 
 	return true;
+}
+
+void FBXSkeleton::Update(float deltaTime)
+{
+  
 }

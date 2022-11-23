@@ -11,6 +11,7 @@ public:
 	NodeMesh(FbxNode* pNode, class deFBXMesh* fbxmesh);
 
 	void Draw(class Shader* shader);
+    void Update(float deltatime);
 	int GetNumChild() { return mNumChild; }
 
 private:

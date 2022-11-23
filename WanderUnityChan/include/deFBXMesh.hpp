@@ -14,9 +14,10 @@ public:
 	deFBXMesh(bool isDrawArray = false, bool isSkeletal = false);
 	~deFBXMesh();
 	bool Load(std::string fileName);
+	void Draw(class Shader* shader);
+    void Update(float deltaTime);
 	void BindVertexArray();
 	void UnBindVertexArray();
-	void Draw(class Shader* shader);
 	void DrawArray();
 
 	void BindTexture(std::string MaterialName);
@@ -44,12 +45,12 @@ private:
 		{
 		}
 		unsigned int MaterialIndex;
-		unsigned int NumIndices;	// このポリゴンの頂点の数
+		unsigned int NumIndices;	// 縺薙�ｮ繝昴Μ繧ｴ繝ｳ縺ｮ鬆らせ縺ｮ謨ｰ
 		unsigned int BaseVertex;
 		unsigned int BaseIndex;
 		unsigned int IndexOffset;
-		unsigned int VertexOffset;	// DrawArraysで使う頂点offset
-		unsigned int NumVertices;	// 頂点の数
+		unsigned int VertexOffset;	// DrawArrays縺ｧ菴ｿ縺�鬆らせoffset
+		unsigned int NumVertices;	// 鬆らせ縺ｮ謨ｰ
 		unsigned int TriangleCount;
 	};
 

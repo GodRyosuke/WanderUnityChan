@@ -17,11 +17,11 @@ out vec3 WorldPos0;
 uniform mat4 ModelTransform;
 uniform mat4 CameraView;
 uniform mat4 CameraProj;
-// SpotLight—p
+// SpotLightç”¨
 uniform mat4 LightView;
 // uniform mat4 LightProj;
 // Matrix Pallete
-uniform mat4 uMatrixPalette[96];
+uniform mat4 uMatrixPalette[128];
 
 void main()
 {

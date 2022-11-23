@@ -28,10 +28,10 @@ bool deFBXMesh::Load(std::string fileName)
 {
     mMeshFileName = fileName;
 
-    // ƒ}ƒl[ƒWƒƒ‚ğ¶¬
+    // ãƒãƒãƒ¼ã‚¸ãƒ£ã‚’ç”Ÿæˆ
     mManager = FbxManager::Create();
 
-    // IOSetting‚ğ¶¬
+    // IOSettingã‚’ç”Ÿæˆ
     FbxIOSettings* ioSettings = FbxIOSettings::Create(mManager, IOSROOT);
     mManager->SetIOSettings(ioSettings);
     {
@@ -41,7 +41,7 @@ bool deFBXMesh::Load(std::string fileName)
     FbxScene* scene = FbxScene::Create(mManager, "scene");
 
 
-    // Importer‚ğ¶¬
+    // Importerã‚’ç”Ÿæˆ
     FbxImporter* importer = FbxImporter::Create(mManager, "");
     std::string filePath = "./resources/" + fileName + "/" + fileName + ".fbx";
     int lFileFormat = -1;
@@ -63,7 +63,7 @@ bool deFBXMesh::Load(std::string fileName)
     }
 
 
-    // SceneƒIƒuƒWƒFƒNƒg‚ÉFBXƒtƒ@ƒCƒ‹“à‚Ìî•ñ‚ğ—¬‚µ‚Ş
+    // Sceneã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã«FBXãƒ•ã‚¡ã‚¤ãƒ«å†…ã®æƒ…å ±ã‚’æµã—è¾¼ã‚€
     importer->Import(scene);
     {
         // Check the scene integrity!
@@ -115,14 +115,14 @@ bool deFBXMesh::Load(std::string fileName)
         FbxSystemUnit::cm.ConvertScene(scene);
     }
 
-    // OŠp–Ê‰»
+    // ä¸‰è§’é¢åŒ–
     FbxGeometryConverter geometryConv = FbxGeometryConverter(mManager);
     geometryConv.Triangulate(scene, true);
     geometryConv.RemoveBadPolygonsFromMeshes(scene);
     //geometryConv.SplitMeshesPerMaterial(scene, true);
 
-    // Scene‰ğÍ
-    // Texture “Ç‚İ‚İ
+    // Sceneè§£æ
+    // Texture èª­ã¿è¾¼ã¿
     printf("=== textures ===\n");
     printf("texture num: %d\n", scene->GetTextureCount());
     for (int i = 0; i < scene->GetTextureCount(); i++) {
@@ -139,7 +139,7 @@ bool deFBXMesh::Load(std::string fileName)
     FbxNode* rootNode = scene->GetRootNode();
     mRootNodeMesh = new NodeMesh(rootNode, this);
 
-    // ƒ}ƒeƒŠƒAƒ‹‚Ætexture‚Æ‚Ì‘Î‰ŠÖŒW‚ğ“Ç‚İ‚Ş
+    // ãƒãƒ†ãƒªã‚¢ãƒ«ã¨textureã¨ã®å¯¾å¿œé–¢ä¿‚ã‚’èª­ã¿è¾¼ã‚€
     {
         std::string filePath = "./resources/" + fileName + "/Material.json";
         std::ifstream ifs(filePath.c_str());
@@ -165,7 +165,7 @@ bool deFBXMesh::Load(std::string fileName)
     //    glGenVertexArrays(1, &mVertexArray);
     //    glBindVertexArray(mVertexArray);
 
-    //    // Vertex Buffer‚Ìì¬
+    //    // Vertex Bufferã®ä½œæˆ
     //    PopulateBuffers();
 
     //    // unbind cube vertex arrays
@@ -176,10 +176,10 @@ bool deFBXMesh::Load(std::string fileName)
 
     //DrawArrayPB();
 
-    importer->Destroy(); // ƒV[ƒ“‚ğ—¬‚µ‚ñ‚¾‚çImporter‚Í‰ğ•ú‚µ‚ÄOK
+    importer->Destroy(); // ã‚·ãƒ¼ãƒ³ã‚’æµã—è¾¼ã‚“ã ã‚‰Importerã¯è§£æ”¾ã—ã¦OK
     importer = NULL;
-    // ƒ}ƒl[ƒWƒƒ‰ğ•ú
-    // ŠÖ˜A‚·‚é‚·‚×‚Ä‚ÌƒIƒuƒWƒFƒNƒg‚ª‰ğ•ú‚³‚ê‚é
+    // ãƒãƒãƒ¼ã‚¸ãƒ£è§£æ”¾
+    // é–¢é€£ã™ã‚‹ã™ã¹ã¦ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆãŒè§£æ”¾ã•ã‚Œã‚‹
      mManager->Destroy();
 
 	return true;
@@ -199,7 +199,7 @@ void deFBXMesh::LoadTexture(FbxTexture* lTexture)
         glutil.Replace('\\', '/', buffer);
         std::vector<std::string> split_list;
         std::string replace_file_name = buffer;
-        // u/v‚Å•ª‰ğ
+        // ã€Œ/ã€ã§åˆ†è§£
         glutil.Split('/', buffer, split_list);
 
         std::string texturePath = "./resources/" + mMeshFileName + "/Textures/" + split_list[split_list.size() - 1];
@@ -278,7 +278,7 @@ void deFBXMesh::LoadMaterial(FbxSurfaceMaterial* material)
                 glutil.Replace('\\', '/', buffer);
                 std::vector<std::string> split_list;
                 std::string replace_file_name = buffer;
-                // u/v‚Å•ª‰ğ
+                // ã€Œ/ã€ã§åˆ†è§£
                 glutil.Split('/', buffer, split_list);
 
                 std::string texturePath = "./resources/" + mMeshFileName + "/Textures/" + split_list[split_list.size() - 1];
@@ -311,7 +311,7 @@ void deFBXMesh::LoadNode(FbxNode* node)
     for (int i = 0; i < attrCount; ++i) {
         FbxNodeAttribute* attr = node->GetNodeAttributeByIndex(i);
         FbxNodeAttribute::EType type = attr->GetAttributeType();
-        if (type == FbxNodeAttribute::EType::eMesh) {   // Mesh Node‚È‚ç
+        if (type == FbxNodeAttribute::EType::eMesh) {   // Mesh Nodeãªã‚‰
             FbxMesh* pMesh = static_cast<FbxMesh*>(attr);
             //LoadMesh(pMesh);
             unsigned int vertexOffset;
@@ -327,7 +327,7 @@ void deFBXMesh::LoadNode(FbxNode* node)
                 LoadMeshElement(pMesh);
             }
             
-            // ƒ}ƒeƒŠƒAƒ‹‚Ì“Ç‚İ‚İ
+            // ãƒãƒ†ãƒªã‚¢ãƒ«ã®èª­ã¿è¾¼ã¿
             if (mIsDrawArray) {
                 int materialCount = node->GetMaterialCount();
                 printf("material count: %d\n", materialCount);
@@ -489,7 +489,7 @@ deFBXMesh::dedeMaterialVNT* deFBXMesh::LoadMeshElement(FbxMesh* mesh)
     FbxVector4 lCurrentVertex;
     FbxVector4 lCurrentNormal;
     FbxVector2 lCurrentUV;
-    assert(isAllByControlPoint == false);   // ‚±‚Ìƒtƒ‰ƒO‚Íâ‘Îfalse‚È‚Ì‚Å‚ÍH
+    assert(isAllByControlPoint == false);   // ã“ã®ãƒ•ãƒ©ã‚°ã¯çµ¶å¯¾falseãªã®ã§ã¯ï¼Ÿ
 
 
 
@@ -609,8 +609,8 @@ deFBXMesh::dedeMaterialVNT* deFBXMesh::LoadMeshArray(FbxMesh* mesh, unsigned int
         std::vector<glm::vec3> Positions;
         std::vector<glm::vec3> Normals;
         std::vector<glm::vec2> TexCoords;
-        unsigned int TriangleCount;     // ‚±‚Ìƒ}ƒeƒŠƒAƒ‹‚Ìƒ|ƒŠƒSƒ“‚Ì”
-        unsigned int VNTOffset;         // ’¸“_ƒf[ƒ^‚ÌƒIƒtƒZƒbƒg
+        unsigned int TriangleCount;     // ã“ã®ãƒãƒ†ãƒªã‚¢ãƒ«ã®ãƒãƒªã‚´ãƒ³ã®æ•°
+        unsigned int VNTOffset;         // é ‚ç‚¹ãƒ‡ãƒ¼ã‚¿ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆ
     };
     std::vector<VNTData*> vntArray(0);
 
@@ -625,7 +625,7 @@ deFBXMesh::dedeMaterialVNT* deFBXMesh::LoadMeshArray(FbxMesh* mesh, unsigned int
         FBX_ASSERT(lMaterialIndice->GetCount() == lPolygonCount);
         if (lMaterialIndice->GetCount() == lPolygonCount)
         {
-            // Šeƒ}ƒeƒŠƒAƒ‹‚Ìƒ|ƒŠƒSƒ“‚Ì”‚ğ‹‚ß‚é
+            // å„ãƒãƒ†ãƒªã‚¢ãƒ«ã®ãƒãƒªã‚´ãƒ³ã®æ•°ã‚’æ±‚ã‚ã‚‹
             for (int lPolygonIndex = 0; lPolygonIndex < lPolygonCount; ++lPolygonIndex)
             {
                 const int lMaterialIndex = lMaterialIndice->GetAt(lPolygonIndex);
@@ -658,7 +658,7 @@ deFBXMesh::dedeMaterialVNT* deFBXMesh::LoadMeshArray(FbxMesh* mesh, unsigned int
                     mSubMeshes[i] = new BasicMeshEntry;
             }
 
-            // Šeƒ}ƒeƒŠƒAƒ‹‚É‘Î‚·‚é’¸“_‚ÌƒIƒtƒZƒbƒg“±o
+            // å„ãƒãƒ†ãƒªã‚¢ãƒ«ã«å¯¾ã™ã‚‹é ‚ç‚¹ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆå°å‡º
             const int lMaterialCount = mSubMeshes.size();
             int lOffset = 0;
             int vntOffset = 0;
@@ -697,7 +697,7 @@ deFBXMesh::dedeMaterialVNT* deFBXMesh::LoadMeshArray(FbxMesh* mesh, unsigned int
         mSubMeshes.resize(1);
         mSubMeshes[0] = new BasicMeshEntry();
     }
-    // ƒ}ƒeƒŠƒAƒ‹‚Ìw’è‚ª‚È‚¢‚Æ‚«
+    // ãƒãƒ†ãƒªã‚¢ãƒ«ã®æŒ‡å®šãŒãªã„ã¨ã
     if (vntArray.size() == 0)
     {
         vntArray.resize(1);
@@ -829,10 +829,10 @@ deFBXMesh::dedeMaterialVNT* deFBXMesh::LoadMeshArray(FbxMesh* mesh, unsigned int
         vntArray[lMaterialIndex]->TriangleCount++;
     }
 
-    // Position, Normal, Texcoords‚Ì”‚Í‚·‚×‚Ä“¯‚¶‚Í‚¸
+    // Position, Normal, Texcoordsã®æ•°ã¯ã™ã¹ã¦åŒã˜ã¯ãš
 
 
-    // VAOì¬
+    // VAOä½œæˆ
     dedeMaterialVNT* NodeMeshes = new dedeMaterialVNT[vntArray.size()];
     VAO* vao = nullptr;
     for (int i = 0; i < vntArray.size(); i++) {
@@ -849,7 +849,7 @@ deFBXMesh::dedeMaterialVNT* deFBXMesh::LoadMeshArray(FbxMesh* mesh, unsigned int
         glGenVertexArrays(1, &nm.VertexArray);
         glBindVertexArray(nm.VertexArray);
 
-        // Vertex Buffer‚Ìì¬
+        // Vertex Bufferã®ä½œæˆ
         enum BUFFER_TYPE {
             INDEX_BUFFER = 0,
             POS_VB = 1,
@@ -904,13 +904,13 @@ void deFBXMesh::LoadMesh(FbxMesh* mesh)
     const int PolygonNum = mesh->GetPolygonCount();
 
 
-    // Mesh Node‚Ì“Ç‚İ‚İˆ—
+    // Mesh Nodeã®èª­ã¿è¾¼ã¿å‡¦ç†
 
     int PolygonVertexNum = mesh->GetPolygonVertexCount();
     int* IndexAry = mesh->GetPolygonVertices();
 
     int currentPosSize = mPositions.size();
-    mPositions.resize(currentPosSize + PolygonNum * 3);  // 3ŠpŒ`ƒ|ƒŠƒSƒ“‚Æ‰¼’è
+    mPositions.resize(currentPosSize + PolygonNum * 3);  // 3è§’å½¢ãƒãƒªã‚´ãƒ³ã¨ä»®å®š
     int currentNormalSize = mNormals.size();
     mNormals.resize(currentNormalSize + PolygonNum * 3);
     int currentUVSize = mTexCoords.size();
@@ -921,14 +921,14 @@ void deFBXMesh::LoadMesh(FbxMesh* mesh)
         //mIndices.push_back(p * 3);
         //mIndices.push_back(p * 3 + 1);
         //mIndices.push_back(p * 3 + 2);
-        int IndexNumInPolygon = mesh->GetPolygonSize(p);  // p”Ô–Ú‚Ìƒ|ƒŠƒSƒ“‚Ì’¸“_”
+        int IndexNumInPolygon = mesh->GetPolygonSize(p);  // pç•ªç›®ã®ãƒãƒªã‚´ãƒ³ã®é ‚ç‚¹æ•°
         for (int n = 0; n < IndexNumInPolygon; n++) {
             mIndices.push_back((p * 3 + n));
-            // ƒ|ƒŠƒSƒ“p‚ğ\¬‚·‚én”Ô–Ú‚Ì’¸“_‚ÌƒCƒ“ƒfƒbƒNƒX”Ô†
+            // ãƒãƒªã‚´ãƒ³pã‚’æ§‹æˆã™ã‚‹nç•ªç›®ã®é ‚ç‚¹ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ç•ªå·
             int IndexNumber = mesh->GetPolygonVertex(p, n);
             //mIndices.push_back(IndexNumber);
 
-            // ’¸“_‚ğ“Ç‚İ‚¾‚·
+            // é ‚ç‚¹ã‚’èª­ã¿ã ã™
             FbxVector4 position = mesh->GetControlPointAt(IndexNumber);
             mPositions[currentPosSize + p * 3 + n] = glm::vec3(
                 static_cast<float>(position[0]),
@@ -936,7 +936,7 @@ void deFBXMesh::LoadMesh(FbxMesh* mesh)
                 static_cast<float>(position[2])
             );
 
-            // –@üî•ñ‚Ìæ“¾
+            // æ³•ç·šæƒ…å ±ã®å–å¾—
             FbxVector4 normal;
             mesh->GetPolygonVertexNormal(p, n, normal);
             mNormals[currentNormalSize + p * 3 + n] = glm::vec3(
@@ -945,7 +945,7 @@ void deFBXMesh::LoadMesh(FbxMesh* mesh)
                 static_cast<float>(normal[2])
             );
 
-            // UVî•ñ‚Ìæ“¾
+            // UVæƒ…å ±ã®å–å¾—
             FbxStringList uvSetNameList;
             mesh->GetUVSetNames(uvSetNameList);
             const char* uvSetName = uvSetNameList.GetStringAt(p);
@@ -966,9 +966,9 @@ void deFBXMesh::LoadMesh(FbxMesh* mesh)
 
 
 
-    // ’¸“_ƒf[ƒ^‚Ìæ“¾
-    int controlNum = mesh->GetControlPointsCount();   // ’¸“_”
-    FbxVector4* src = mesh->GetControlPoints();    // ’¸“_À•W”z—ñ
+    // é ‚ç‚¹ãƒ‡ãƒ¼ã‚¿ã®å–å¾—
+    int controlNum = mesh->GetControlPointsCount();   // é ‚ç‚¹æ•°
+    FbxVector4* src = mesh->GetControlPoints();    // é ‚ç‚¹åº§æ¨™é…åˆ—
     //for (int i = 0; i < controlNum; ++i) {
     //    mPositions.push_back(glm::vec3(src[i][0], src[i][1], src[i][2]));
     //}
@@ -977,12 +977,12 @@ void deFBXMesh::LoadMesh(FbxMesh* mesh)
     for (int i = 0; i < layerNum; ++i) {
         FbxLayer* layer = mesh->GetLayer(i);
 
-        // –@üî•ñ‚Ìæ“¾
+        // æ³•ç·šæƒ…å ±ã®å–å¾—
         FbxLayerElementNormal* normalElem = layer->GetNormals();
         if (normalElem != 0) {
             //LoadNormal(normalElem);
         }
-        // UVî•ñ‚ğæ“¾
+        // UVæƒ…å ±ã‚’å–å¾—
         FbxLayerElementUV* uvElem = layer->GetUVs();
         if (uvElem != 0) {
             //LoadUV(uvElem);
@@ -992,17 +992,17 @@ void deFBXMesh::LoadMesh(FbxMesh* mesh)
 
 void deFBXMesh::LoadNormal(FbxLayerElementNormal* normalElem)
 {
-    // –@ü‚Ì”EƒCƒ“ƒfƒbƒNƒX
+    // æ³•ç·šã®æ•°ãƒ»ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹
     int normalNum = normalElem->GetDirectArray().GetCount();
     int indexNum = normalElem->GetIndexArray().GetCount();
 
-    // ƒ}ƒbƒsƒ“ƒOƒ‚[ƒhEƒŠƒtƒ@ƒŒƒ“ƒXƒ‚[ƒhæ“¾
+    // ãƒãƒƒãƒ”ãƒ³ã‚°ãƒ¢ãƒ¼ãƒ‰ãƒ»ãƒªãƒ•ã‚¡ãƒ¬ãƒ³ã‚¹ãƒ¢ãƒ¼ãƒ‰å–å¾—
     FbxLayerElement::EMappingMode mappingMode = normalElem->GetMappingMode();
     FbxLayerElement::EReferenceMode refMode = normalElem->GetReferenceMode();
-    assert(refMode == FbxLayerElement::eDirect);    // eDirect‚¶‚á‚È‚¢‚Æ‘Î‰‚Å‚«‚È‚¢
+    assert(refMode == FbxLayerElement::eDirect);    // eDirectã˜ã‚ƒãªã„ã¨å¯¾å¿œã§ããªã„
     if (mappingMode == FbxLayerElement::eByPolygonVertex) {
         if (refMode == FbxLayerElement::eDirect) {
-            // ’¼Úæ“¾
+            // ç›´æ¥å–å¾—
             for (int i = 0; i < normalNum; ++i) {
                 mNormals.push_back(glm::vec3(
                     static_cast<float>(normalElem->GetDirectArray().GetAt(i)[0]),
@@ -1014,7 +1014,7 @@ void deFBXMesh::LoadNormal(FbxLayerElementNormal* normalElem)
     }
     else if (mappingMode == FbxLayerElement::eByControlPoint) {
         if (refMode == FbxLayerElement::eDirect) {
-            // ’¼Úæ“¾
+            // ç›´æ¥å–å¾—
             for (int i = 0; i < normalNum; ++i) {
                 mNormals.push_back(glm::vec3(
                     static_cast<float>(normalElem->GetDirectArray().GetAt(i)[0]),
@@ -1028,17 +1028,17 @@ void deFBXMesh::LoadNormal(FbxLayerElementNormal* normalElem)
 
 void deFBXMesh::LoadUV(FbxLayerElementUV* uvElement)
 {
-    // UV‚Ì”EƒCƒ“ƒfƒbƒNƒX
+    // UVã®æ•°ãƒ»ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹
     int UVNum = uvElement->GetDirectArray().GetCount();
     int indexNum = uvElement->GetIndexArray().GetCount();
     int size = UVNum > indexNum ? UVNum : indexNum;
 
-    // ƒ}ƒbƒsƒ“ƒOƒ‚[ƒhEƒŠƒtƒ@ƒŒƒ“ƒXƒ‚[ƒh•Ê‚ÉUVæ“¾
+    // ãƒãƒƒãƒ”ãƒ³ã‚°ãƒ¢ãƒ¼ãƒ‰ãƒ»ãƒªãƒ•ã‚¡ãƒ¬ãƒ³ã‚¹ãƒ¢ãƒ¼ãƒ‰åˆ¥ã«UVå–å¾—
     FbxLayerElementUV::EMappingMode mappingMode = uvElement->GetMappingMode();
     FbxLayerElementUV::EReferenceMode refMode = uvElement->GetReferenceMode();
     if ((mappingMode == FbxLayerElementUV::eByPolygonVertex) || (mappingMode == FbxLayerElementUV::eByControlPoint)) {
         if (refMode == FbxLayerElementUV::eDirect) {
-            // ’¼Úæ“¾
+            // ç›´æ¥å–å¾—
             for (int i = 0; i < size; ++i) {
                 mTexCoords.push_back(glm::vec2(
                     static_cast<float>(uvElement->GetDirectArray().GetAt(i)[0]),
@@ -1047,7 +1047,7 @@ void deFBXMesh::LoadUV(FbxLayerElementUV* uvElement)
             }
         }
         else if (refMode == FbxLayerElementUV::eIndexToDirect) {
-            // ƒCƒ“ƒfƒbƒNƒX‚©‚çæ“¾
+            // ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‹ã‚‰å–å¾—
             for (int i = 0; i < size; ++i) {
                 int index = uvElement->GetIndexArray().GetAt(i);
                 mTexCoords.push_back(glm::vec2(
@@ -1106,7 +1106,7 @@ void deFBXMesh::DrawArrayPB()
     glGenVertexArrays(1, &mDrawArrayVAO);
     glBindVertexArray(mDrawArrayVAO);
 
-    // Vertex Buffer‚Ìì¬
+    // Vertex Bufferã®ä½œæˆ
     enum BUFFER_TYPE {
         INDEX_BUFFER = 0,
         POS_VB = 1,
@@ -1200,6 +1200,11 @@ void deFBXMesh::Draw(Shader* shader)
     }
 }
 
+void deFBXMesh::Update(float deltaTime)
+{
+    mRootNodeMesh->Update(deltaTime);
+}
+
 void deFBXMesh::DrawArray()
 {
     glBindVertexArray(mVertexArray);
@@ -1212,7 +1217,7 @@ void deFBXMesh::DrawArray()
 
 void deFBXMesh::ShowNodeNames(FbxNode* node, int indent)
 {
-    // indent‚Ì”‚¾‚¯‹ó”’‚ğ•`‰æ
+    // indentã®æ•°ã ã‘ç©ºç™½ã‚’æç”»
     for (int i = 0; i < indent; i++) {
         printf(" ");
     }
@@ -1261,7 +1266,7 @@ void VAO::CreateVAO()
     glGenVertexArrays(1, &mVertexArray);
     glBindVertexArray(mVertexArray);
 
-    // Vertex Buffer‚Ìì¬
+    // Vertex Bufferã®ä½œæˆ
     enum BUFFER_TYPE {
         INDEX_BUFFER = 0,
         POS_VB = 1,

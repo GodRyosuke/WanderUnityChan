@@ -11,6 +11,7 @@ public:
 	FBXSkeleton();
 
 	bool Load(FbxMesh* mesh);
+    void Update(float delatTime);
     void GetBoneIdexWeightArray(std::vector<glm::ivec4>& boneIndices,
         std::vector<glm::vec4>& boneWeights) {
         boneIndices = mBoneIndices;
@@ -20,6 +21,7 @@ public:
         mBoneIndices.clear();
         mBoneWeights.clear();
     }
+
 
 private:
     struct VertexBoneData
@@ -46,9 +48,32 @@ private:
             }
 
             // should never get here - more bones than we have space for
+            printf("Warning: more than 4 bones are assigned by vertex\n");
             //assert(0);
         }
     };
+
+    glm::mat4 CopyFbxAMat(FbxAMatrix mat)
+    {
+        glm::mat4 outMat;
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                outMat[i][j] = mat[i][j];
+            }
+        }
+        return outMat;
+    }
+
+    glm::vec4 CopyFbxVec(FbxVector4 vec)
+    {
+        glm::vec4 Outvec;
+        for (int i = 0; i < 4; i++) {
+            Outvec[i] = vec[i];
+        }
+        return Outvec;
+    }
+
+
 
 
     std::vector<VertexBoneData> mBones;
@@ -56,4 +81,7 @@ private:
     std::vector<glm::ivec4> mBoneIndices;
     // 影響を与えるBoneのWeight
     std::vector<glm::vec4> mBoneWeights;
+    std::vector<float> mBoneWeightSchalar;
+    std::vector<glm::mat4> deBoneMatrixPallete;
+    std::vector<glm::mat4> mBoneMatrixPallete;
 };
