@@ -358,7 +358,7 @@ bool Game::LoadData()
 	}
 
 	// FBXSDKを使ってUnityChanを読み込む
-	mUnityChan = new UnityChan();
+	mUnityChan = new UnityChan(this);
 
 
 	// Load ShadowMap FBO

@@ -5,12 +5,13 @@
 class UnityChan 
 {
 public:
-	UnityChan();
+	UnityChan(class Game* game);
 	~UnityChan(){}
 
 	void Update(float deltatime);
 	void Draw(class Shader* shader);
 
+    class Game* GetGame() const { return mGame; }
 	//void SetAnimIndex(int animIndex) { mAnimIndex = animIndex; }
 	//bool Load(std::string FileRoot, std::string MeshFile, std::vector<std::string>AnimationFiles);
 	//void Draw(Shader* shader, float timeInSeconds, int animIdx = 0);
@@ -39,6 +40,8 @@ private:
 	float mScale;
 	glm::mat4 mWorldTransform;
 	class deFBXMesh* mdeFBXMesh;
+    class deFBXMesh* mAnimMesh;
 	class Mesh* mAssimpMesh;
 	class FBXMesh* mFBXMesh;
+    class Game* mGame;
 };

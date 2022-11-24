@@ -6,6 +6,7 @@
 #include "deFBXMesh.hpp"
 #include "Shader.hpp"
 #include "FBXSkeleton.hpp"
+#include "GetPosition.h"
 
 namespace
 {
@@ -72,6 +73,46 @@ NodeMesh::NodeMesh(FbxNode* node, deFBXMesh* fbxmesh)
             //mo.material = MaterialData;
             //mo.VNTOffset = vertexOffset;
             //mMeshOffsets.push_back(mo);
+        }
+        else if (type == FbxNodeAttribute::EType::eSkeleton) {
+            //FbxAMatrix lGlobalPosition = GetGlobalPosition(node, mOwnerMesh->GetCurrentTicks(), pPose, &mParentGlobalPositin);
+            FbxPose* pose = node->GetScene()->GetPose(0);
+            FbxAMatrix lGlobalPosition = GetGlobalPosition(node, 0, pose, &mParentGlobalPositin);
+            FbxAMatrix lGeometryOffset = GetGeometry(node);
+            FbxAMatrix lGlobalOffPosition = lGlobalPosition * lGeometryOffset;
+            FbxSkeleton* lSkeleton = (FbxSkeleton*)node->GetNodeAttribute();
+
+            // Only draw the skeleton if it's a limb node and if 
+            // the parent also has an attribute of type skeleton.
+            if (lSkeleton->GetSkeletonType() == FbxSkeleton::eLimbNode &&
+                node->GetParent() &&
+                node->GetParent()->GetNodeAttribute() &&
+                node->GetParent()->GetNodeAttribute()->GetAttributeType() == FbxNodeAttribute::eSkeleton)
+            {
+                //GlDrawLimbNode(pParentGlobalPosition, pGlobalPosition);
+            }
+
+            mOwnerMesh->SetBoneMatrix(node->GetName(), );
+            printf("skeleton node name: %s\n", node->GetName());
+
+
+            lReferenceGlobalCurrentPosition = pGlobalPosition;
+            // Multiply lReferenceGlobalInitPosition by Geometric Transformation
+            lReferenceGeometry = GetGeometry(pMesh->GetNode());
+            lReferenceGlobalInitPosition *= lReferenceGeometry;
+
+            // Get the link initial global position and the link current global position.
+            pCluster->GetTransformLinkMatrix(lClusterGlobalInitPosition);
+            lClusterGlobalCurrentPosition = GetGlobalPosition(pCluster->GetLink(), pTime, pPose);
+
+            // Compute the initial position of the link relative to the reference.
+            lClusterRelativeInitPosition = lClusterGlobalInitPosition.Inverse() * lReferenceGlobalInitPosition;
+
+            // Compute the current position of the link relative to the reference.
+            lClusterRelativeCurrentPositionInverse = lReferenceGlobalCurrentPosition.Inverse() * lClusterGlobalCurrentPosition;
+
+            // Compute the shift of the link relative to the reference.
+            pVertexTransformMatrix = lClusterRelativeCurrentPositionInverse * lClusterRelativeInitPosition;
         }
     }
 
@@ -452,25 +493,26 @@ void NodeMesh::CreateVAO()
 
     // BoneIdx
     if (mOwnerMesh->GetIsSkinMesh()) {
-        std::vector<glm::ivec4> BoneIndices;
-        std::vector<glm::vec4> BoneWeights;
-        mFBXSkeleton->GetBoneIdexWeightArray(BoneIndices, BoneWeights);
+        mFBXSkeleton->CreateVBO();
+        //std::vector<glm::ivec4> BoneIndices;
+        //std::vector<glm::vec4> BoneWeights;
+        //mFBXSkeleton->GetBoneIdexWeightArray(BoneIndices, BoneWeights);
 
-        if ((BoneIndices.size() != 0) && (BoneWeights.size() != 0)) {
-            // Bind Buffer
-            GLuint BoneBuffers[2] = { 0 };
-            glGenBuffers(2, BoneBuffers);
+        //if ((BoneIndices.size() != 0) && (BoneWeights.size() != 0)) {
+        //    // Bind Buffer
+        //    GLuint BoneBuffers[2] = { 0 };
+        //    glGenBuffers(2, BoneBuffers);
 
-            glBindBuffer(GL_ARRAY_BUFFER, BoneBuffers[0]);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(glm::ivec4) * BoneIndices.size(), &BoneIndices[0], GL_STATIC_DRAW);
-            glEnableVertexAttribArray(3);
-            glVertexAttribIPointer(3, 4, GL_INT, 0, 0);
+        //    glBindBuffer(GL_ARRAY_BUFFER, BoneBuffers[0]);
+        //    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::ivec4) * BoneIndices.size(), &BoneIndices[0], GL_STATIC_DRAW);
+        //    glEnableVertexAttribArray(3);
+        //    glVertexAttribIPointer(3, 4, GL_INT, 0, 0);
 
-            glBindBuffer(GL_ARRAY_BUFFER, BoneBuffers[1]);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4) * BoneWeights.size(), &BoneWeights[0], GL_STATIC_DRAW);
-            glEnableVertexAttribArray(4);
-            glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 0, 0);
-        }
+        //    glBindBuffer(GL_ARRAY_BUFFER, BoneBuffers[1]);
+        //    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4) * BoneWeights.size(), &BoneWeights[0], GL_STATIC_DRAW);
+        //    glEnableVertexAttribArray(4);
+        //    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 0, 0);
+        //}
     }
 
     // unbind cube vertex arrays
@@ -618,6 +660,25 @@ void NodeMesh::Draw(Shader* shader)
             }
             else {
                 shader->SetVectorUniform("matSpecColor", glm::vec3(1.f));
+            }
+
+            // Bind Matrix Pallete
+            std::vector<glm::mat4> BoneMatrixPallete;
+            std::map<std::string, int> BoneNameIdxTable;
+            if (mOwnerMesh->GetIsSkinMesh()) {
+                mFBXSkeleton->GetBoneMatrixPallete(BoneMatrixPallete);
+                mFBXSkeleton->GetBoneMatrixPallete(BoneNameIdxTable);
+                for (auto iter : BoneNameIdxTable) {
+                    glm::mat4 boneMatrix = mOwnerMesh->GetBoneMatrix(iter.first);
+                    int boneIdx = iter.second;
+                    std::string uniformName = "uMatrixPalette[" + std::to_string(boneIdx) + "]";
+                    shader->SetMatrixUniform(uniformName, BoneMatrixPallete[boneIdx]);
+                }
+
+                //for (int i = 0; i < BoneMatrixPallete.size(); i++) {
+                //    std::string uniformName = "uMatrixPalette[" + std::to_string(i) + "]";
+                //    shader->SetMatrixUniform(uniformName, BoneMatrixPallete[i]);
+                //}
             }
 
 

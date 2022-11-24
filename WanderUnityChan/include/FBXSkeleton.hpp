@@ -3,6 +3,7 @@
 #include <vector>
 #include <fbxsdk.h>
 #include <glm.hpp>
+#include <map>
 
 #define MAX_NUM_BONES_PER_VERTEX 4
 
@@ -12,10 +13,19 @@ public:
 
 	bool Load(FbxMesh* mesh);
     void Update(float delatTime);
+    void CreateVBO();
     void GetBoneIdexWeightArray(std::vector<glm::ivec4>& boneIndices,
         std::vector<glm::vec4>& boneWeights) {
         boneIndices = mBoneIndices;
         boneWeights = mBoneWeights;
+    }
+    void GetBoneMatrixPallete(std::vector<glm::mat4>& boneMatrices)
+    {
+        boneMatrices = mBoneMatrixPallete;
+    }
+    void GetBoneMatrixPallete(std::map<std::string, int>& boneMatrices)
+    {
+        boneMatrices = mBoneNameIdxTable;
     }
     void DeleteBoneData() {
         mBoneIndices.clear();
@@ -73,8 +83,7 @@ private:
         return Outvec;
     }
 
-
-
+    unsigned int mVertexBuffer;
 
     std::vector<VertexBoneData> mBones;
     // 各頂点に影響を与えるBoneの数
@@ -84,4 +93,5 @@ private:
     std::vector<float> mBoneWeightSchalar;
     std::vector<glm::mat4> deBoneMatrixPallete;
     std::vector<glm::mat4> mBoneMatrixPallete;
+    std::map<std::string, int> mBoneNameIdxTable;
 };

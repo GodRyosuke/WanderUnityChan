@@ -66,13 +66,13 @@
     <ClCompile Include="src\FBXNodeMesh.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\deFBXMeshSkinning.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="src\NodeMeshSkinning.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="src\FBXSkeleton.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GetPosition.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
@@ -116,13 +116,13 @@
     <ClInclude Include="include\FBXNodeMesh.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\deFBXMeshSkinning.hpp">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="include\NodeMeshSkinning.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="include\FBXSkeleton.hpp">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="include\GetPosition.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

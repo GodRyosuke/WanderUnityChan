@@ -16,6 +16,7 @@ public:
 	bool Initialize();
 	void RunLoop();
 	void Shutdown();
+    Uint32 GetCurrentTime() const { return mTicksCount; }
 
 private:
 	enum PHASE {

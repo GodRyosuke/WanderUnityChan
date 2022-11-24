@@ -1,15 +1,17 @@
 #include "deFBXMesh.hpp"
 #include "glad/glad.h"
-//#include "glew.h"
+#include "Game.hpp"
+#include "UnityChan.hpp"
 #include "Shader.hpp"
 #include "GLUtil.hpp"
 #include "Texture.hpp"
 #include "NodeMesh.hpp"
 #include <fstream>
 
-deFBXMesh::deFBXMesh(bool setIsDrawArray, bool isSkeletal)
+deFBXMesh::deFBXMesh(class UnityChan* unitychan, bool setIsDrawArray, bool isSkeletal)
     :mIsDrawArray(setIsDrawArray)
     ,mIsSkeletal(isSkeletal)
+    ,mUnityChan(unitychan)
 {
     mPositions.resize(0);
     mNormals.resize(0);
@@ -24,7 +26,7 @@ deFBXMesh::~deFBXMesh()
 
 static std::vector<int> pcount(6);
 
-bool deFBXMesh::Load(std::string fileName)
+bool deFBXMesh::Load(std::string folderPath, std::string fileName)
 {
     mMeshFileName = fileName;
 
@@ -43,7 +45,7 @@ bool deFBXMesh::Load(std::string fileName)
 
     // Importerを生成
     FbxImporter* importer = FbxImporter::Create(mManager, "");
-    std::string filePath = "./resources/" + fileName + "/" + fileName + ".fbx";
+    std::string filePath = folderPath + fileName + ".fbx";
     int lFileFormat = -1;
     if (!mManager->GetIOPluginRegistry()->DetectReaderFileFormat(filePath.c_str(), lFileFormat))
     {
@@ -1203,6 +1205,7 @@ void deFBXMesh::Draw(Shader* shader)
 void deFBXMesh::Update(float deltaTime)
 {
     mRootNodeMesh->Update(deltaTime);
+    mCurrentTicks = mUnityChan->GetGame()->GetCurrentTime();
 }
 
 void deFBXMesh::DrawArray()

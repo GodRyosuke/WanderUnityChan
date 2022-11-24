@@ -1,7 +1,7 @@
 #include "FBXSkeleton.hpp"
 #include "glm.hpp"
 #include <assert.h>
-
+#include <glad/glad.h>
 
 namespace {
     FbxAMatrix GetGeometry(FbxNode* pNode)
@@ -187,6 +187,7 @@ namespace {
 FBXSkeleton::FBXSkeleton()
 	:mBoneIndices(0)
 	,mBoneWeights(0)
+    ,mBoneMatrixPallete(0)
 {
 
 }
@@ -263,6 +264,8 @@ bool FBXSkeleton::Load(FbxMesh* mesh)
 		FbxSkin* lSkinDeformer = (FbxSkin*)mesh->GetDeformer(lSkinIndex, FbxDeformer::eSkin);
 
 		int lClusterCount = lSkinDeformer->GetClusterCount();
+        mBoneMatrixPallete.resize(lClusterCount);
+        printf("cluster num: %d\n", lClusterCount);
 		for (int lClusterIndex = 0; lClusterIndex < lClusterCount; ++lClusterIndex)
 		{
 			FbxCluster* lCluster = lSkinDeformer->GetCluster(lClusterIndex);
@@ -277,6 +280,9 @@ bool FBXSkeleton::Load(FbxMesh* mesh)
                 int x = 0;
             }
             FbxTime pTime = 0;
+            std::string clusterName = lCluster->GetLink()->GetName();
+            printf("cluster name: %s\n", clusterName.c_str());
+            mBoneNameIdxTable.emplace(lCluster->GetLink()->GetName(), lClusterIndex);
 
 			//ComputeClusterDeformation(pGlobalPosition, mesh, lCluster, lVertexTransformMatrix, pTime, pPose);
             {
@@ -314,6 +320,7 @@ bool FBXSkeleton::Load(FbxMesh* mesh)
                 // Compute the shift of the link relative to the reference.
                 lVertexTransformMatrix = lClusterRelativeCurrentPositionInverse * lClusterRelativeInitPosition;
             }
+            mBoneMatrixPallete[lClusterIndex] = CopyFbxAMat(lVertexTransformMatrix);
 
 			int lVertexIndexCount = lCluster->GetControlPointIndicesCount();
 			for (int k = 0; k < lVertexIndexCount; ++k)
@@ -350,9 +357,6 @@ bool FBXSkeleton::Load(FbxMesh* mesh)
 				// おそらくこれがMatrixPalleteであろう
 				FbxAMatrix lInfluence = lVertexTransformMatrix;
                 glm::mat4 boneMat = CopyFbxAMat(lVertexTransformMatrix);
-                if (lWeight != 1.f) {
-                    int x = 0;
-                }
                 boneMat *= lWeight;
 				//MatrixScale(lInfluence, lWeight);
                 deBoneMatrixPallete[vertexIdx] += boneMat;
@@ -396,7 +400,6 @@ bool FBXSkeleton::Load(FbxMesh* mesh)
     // Control PointsとPolygon, Verticeとの対応付け
     lVertexCount = lPolygonCount * 3;
     float* lVertices = new float[lVertexCount * 4];
-    mBoneMatrixPallete.resize(lPolygonCount * 3);
     std::vector<unsigned int> BoneIdxArray(lPolygonCount * 3);
 
     lVertexCount = 0;
@@ -412,7 +415,7 @@ bool FBXSkeleton::Load(FbxMesh* mesh)
             lVertices[lVertexCount * 4 + 1] = static_cast<float>(lVertexArray[lControlPointIndex][1]);
             lVertices[lVertexCount * 4 + 2] = static_cast<float>(lVertexArray[lControlPointIndex][2]);
             lVertices[lVertexCount * 4 + 3] = 1;
-            mBoneMatrixPallete[lPolygonIndex * 3 + lVerticeIndex] = deBoneMatrixPallete[lControlPointIndex];
+            //mBoneMatrixPallete[lPolygonIndex * 3 + lVerticeIndex] = deBoneMatrixPallete[lControlPointIndex];
             BoneIdxArray[lPolygonIndex * 3 + lVerticeIndex] = lControlPointIndex;
 
             mBones[lPolygonIndex * 3 + lVerticeIndex] = deBones[lControlPointIndex];
@@ -459,6 +462,38 @@ bool FBXSkeleton::Load(FbxMesh* mesh)
 
 	return true;
 }
+
+void FBXSkeleton::CreateVBO()
+{
+    if (mBones.size() == 0) {
+        return;
+    }
+    glGenBuffers(1, &mVertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(mBones[0]) * mBones.size(), &mBones[0], GL_STATIC_DRAW);
+    glEnableVertexAttribArray(3);
+    glVertexAttribIPointer(3, MAX_NUM_BONES_PER_VERTEX, GL_INT, sizeof(VertexBoneData), (const GLvoid*)0);
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(4, MAX_NUM_BONES_PER_VERTEX, GL_FLOAT, GL_FALSE, sizeof(VertexBoneData),
+        (const GLvoid*)(MAX_NUM_BONES_PER_VERTEX * sizeof(int32_t)));   // 後半4ByteがWeight
+
+    //if ((BoneIndices.size() != 0) && (BoneWeights.size() != 0)) {
+    //    // Bind Buffer
+    //    GLuint BoneBuffers[2] = { 0 };
+    //    glGenBuffers(2, BoneBuffers);
+
+    //    glBindBuffer(GL_ARRAY_BUFFER, BoneBuffers[0]);
+    //    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::ivec4) * BoneIndices.size(), &BoneIndices[0], GL_STATIC_DRAW);
+    //    glEnableVertexAttribArray(3);
+    //    glVertexAttribIPointer(3, 4, GL_INT, 0, 0);
+
+    //    glBindBuffer(GL_ARRAY_BUFFER, BoneBuffers[1]);
+    //    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4) * BoneWeights.size(), &BoneWeights[0], GL_STATIC_DRAW);
+    //    glEnableVertexAttribArray(4);
+    //    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 0, 0);
+    //}
+}
+
 
 void FBXSkeleton::Update(float deltaTime)
 {

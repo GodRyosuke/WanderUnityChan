@@ -1,16 +1,20 @@
 #define _USE_MATH_DEFINES
 #include "UnityChan.hpp"
 #include "deFBXMesh.hpp"
+#include "Game.hpp"
 #include "Shader.hpp"
 #include "gtc/matrix_transform.hpp"
 #include "Mesh.hpp"
 #include "FBXLoader/Mesh.hpp"
 
-UnityChan::UnityChan()
+UnityChan::UnityChan(Game* game)
 	:z_rot(0.f)
+    ,mGame(game)
 {
-	mdeFBXMesh = new deFBXMesh(false, true);
-	mdeFBXMesh->Load("UnityChan");
+	mdeFBXMesh = new deFBXMesh(this, false, true);
+	mdeFBXMesh->Load("./resources/UnityChan/", "UnityChan");
+    mAnimMesh = new deFBXMesh(this, false, true);
+    mAnimMesh->Load("./resources/UnityChan/", "unitychan_RUN00_F");
 	//mdeFBXMesh->Load("cacti");
 	//mdeFBXMesh->Load("TreasureChest");
 	//mdeFBXMesh->Load("TreasureBox2");

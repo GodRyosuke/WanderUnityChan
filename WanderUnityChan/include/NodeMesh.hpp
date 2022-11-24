@@ -78,6 +78,8 @@ private:
 	std::vector<glm::vec3> mNormals;
 	std::vector<glm::vec2> mTexCoords;
 
+    FbxAMatrix mParentGlobalPositin;
+
 	class deFBXMesh* mOwnerMesh;
 	std::string mMeshName;
 	class FBXSkeleton* mFBXSkeleton;

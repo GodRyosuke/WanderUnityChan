@@ -11,9 +11,9 @@ namespace nl = nlohmann;
 
 class deFBXMesh {
 public:
-	deFBXMesh(bool isDrawArray = false, bool isSkeletal = false);
+	deFBXMesh(class UnityChan* owner, bool isDrawArray = false, bool isSkeletal = false);
 	~deFBXMesh();
-	bool Load(std::string fileName);
+	bool Load(std::string folderPath, std::string fileName);
 	void Draw(class Shader* shader);
     void Update(float deltaTime);
 	void BindVertexArray();
@@ -23,7 +23,16 @@ public:
 	void BindTexture(std::string MaterialName);
 	void UnBindTexture(std::string materialName);
 
+    void SetBoneMatrix(std::string name, glm::mat4 matrix)
+    {
+        mMatrixUniforms.emplace(name, matrix);
+    }
+    glm::mat4 GetBoneMatrix(std::string name)
+    {
+        return mMatrixUniforms[name];
+    }
 	bool GetIsSkinMesh() const { return mIsSkeletal; }
+    uint32_t GetCurrentTicks() const{ return mCurrentTicks; }
 
 private:
 	struct Material {
@@ -116,11 +125,15 @@ private:
 	unsigned int* mVertexBuffers;
 	unsigned int mDrawArrayVAO;
 
+    class UnityChan* mUnityChan;
 	FbxManager* mManager;
 	std::string mMeshFileName;
 
+    uint32_t mCurrentTicks;
 	bool mIsDrawArray;
 	bool mIsSkeletal;
+
+    std::map<std::string, glm::mat4> mMatrixUniforms;
 };
 
 class VAO {

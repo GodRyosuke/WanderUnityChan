@@ -1,6 +1,6 @@
 #version 330 core
 
-// à íuÇæÇØéÛÇØéÊÇ¡Çƒï`âÊ
+// ‰ΩçÁΩÆ„Å†„ÅëÂèó„ÅëÂèñ„Å£„Å¶ÊèèÁîª
 
 layout (location = 0) in vec3 Position;                                              
 layout (location = 1) in vec3 Normal; 
@@ -11,9 +11,10 @@ layout (location = 4) in vec4 Weights;
 uniform mat4 ModelTransform;
 uniform mat4 CameraView;
 uniform mat4 CameraProj;
-// SpotLightóp
+// SpotLightÁî®
 uniform mat4 LightView;
 // uniform mat4 LightProj;
+uniform mat4 uMatrixPalette[128];
 
 out vec4 LightSpacePos;                                                             
 out vec2 TexCoord0;                                                                 
@@ -23,10 +24,17 @@ out vec3 WorldPos0;
 
 void main()
 {
-	gl_Position = CameraProj * CameraView * ModelTransform * vec4(Position, 1.0);
+	mat4 BoneTransform = uMatrixPalette[BoneIDs[0]] * Weights[0];
+		BoneTransform += uMatrixPalette[BoneIDs[1]] * Weights[1];
+		BoneTransform += uMatrixPalette[BoneIDs[2]] * Weights[2];
+		BoneTransform += uMatrixPalette[BoneIDs[3]] * Weights[3];
+
+	vec4 PosL = BoneTransform * vec4(Position, 1.0);
+
+	gl_Position = CameraProj * CameraView * ModelTransform * PosL;
 	// gl_Position = vec4(Position, 1.0);
 	// LightSpacePos = CameraProj * LightView * ModelTransform * vec4(Position, 1.0);                                 
-    // WorldPos0 = (ModelTransform * vec4(Position, 1.0)).xyz;                          
+    WorldPos0 = (ModelTransform * vec4(Position, 1.0)).xyz;                          
 	Normal0 = (ModelTransform * vec4(Normal, 0.0)).xyz;                            
 	TexCoord0 = TexCoord;
 }

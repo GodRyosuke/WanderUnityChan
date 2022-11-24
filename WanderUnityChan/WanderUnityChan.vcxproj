@@ -180,10 +180,10 @@ XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y</Comman
     <ClCompile Include="include\FBXLoader\MaterialCache.hpp" />
     <ClCompile Include="include\Texture.hpp" />
     <ClCompile Include="src\deFBXMesh.cpp" />
-    <ClCompile Include="src\deFBXMeshSkinning.cpp" />
     <ClCompile Include="src\FBXMesh.cpp" />
     <ClCompile Include="src\FBXNodeMesh.cpp" />
     <ClCompile Include="src\FBXSkeleton.cpp" />
+    <ClCompile Include="src\GetPosition.cpp" />
     <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\MaterialCache.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
@@ -199,7 +199,7 @@ XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y</Comman
     <ClCompile Include="src\UnityChan.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\deFBXMeshSkinning.hpp" />
+    <ClInclude Include="include\GetPosition.h" />
     <ClInclude Include="include\FBXLoader2\FBXMesh2.hpp" />
     <ClInclude Include="include\FBXLoader\Mesh.hpp" />
     <ClInclude Include="include\deFBXMesh.hpp" />
