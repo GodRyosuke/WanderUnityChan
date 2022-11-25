@@ -94,4 +94,5 @@ private:
     std::vector<glm::mat4> deBoneMatrixPallete;
     std::vector<glm::mat4> mBoneMatrixPallete;
     std::map<std::string, int> mBoneNameIdxTable;
+    std::vector<glm::mat4> mBoneGlobalInvMatrices;
 };

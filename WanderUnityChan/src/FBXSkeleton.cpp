@@ -265,6 +265,7 @@ bool FBXSkeleton::Load(FbxMesh* mesh)
 
 		int lClusterCount = lSkinDeformer->GetClusterCount();
         mBoneMatrixPallete.resize(lClusterCount);
+        mBoneGlobalInvMatrices.resize(lClusterCount);
         printf("cluster num: %d\n", lClusterCount);
 		for (int lClusterIndex = 0; lClusterIndex < lClusterCount; ++lClusterIndex)
 		{
@@ -282,7 +283,10 @@ bool FBXSkeleton::Load(FbxMesh* mesh)
             FbxTime pTime = 0;
             std::string clusterName = lCluster->GetLink()->GetName();
             printf("cluster name: %s\n", clusterName.c_str());
+            // ClusterのSkeleton Nodeとの対応付け
             mBoneNameIdxTable.emplace(lCluster->GetLink()->GetName(), lClusterIndex);
+            // 逆行列にしたほうがいいの？
+            mBoneGlobalInvMatrices[lClusterIndex] = CopyFbxAMat(lCluster->GetLink()->EvaluateGlobalTransform());
 
 			//ComputeClusterDeformation(pGlobalPosition, mesh, lCluster, lVertexTransformMatrix, pTime, pPose);
             {
