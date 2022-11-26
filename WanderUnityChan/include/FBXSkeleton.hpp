@@ -23,10 +23,15 @@ public:
     {
         boneMatrices = mBoneMatrixPallete;
     }
+    void GetBoneInvMatrixPallete(std::vector<glm::mat4>& boneMatrices)
+    {
+        boneMatrices = mBoneGlobalInvMatrices;
+    }
     void GetBoneMatrixPallete(std::map<std::string, int>& boneMatrices)
     {
         boneMatrices = mBoneNameIdxTable;
     }
+
     void DeleteBoneData() {
         mBoneIndices.clear();
         mBoneWeights.clear();

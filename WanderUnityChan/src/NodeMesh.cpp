@@ -685,16 +685,20 @@ void NodeMesh::Draw(Shader* shader)
             }
 
             // Bind Matrix Pallete
-            std::vector<glm::mat4> BoneMatrixPallete;
-            std::map<std::string, int> BoneNameIdxTable;
+            std::vector<glm::mat4> BoneMatrixPallete;       
+            std::vector<glm::mat4> BoneGlobalInvMatrixPallete;
+            std::map<std::string, int> BoneNameIdxTable;    // BoneIdxと名前の対応付け
             if (mOwnerMesh->GetIsSkinMesh()) {
                 mFBXSkeleton->GetBoneMatrixPallete(BoneMatrixPallete);
+                mFBXSkeleton->GetBoneMatrixPallete(BoneGlobalInvMatrixPallete);
                 mFBXSkeleton->GetBoneMatrixPallete(BoneNameIdxTable);
                 for (auto iter : BoneNameIdxTable) {
+                    // boneIdxのmatrixを取得する
                     glm::mat4 boneMatrix = mOwnerMesh->GetBoneMatrix(iter.first);
                     int boneIdx = iter.second;
+                    glm::mat4 boneInvMatrix = BoneGlobalInvMatrixPallete[boneIdx];
                     std::string uniformName = "uMatrixPalette[" + std::to_string(boneIdx) + "]";
-                    shader->SetMatrixUniform(uniformName,boneMatrix);
+                    shader->SetMatrixUniform(uniformName, boneMatrix);
                 }
 
                 //for (int i = 0; i < BoneMatrixPallete.size(); i++) {
