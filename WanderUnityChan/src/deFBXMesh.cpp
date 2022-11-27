@@ -12,6 +12,7 @@ deFBXMesh::deFBXMesh(class UnityChan* unitychan, bool setIsDrawArray, bool isSke
     :mIsDrawArray(setIsDrawArray)
     ,mIsSkeletal(isSkeletal)
     ,mUnityChan(unitychan)
+    ,mIsAnimMesh(false)
 {
     mPositions.resize(0);
     mNormals.resize(0);
@@ -138,8 +139,17 @@ bool deFBXMesh::Load(std::string folderPath, std::string fileName)
     //    LoadMaterial(material);
     //}
 
+    // Meshファイルの読み出し
     FbxNode* rootNode = mScene->GetRootNode();
     mRootNodeMesh = new NodeMesh(rootNode, this);
+    if (!mIsAnimMesh) {
+        // skeletonのないmesh transformを埋める
+        for (auto iter : mMeshSkeletonNameMap) {
+            if (iter.second.size() == 0) {
+                int x = 0;
+            }
+        }
+    }
 
     // マテリアルとtextureとの対応関係を読み込む
     {
@@ -1225,6 +1235,17 @@ void deFBXMesh::Draw(Shader* shader)
     }
 }
 
+void deFBXMesh::AddMeshTransform(std::string meshNodeName, glm::mat4 localTransform)
+{
+    auto iter = mMeshTransMap.find(meshNodeName);
+    if (iter != mMeshTransMap.end()) {
+        
+    }
+    else {
+        mMeshTransMap.emplace(meshNodeName, localTransform);
+    }
+}
+
 void deFBXMesh::AddMeshSkeletonName(std::string MeshNodeName, std::string SkeletonNodeName)
 {
     auto iter = mMeshSkeletonNameMap.find(MeshNodeName);
@@ -1258,6 +1279,12 @@ void deFBXMesh::AddSkeletonNodeName(std::string SkeletonNodeName)
     }
 }
 
+glm::mat4 deFBXMesh::GetBoneMatrix(std::string name)
+{
+    glm::mat4 offsetMat = mMatrixUniforms[name].OffsetMatrix;
+    glm::mat4 globalTrans = mMatrixUniforms[name].GlobalTrans;
+    return globalTrans * glm::inverse(offsetMat);
+}
 
 void deFBXMesh::SetGlobalBoneTransform(std::string name, glm::mat4 globaltrans)
 {

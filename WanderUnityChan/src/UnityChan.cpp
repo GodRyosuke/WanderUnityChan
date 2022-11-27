@@ -14,7 +14,9 @@ UnityChan::UnityChan(Game* game)
 	mdeFBXMesh = new deFBXMesh(this, false, true);
 	mdeFBXMesh->Load("./resources/UnityChan/", "UnityChan");
     mAnimMesh = new deFBXMesh(this, false, true);
+    mAnimMesh->SetIsAnimMesh(true);
     mAnimMesh->Load("./resources/UnityChan/", "unitychan_RUN00_F");
+    mAnimMesh->SetMeshSkeletonNameMap(mdeFBXMesh->GetMeshSkeletonNameMap());
     //mAnimMesh->Load("./resources/UnityChan/", "unitychan_run00_f");
 	//mdeFBXMesh->Load("cacti");
 	//mdeFBXMesh->Load("TreasureChest");

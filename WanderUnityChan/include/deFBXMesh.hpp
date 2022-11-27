@@ -21,7 +21,7 @@ public:
         glm::mat4 GlobalTrans;
         glm::mat4 LocalTrans;
         glm::mat4 OffsetMatrix;
-
+        FbxNode* mFbxNode;
     };
 
 	deFBXMesh(class UnityChan* owner, bool isDrawArray = false, bool isSkeletal = false);
@@ -43,20 +43,22 @@ public:
     void AddMeshSkeletonName(std::string MeshNodeName, std::string SkeletonNodeName);
     void AddMeshNodeName(std::string MeshNodeName);
     void AddSkeletonNodeName(std::string SkeletonNodeName);
+    void AddMeshTransform(std::string meshNodeName, glm::mat4 localTransform);
 
-
+    void SetIsAnimMesh(bool isanim) { mIsAnimMesh = isanim; }
     void SetGlobalBoneTransform(std::string name, glm::mat4 globaltrans);
     void SetLocalBoneTransform(std::string name, glm::mat4 globaltrans);
     void SetOffsetBoneTransform(std::string name, glm::mat4 globaltrans);
-    const std::map<std::string, BoneTransform> GetMatrixUniforms() { return mMatrixUniforms; }
+    void SetBoneTrasformNode(std::string name, FbxNode* node);
     void SetMatrixUniforms(const std::map<std::string, BoneTransform> data) { mMatrixUniforms = data; }
+    void SetMeshSkeletonNameMap(const std::map<std::string, std::string> data) { mMeshSkeletonNameMap = data; }
+
+    std::map<std::string, BoneTransform> GetMatrixUniforms() const { return mMatrixUniforms; }
+    std::map<std::string, std::string> GetMeshSkeletonNameMap() const { return mMeshSkeletonNameMap; }
+    
     FbxScene* GetScene() const { return mScene; }
-    glm::mat4 GetBoneMatrix(std::string name)
-    {
-        glm::mat4 offsetMat = mMatrixUniforms[name].OffsetMatrix;
-        glm::mat4 globalTrans = mMatrixUniforms[name].GlobalTrans;
-        return globalTrans * glm::inverse(offsetMat);
-    }
+    bool GetIsAnimMesh() const { return mIsAnimMesh; }
+    glm::mat4 GetBoneMatrix(std::string name);
 	bool GetIsSkinMesh() const { return mIsSkeletal; }
     FbxTime GetCurrAnimTime() const { return mdeAnimCurrTime; }
     uint32_t GetCurrentTicks() const{ return mCurrentTicks; }
@@ -159,6 +161,7 @@ private:
     uint32_t mCurrentTicks;
 	bool mIsDrawArray;
 	bool mIsSkeletal;
+    bool mIsAnimMesh;
 
     FbxLongLong mStartAnimTime;
     FbxLongLong mGoalAnimTime;
@@ -171,6 +174,7 @@ private:
 
     std::map<std::string, BoneTransform> mMatrixUniforms;
     std::map<std::string, std::string> mMeshSkeletonNameMap;    // MeshNodeとSkeletonNodeとの対応付けをし，skeletonが与えられていないMeshNodeがないかチェック
+    std::map<std::string, glm::mat4> mMeshTransMap; // Mesh node nameとlocal transformのmap
 };
 
 class VAO {

@@ -42,6 +42,8 @@ NodeMesh::NodeMesh(FbxNode* node, deFBXMesh* fbxmesh)
             mIsMesh = true;
             FbxMesh* pMesh = static_cast<FbxMesh*>(attr);
             LoadMesh(pMesh);
+            mOwnerMesh->AddMeshTransform(node->GetName(),
+                GLUtil::ToGlmMat4(node->EvaluateLocalTransform()));
             //unsigned int vertexOffset;
             //NodeMesh* NodeMeshes = nullptr;
             //if (mIsDrawArray) {
@@ -75,7 +77,7 @@ NodeMesh::NodeMesh(FbxNode* node, deFBXMesh* fbxmesh)
             //mo.material = MaterialData;
             //mo.VNTOffset = vertexOffset;
             //mMeshOffsets.push_back(mo);
-            if (!mOwnerMesh->GetIsSkinMesh()) {
+            if (!mOwnerMesh->GetIsAnimMesh()) {
                 mOwnerMesh->AddMeshNodeName(node->GetName());
             }
         }
@@ -122,11 +124,12 @@ NodeMesh::NodeMesh(FbxNode* node, deFBXMesh* fbxmesh)
             }
 
             printf("skeleton node name: %s\n", node->GetName());
-            if (!mOwnerMesh->GetIsSkinMesh()) {
+            if (!mOwnerMesh->GetIsAnimMesh()) {
                 mOwnerMesh->AddSkeletonNodeName(node->GetName());
             }
         }
     }
+
 
     int childCount = node->GetChildCount();
     NodeMesh* nodeMesh = nullptr;
@@ -300,6 +303,7 @@ bool NodeMesh::LoadMesh(FbxMesh* mesh)
         const int lIndexOffset = mSubMeshes[lMaterialIndex]->IndexOffset +
             mSubMeshes[lMaterialIndex]->TriangleCount * 3;
 
+        assert(mesh->GetPolygonSize(lPolygonIndex) == 3);   // 扱えるのは3角形ポリゴンのみ
         for (int lVerticeIndex = 0; lVerticeIndex < 3; ++lVerticeIndex)
         {
             const int lControlPointIndex = mesh->GetPolygonVertex(lPolygonIndex, lVerticeIndex);
@@ -689,7 +693,6 @@ void NodeMesh::Draw(Shader* shader)
                     shader->SetMatrixUniform(uniformName, boneMatrix);
                 }
             }
-
 
 
             GLsizei lOffset = mSubMeshes[materialIdx]->IndexOffset * sizeof(unsigned int);
