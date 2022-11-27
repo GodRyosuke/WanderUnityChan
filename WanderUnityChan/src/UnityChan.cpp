@@ -12,9 +12,10 @@ UnityChan::UnityChan(Game* game)
     ,mGame(game)
 {
 	mdeFBXMesh = new deFBXMesh(this, false, true);
-	//mdeFBXMesh->Load("./resources/UnityChan/", "UnityChan");
+	mdeFBXMesh->Load("./resources/UnityChan/", "UnityChan");
     mAnimMesh = new deFBXMesh(this, false, true);
     mAnimMesh->Load("./resources/UnityChan/", "unitychan_RUN00_F");
+    //mAnimMesh->Load("./resources/UnityChan/", "unitychan_run00_f");
 	//mdeFBXMesh->Load("cacti");
 	//mdeFBXMesh->Load("TreasureChest");
 	//mdeFBXMesh->Load("TreasureBox2");
@@ -68,8 +69,11 @@ void UnityChan::Draw(Shader* shader)
 	//mAssimpMesh->Draw(shader, 0.f);
 
 	//mFBXMesh->Draw(shader);
-	//mdeFBXMesh->Draw(shader);
-    mAnimMesh->Draw(shader);
+
+    // 更新されたアニメーションの情報を，メッシュに流す
+    mdeFBXMesh->SetMatrixUniforms(mAnimMesh->GetMatrixUniforms());
+	mdeFBXMesh->Draw(shader);
+    //mAnimMesh->Draw(shader);
  	//mdeFBXMesh->BindVertexArray();
 
 	////mMesh->DrawArray();

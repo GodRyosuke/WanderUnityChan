@@ -21,7 +21,7 @@ deFBXMesh::deFBXMesh(class UnityChan* unitychan, bool setIsDrawArray, bool isSke
 
 deFBXMesh::~deFBXMesh()
 {
-
+    mManager->Destroy();
 }
 
 static std::vector<int> pcount(6);
@@ -155,6 +155,30 @@ bool deFBXMesh::Load(std::string folderPath, std::string fileName)
         ifs.close();
     }
 
+    // Animationの読み出し
+    FbxArray<FbxString*> animStackNameArray;
+    mScene->FillAnimStackNameArray(animStackNameArray);
+    int animStackCount = importer->GetAnimStackCount();
+    printf("anim count: %d\n", animStackNameArray.GetCount());
+
+    if (animStackCount) {
+        FbxTakeInfo* pFbxTakeInfo = importer->GetTakeInfo(0);
+        mStartAnimTime = pFbxTakeInfo->mLocalTimeSpan.GetStart().Get();
+        mGoalAnimTime = pFbxTakeInfo->mLocalTimeSpan.GetStop().Get();
+        mFrameTime.SetTime(0, 0, 0, 1, 0, mScene->GetGlobalSettings().GetTimeMode());
+
+        int animIdx = 0;
+        FbxAnimStack* lCurrentAnimationStack = mScene->FindMember<FbxAnimStack>(animStackNameArray[animIdx]->Buffer());
+        FbxTakeInfo* lCurrentTakeInfo = mScene->GetTakeInfo(*(animStackNameArray[animIdx]));
+        mStartTime= lCurrentTakeInfo->mLocalTimeSpan.GetStart();
+        mGoalTime = lCurrentTakeInfo->mLocalTimeSpan.GetStop();
+
+        mOneFrameValue = FbxTime::GetOneFrameValue(FbxTime::eFrames60);
+        mdeAnimCurrTime = mStartAnimTime;
+    }
+
+    //printf("start: %d, stop: %d, oneFrameValue:%d, framenum: %d\n", start, stop, mOneFrameValue, (stop - start) / mOneFrameValue);
+
     //if (rootNode == 0) {
     //    printf("error: cannont find root node: %s\n", fileName.c_str());
     //    return false;
@@ -182,7 +206,7 @@ bool deFBXMesh::Load(std::string folderPath, std::string fileName)
     importer = NULL;
     // マネージャ解放
     // 関連するすべてのオブジェクトが解放される
-     mManager->Destroy();
+     //mManager->Destroy();
 
 	return true;
 }
@@ -1201,6 +1225,40 @@ void deFBXMesh::Draw(Shader* shader)
     }
 }
 
+void deFBXMesh::AddMeshSkeletonName(std::string MeshNodeName, std::string SkeletonNodeName)
+{
+    auto iter = mMeshSkeletonNameMap.find(MeshNodeName);
+    if (iter != mMeshSkeletonNameMap.end()) {
+        iter->second = SkeletonNodeName;
+    }
+    else {
+        mMeshSkeletonNameMap.emplace(MeshNodeName, SkeletonNodeName);
+    }
+}
+
+void deFBXMesh::AddMeshNodeName(std::string meshNodeName)
+{
+    auto iter = mMeshSkeletonNameMap.find(meshNodeName);
+    if (iter != mMeshSkeletonNameMap.end()) {
+        // すでに追加されていたら何もしない
+    }
+    else {
+        mMeshSkeletonNameMap.emplace(meshNodeName, "");
+    }
+}
+
+void deFBXMesh::AddSkeletonNodeName(std::string SkeletonNodeName)
+{
+    auto iter = mMeshSkeletonNameMap.find(SkeletonNodeName);
+    if (iter != mMeshSkeletonNameMap.end()) {
+        printf("error: this skeleton is not assigned by mesh!\n");
+    }
+    else {
+        mMeshSkeletonNameMap.emplace(SkeletonNodeName, SkeletonNodeName);
+    }
+}
+
+
 void deFBXMesh::SetGlobalBoneTransform(std::string name, glm::mat4 globaltrans)
 {
     auto iter = mMatrixUniforms.find(name);
@@ -1271,6 +1329,18 @@ void deFBXMesh::Update(float deltaTime)
     //        }
     //    }
     //}
+
+
+
+    mdeAnimCurrTime += mOneFrameValue;
+    if (mdeAnimCurrTime >= mGoalAnimTime) {
+        mdeAnimCurrTime = mStartAnimTime + 2 * mOneFrameValue;
+    }
+
+    mAnimCurrTime += mFrameTime;
+    if (mAnimCurrTime > mGoalTime) {
+        mAnimCurrTime = mStartTime;
+    }
 
     mRootNodeMesh->Update(deltaTime, glm::mat4(1.f));
     mCurrentTicks = mUnityChan->GetGame()->GetCurrentTime();

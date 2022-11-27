@@ -11,7 +11,18 @@ namespace nl = nlohmann;
 
 class deFBXMesh {
 public:
+    struct BoneTransform {
+        BoneTransform()
+            :GlobalTrans(glm::mat4(1.0f))
+            , LocalTrans(glm::mat4(1.f))
+            , OffsetMatrix(glm::mat4(1.f))
+        {
+        }
+        glm::mat4 GlobalTrans;
+        glm::mat4 LocalTrans;
+        glm::mat4 OffsetMatrix;
 
+    };
 
 	deFBXMesh(class UnityChan* owner, bool isDrawArray = false, bool isSkeletal = false);
 	~deFBXMesh();
@@ -29,9 +40,16 @@ public:
     //{
     //    mMatrixUniforms.emplace(name, matrix);
     //}
+    void AddMeshSkeletonName(std::string MeshNodeName, std::string SkeletonNodeName);
+    void AddMeshNodeName(std::string MeshNodeName);
+    void AddSkeletonNodeName(std::string SkeletonNodeName);
+
+
     void SetGlobalBoneTransform(std::string name, glm::mat4 globaltrans);
     void SetLocalBoneTransform(std::string name, glm::mat4 globaltrans);
     void SetOffsetBoneTransform(std::string name, glm::mat4 globaltrans);
+    const std::map<std::string, BoneTransform> GetMatrixUniforms() { return mMatrixUniforms; }
+    void SetMatrixUniforms(const std::map<std::string, BoneTransform> data) { mMatrixUniforms = data; }
     FbxScene* GetScene() const { return mScene; }
     glm::mat4 GetBoneMatrix(std::string name)
     {
@@ -40,6 +58,7 @@ public:
         return globalTrans * glm::inverse(offsetMat);
     }
 	bool GetIsSkinMesh() const { return mIsSkeletal; }
+    FbxTime GetCurrAnimTime() const { return mdeAnimCurrTime; }
     uint32_t GetCurrentTicks() const{ return mCurrentTicks; }
 
 private:
@@ -95,18 +114,7 @@ private:
 	void LoadUV(FbxLayerElementUV* uvElem);
 
 
-    struct BoneTransform {
-        BoneTransform()
-            :GlobalTrans(glm::mat4(1.0f))
-            , LocalTrans(glm::mat4(1.f))
-            , OffsetMatrix(glm::mat4(1.f))
-        {
-        }
-        glm::mat4 GlobalTrans;
-        glm::mat4 LocalTrans;
-        glm::mat4 OffsetMatrix;
 
-    };
 
 	void PopulateBuffers();
 	void DrawArrayPB();
@@ -152,9 +160,17 @@ private:
 	bool mIsDrawArray;
 	bool mIsSkeletal;
 
+    FbxLongLong mStartAnimTime;
+    FbxLongLong mGoalAnimTime;
+    FbxLongLong mOneFrameValue;
+    FbxLongLong mdeAnimCurrTime;
+    FbxTime mFrameTime, mAnimCurrTime, mStartTime, mGoalTime;
+
+
     FbxScene* mScene;
 
     std::map<std::string, BoneTransform> mMatrixUniforms;
+    std::map<std::string, std::string> mMeshSkeletonNameMap;    // MeshNodeとSkeletonNodeとの対応付けをし，skeletonが与えられていないMeshNodeがないかチェック
 };
 
 class VAO {

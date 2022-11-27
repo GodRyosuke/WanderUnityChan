@@ -75,6 +75,9 @@ NodeMesh::NodeMesh(FbxNode* node, deFBXMesh* fbxmesh)
             //mo.material = MaterialData;
             //mo.VNTOffset = vertexOffset;
             //mMeshOffsets.push_back(mo);
+            if (!mOwnerMesh->GetIsSkinMesh()) {
+                mOwnerMesh->AddMeshNodeName(node->GetName());
+            }
         }
         else if (type == FbxNodeAttribute::EType::eSkeleton) {
             mNodeType = SKELETON;
@@ -119,32 +122,8 @@ NodeMesh::NodeMesh(FbxNode* node, deFBXMesh* fbxmesh)
             }
 
             printf("skeleton node name: %s\n", node->GetName());
-
-
-            FbxAMatrix pGlobalPosition = lGlobalOffPosition;
-            FbxAMatrix pVertexTransformMatrix;  //  所望のボーン行列
-            {
-                //FbxAMatrix lReferenceGlobalInitPosition;
-                //FbxAMatrix lClusterGlobalInitPosition;
-
-                //pCluster->GetTransformMatrix(lReferenceGlobalInitPosition);
-                //pCluster->GetTransformLinkMatrix(lClusterGlobalInitPosition);
-                //// Multiply lReferenceGlobalInitPosition by Geometric Transformation
-                ////lReferenceGlobalInitPosition *= GetGeometry(node);
-
-                //// Get the link initial global position and the link current global position.
-                ////lClusterGlobalCurrentPosition = GetGlobalPosition(pCluster->GetLink(), pTime, pPose);
-
-                //// Compute the initial position of the link relative to the reference.
-
-
-                //// Compute the shift of the link relative to the reference.
-                //pVertexTransformMatrix =
-                //    pGlobalPosition.Inverse() *
-                //    node->EvaluateGlobalTransform(pTime) *
-                //    lClusterGlobalInitPosition.Inverse() *
-                //    lReferenceGlobalInitPosition *
-                //    GetGeometry(node);
+            if (!mOwnerMesh->GetIsSkinMesh()) {
+                mOwnerMesh->AddSkeletonNodeName(node->GetName());
             }
         }
     }
@@ -705,16 +684,12 @@ void NodeMesh::Draw(Shader* shader)
                     // boneIdxのmatrixを取得する
                     glm::mat4 boneMatrix = mOwnerMesh->GetBoneMatrix(iter.first);
                     int boneIdx = iter.second;
-                    glm::mat4 boneInvMatrix = BoneGlobalInvMatrixPallete[boneIdx];
+                    //glm::mat4 boneInvMatrix = BoneGlobalInvMatrixPallete[boneIdx];
                     std::string uniformName = "uMatrixPalette[" + std::to_string(boneIdx) + "]";
                     shader->SetMatrixUniform(uniformName, boneMatrix);
                 }
-
-                //for (int i = 0; i < BoneMatrixPallete.size(); i++) {
-                //    std::string uniformName = "uMatrixPalette[" + std::to_string(i) + "]";
-                //    shader->SetMatrixUniform(uniformName, BoneMatrixPallete[i]);
-                //}
             }
+
 
 
             GLsizei lOffset = mSubMeshes[materialIdx]->IndexOffset * sizeof(unsigned int);
@@ -755,7 +730,8 @@ void NodeMesh::Update(float deltatime, glm::mat4 parentMat)
         if (mNodeType == SKELETON) {
             // Local Transform更新
             mOwnerMesh->GetCurrentTicks();
-            FbxAMatrix localTransFbx = mNode->EvaluateLocalTransform(mOwnerMesh->GetCurrentTicks() / 1000.f);
+            //FbxAMatrix localTransFbx = mNode->EvaluateLocalTransform(mOwnerMesh->GetCurrentTicks() / 1000.f);
+            FbxAMatrix localTransFbx = mNode->EvaluateLocalTransform(mOwnerMesh->GetCurrAnimTime());
             glm::mat4 localTrans = GLUtil::ToGlmMat4(localTransFbx);
             mOwnerMesh->SetLocalBoneTransform(mNode->GetName(), localTrans);
 
@@ -768,7 +744,6 @@ void NodeMesh::Update(float deltatime, glm::mat4 parentMat)
     }
 
     for (int i = 0; i < mChilds.size(); i++) {
-        printf("num child: %d\n", mNumChild);
         mChilds[i]->Update(deltatime, updatedGlobalTrans);
     }
     //for (auto child : mChilds) {
