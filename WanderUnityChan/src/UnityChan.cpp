@@ -12,7 +12,7 @@ UnityChan::UnityChan(Game* game)
     ,mGame(game)
 {
 	mdeFBXMesh = new deFBXMesh(this, false, true);
-	mdeFBXMesh->Load("./resources/UnityChan/", "UnityChan");
+	//mdeFBXMesh->Load("./resources/UnityChan/", "UnityChan");
     mAnimMesh = new deFBXMesh(this, false, true);
     mAnimMesh->Load("./resources/UnityChan/", "unitychan_RUN00_F");
 	//mdeFBXMesh->Load("cacti");
@@ -57,7 +57,8 @@ void UnityChan::Update(float deltatime)
 	glm::mat4 TranslateMat = glm::translate(glm::mat4(1.0f), mPos);
 	mWorldTransform = TranslateMat * mRotate * ScaleMat;
 
-    mdeFBXMesh->Update(deltatime);
+    //mdeFBXMesh->Update(deltatime);
+    mAnimMesh->Update(deltatime);
 }
 
 void UnityChan::Draw(Shader* shader)
@@ -67,11 +68,13 @@ void UnityChan::Draw(Shader* shader)
 	//mAssimpMesh->Draw(shader, 0.f);
 
 	//mFBXMesh->Draw(shader);
-	mdeFBXMesh->Draw(shader);
+	//mdeFBXMesh->Draw(shader);
+    mAnimMesh->Draw(shader);
  	//mdeFBXMesh->BindVertexArray();
 
 	////mMesh->DrawArray();
 	mdeFBXMesh->UnBindVertexArray();
+    
 
 	//mAssimpMesh->Draw(shader, 1000.0f);
 }

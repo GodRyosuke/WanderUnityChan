@@ -11,10 +11,16 @@ public:
 	NodeMesh(FbxNode* pNode, class deFBXMesh* fbxmesh);
 
 	void Draw(class Shader* shader);
-    void Update(float deltatime);
+    void Update(float deltatime, glm::mat4 = glm::mat4(1.f));
 	int GetNumChild() { return mNumChild; }
 
 private:
+    enum NodeType {
+        MESH
+        ,SKELETON
+        ,NUM_NODE_TYPE
+    };
+
 	struct Material {
 		Material() : mTexture(nullptr), AmbientColor(0) {}
 		class Texture* mTexture;
@@ -84,5 +90,11 @@ private:
 	std::string mMeshName;
 	class FBXSkeleton* mFBXSkeleton;
 
+    glm::mat4 mGlobalTrans;
+    glm::mat4 mLocalTrans;
+
 	std::vector<NodeMesh*> mChilds;
+
+    FbxNode* mNode;
+    NodeType mNodeType;
 };

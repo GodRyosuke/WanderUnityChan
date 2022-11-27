@@ -11,6 +11,8 @@ namespace nl = nlohmann;
 
 class deFBXMesh {
 public:
+
+
 	deFBXMesh(class UnityChan* owner, bool isDrawArray = false, bool isSkeletal = false);
 	~deFBXMesh();
 	bool Load(std::string folderPath, std::string fileName);
@@ -23,13 +25,19 @@ public:
 	void BindTexture(std::string MaterialName);
 	void UnBindTexture(std::string materialName);
 
-    void SetBoneMatrix(std::string name, glm::mat4 matrix)
-    {
-        mMatrixUniforms.emplace(name, matrix);
-    }
+    //void SetBoneMatrix(std::string name, glm::mat4 matrix)
+    //{
+    //    mMatrixUniforms.emplace(name, matrix);
+    //}
+    void SetGlobalBoneTransform(std::string name, glm::mat4 globaltrans);
+    void SetLocalBoneTransform(std::string name, glm::mat4 globaltrans);
+    void SetOffsetBoneTransform(std::string name, glm::mat4 globaltrans);
+    FbxScene* GetScene() const { return mScene; }
     glm::mat4 GetBoneMatrix(std::string name)
     {
-        return mMatrixUniforms[name];
+        glm::mat4 offsetMat = mMatrixUniforms[name].OffsetMatrix;
+        glm::mat4 globalTrans = mMatrixUniforms[name].GlobalTrans;
+        return globalTrans * glm::inverse(offsetMat);
     }
 	bool GetIsSkinMesh() const { return mIsSkeletal; }
     uint32_t GetCurrentTicks() const{ return mCurrentTicks; }
@@ -87,7 +95,18 @@ private:
 	void LoadUV(FbxLayerElementUV* uvElem);
 
 
+    struct BoneTransform {
+        BoneTransform()
+            :GlobalTrans(glm::mat4(1.0f))
+            , LocalTrans(glm::mat4(1.f))
+            , OffsetMatrix(glm::mat4(1.f))
+        {
+        }
+        glm::mat4 GlobalTrans;
+        glm::mat4 LocalTrans;
+        glm::mat4 OffsetMatrix;
 
+    };
 
 	void PopulateBuffers();
 	void DrawArrayPB();
@@ -133,7 +152,9 @@ private:
 	bool mIsDrawArray;
 	bool mIsSkeletal;
 
-    std::map<std::string, glm::mat4> mMatrixUniforms;
+    FbxScene* mScene;
+
+    std::map<std::string, BoneTransform> mMatrixUniforms;
 };
 
 class VAO {

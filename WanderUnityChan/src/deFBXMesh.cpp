@@ -40,7 +40,7 @@ bool deFBXMesh::Load(std::string folderPath, std::string fileName)
         FbxString lPath = FbxGetApplicationDirectory();
         mManager->LoadPluginsDirectory(lPath.Buffer());
     }
-    FbxScene* scene = FbxScene::Create(mManager, "scene");
+    mScene = FbxScene::Create(mManager, "scene");
 
 
     // Importerを生成
@@ -66,12 +66,12 @@ bool deFBXMesh::Load(std::string folderPath, std::string fileName)
 
 
     // SceneオブジェクトにFBXファイル内の情報を流し込む
-    importer->Import(scene);
+    importer->Import(mScene);
     {
         // Check the scene integrity!
         FbxStatus status;
         FbxArray< FbxString*> details;
-        FbxSceneCheckUtility sceneCheck(FbxCast<FbxScene>(scene), &status, &details);
+        FbxSceneCheckUtility sceneCheck(FbxCast<FbxScene>(mScene), &status, &details);
         bool lNotify = (!sceneCheck.Validate(FbxSceneCheckUtility::eCkeckData) && details.GetCount() > 0) || (importer->GetStatus().GetCode() != FbxStatus::eSuccess);
         if (lNotify)
         {
@@ -102,43 +102,43 @@ bool deFBXMesh::Load(std::string folderPath, std::string fileName)
     }
 
 
-    FbxAxisSystem SceneAxisSystem = scene->GetGlobalSettings().GetAxisSystem();
+    FbxAxisSystem SceneAxisSystem = mScene->GetGlobalSettings().GetAxisSystem();
     FbxAxisSystem OurAxisSystem(FbxAxisSystem::eYAxis, FbxAxisSystem::eParityOdd, FbxAxisSystem::eRightHanded);
     if (SceneAxisSystem != OurAxisSystem)
     {
-        OurAxisSystem.ConvertScene(scene);
+        OurAxisSystem.ConvertScene(mScene);
     }
 
     // Convert Unit System to what is used in this example, if needed
-    FbxSystemUnit SceneSystemUnit = scene->GetGlobalSettings().GetSystemUnit();
+    FbxSystemUnit SceneSystemUnit = mScene->GetGlobalSettings().GetSystemUnit();
     if (SceneSystemUnit.GetScaleFactor() != 1.0)
     {
         //The unit in this example is centimeter.
-        FbxSystemUnit::cm.ConvertScene(scene);
+        FbxSystemUnit::cm.ConvertScene(mScene);
     }
 
     // 三角面化
     FbxGeometryConverter geometryConv = FbxGeometryConverter(mManager);
-    geometryConv.Triangulate(scene, true);
-    geometryConv.RemoveBadPolygonsFromMeshes(scene);
+    geometryConv.Triangulate(mScene, true);
+    geometryConv.RemoveBadPolygonsFromMeshes(mScene);
     //geometryConv.SplitMeshesPerMaterial(scene, true);
 
     // Scene解析
     // Texture 読み込み
     printf("=== textures ===\n");
-    printf("texture num: %d\n", scene->GetTextureCount());
-    for (int i = 0; i < scene->GetTextureCount(); i++) {
-        LoadTexture(scene->GetTexture(i));
+    printf("texture num: %d\n", mScene->GetTextureCount());
+    for (int i = 0; i < mScene->GetTextureCount(); i++) {
+        LoadTexture(mScene->GetTexture(i));
     }
     printf("=== material === \n");
 
-    int materialCount = scene->GetMaterialCount();
+    int materialCount = mScene->GetMaterialCount();
     //for (int i = 0; i < materialCount; i++) {
     //    FbxSurfaceMaterial* material = scene->GetMaterial(i);
     //    LoadMaterial(material);
     //}
 
-    FbxNode* rootNode = scene->GetRootNode();
+    FbxNode* rootNode = mScene->GetRootNode();
     mRootNodeMesh = new NodeMesh(rootNode, this);
 
     // マテリアルとtextureとの対応関係を読み込む
@@ -194,15 +194,15 @@ void deFBXMesh::LoadTexture(FbxTexture* lTexture)
     {
         // Try to load the texture from absolute path
         std::string texturePathData = lFileTexture->GetFileName();
-        GLUtil glutil;
         char buffer[512];
         memset(buffer, 0, 512 * sizeof(char));
         memcpy(buffer, texturePathData.c_str(), sizeof(char) * 512);
-        glutil.Replace('\\', '/', buffer);
+        GLUtil::Replace('\\', '/', buffer);
         std::vector<std::string> split_list;
         std::string replace_file_name = buffer;
         // 「/」で分解
-        glutil.Split('/', buffer, split_list);
+
+        GLUtil::Split('/', buffer, split_list);
 
         std::string texturePath = "./resources/" + mMeshFileName + "/Textures/" + split_list[split_list.size() - 1];
         std::string texFileName = split_list[split_list.size() - 1];
@@ -273,15 +273,14 @@ void deFBXMesh::LoadMaterial(FbxSurfaceMaterial* material)
             for (int texIdx = 0; texIdx < fileTexCount; texIdx++) {
                 FbxFileTexture* fileTex = hierachical.GetSrcObject<FbxFileTexture>(texIdx);
                 std::string texturePathData = fileTex->GetFileName();
-                GLUtil glutil;
                 char buffer[512];
                 memset(buffer, 0, 512 * sizeof(char));
                 memcpy(buffer, texturePathData.c_str(), sizeof(char) * 512);
-                glutil.Replace('\\', '/', buffer);
+                GLUtil::Replace('\\', '/', buffer);
                 std::vector<std::string> split_list;
                 std::string replace_file_name = buffer;
                 // 「/」で分解
-                glutil.Split('/', buffer, split_list);
+                GLUtil::Split('/', buffer, split_list);
 
                 std::string texturePath = "./resources/" + mMeshFileName + "/Textures/" + split_list[split_list.size() - 1];
                 std::string texFileName = split_list[split_list.size() - 1];
@@ -1202,9 +1201,78 @@ void deFBXMesh::Draw(Shader* shader)
     }
 }
 
+void deFBXMesh::SetGlobalBoneTransform(std::string name, glm::mat4 globaltrans)
+{
+    auto iter = mMatrixUniforms.find(name);
+    if (iter != mMatrixUniforms.end()) {    // すでに要素があれば
+        iter->second.GlobalTrans = globaltrans;
+    }
+    else {
+        BoneTransform bt;
+        bt.GlobalTrans = globaltrans;
+        mMatrixUniforms.emplace(name, bt);
+    }
+}
+
+void deFBXMesh::SetLocalBoneTransform(std::string name, glm::mat4 globaltrans)
+{
+    auto iter = mMatrixUniforms.find(name);
+    if (iter != mMatrixUniforms.end()) {    // すでに要素があれば
+        iter->second.LocalTrans = globaltrans;
+    }
+    else {
+        BoneTransform bt;
+        bt.LocalTrans = globaltrans;
+        mMatrixUniforms.emplace(name, bt);
+    }
+}
+
+void deFBXMesh::SetOffsetBoneTransform(std::string name, glm::mat4 globaltrans)
+{
+    auto iter = mMatrixUniforms.find(name);
+    if (iter != mMatrixUniforms.end()) {    // すでに要素があれば
+        iter->second.OffsetMatrix = globaltrans;
+    }
+    else {
+        BoneTransform bt;
+        bt.OffsetMatrix = globaltrans;
+        mMatrixUniforms.emplace(name, bt);
+    }
+}
+
 void deFBXMesh::Update(float deltaTime)
 {
-    mRootNodeMesh->Update(deltaTime);
+    //if (mIsSkeletal) {
+    //    // Skeletonのアニメーションを更新
+    //    for (int nodeIdx = 0; nodeIdx < mScene->GetNodeCount(); nodeIdx++) {
+    //        FbxNode* node = mScene->GetNode(nodeIdx);
+    //        FbxNodeAttribute* attr = node->GetNodeAttributeByIndex(i);
+    //        FbxNodeAttribute::EType type = attr->GetAttributeType();
+    //        if (type == FbxNodeAttribute::EType::eSkeleton) {
+    //            mNodeType = SKELETON;
+    //            //FbxAMatrix lGlobalPosition = GetGlobalPosition(node, mOwnerMesh->GetCurrentTicks(), pPose, &mParentGlobalPositin);
+    //            FbxTime pTime = mOwnerMesh->GetCurrentTicks();
+    //            FbxPose* pose = node->GetScene()->GetPose(0);
+    //            FbxAMatrix lGlobalPosition = node->EvaluateGlobalTransform(pTime);
+    //            FbxAMatrix lGeometryOffset = GetGeometry(node);
+    //            FbxAMatrix lGlobalOffPosition = lGlobalPosition * lGeometryOffset;
+
+    //            FbxSkeleton* lSkeleton = (FbxSkeleton*)node->GetNodeAttribute();
+
+    //            // Only draw the skeleton if it's a limb node and if 
+    //            // the parent also has an attribute of type skeleton.
+    //            if (lSkeleton->GetSkeletonType() == FbxSkeleton::eLimbNode &&
+    //                node->GetParent() &&
+    //                node->GetParent()->GetNodeAttribute() &&
+    //                node->GetParent()->GetNodeAttribute()->GetAttributeType() == FbxNodeAttribute::eSkeleton)
+    //            {
+    //                //GlDrawLimbNode(mParentGlobalPositin, lGlobalOffPosition);
+    //            }
+    //        }
+    //    }
+    //}
+
+    mRootNodeMesh->Update(deltaTime, glm::mat4(1.f));
     mCurrentTicks = mUnityChan->GetGame()->GetCurrentTime();
 }
 
@@ -1322,3 +1390,5 @@ void VAO::Bind()
 {
     glBindVertexArray(mVertexArray);
 }
+
+

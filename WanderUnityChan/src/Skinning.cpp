@@ -16,8 +16,7 @@ SkinMesh::SkinMesh()
 
 void SkinMesh::GetGlobalInvTrans()
 {
-    GLUtil glutil;
-    m_GlobalInverseTransform = glutil.ToGlmMat4(m_pScene->mRootNode->mTransformation);
+    m_GlobalInverseTransform = GLUtil::ToGlmMat4(m_pScene->mRootNode->mTransformation);
     m_GlobalInverseTransform = glm::inverse(m_GlobalInverseTransform);
 }
 
@@ -31,11 +30,11 @@ void SkinMesh::LoadMesh(const aiMesh* pMesh, unsigned int meshIdx)
 {
     Mesh::LoadMesh(pMesh, meshIdx);
 
-    // Bone‚Ì“Ç‚İ‚İ
+    // Boneã®èª­ã¿è¾¼ã¿
     for (unsigned int i = 0; i < pMesh->mNumBones; i++) {
         aiBone* paiBone = pMesh->mBones[i];
 
-        // BoneIndex‚Ìæ“¾
+        // BoneIndexã®å–å¾—
         int BoneIndex = 0;
         std::string BoneName = paiBone->mName.C_Str();
         if (m_BoneNameToIndexMap.find(BoneName) == m_BoneNameToIndexMap.end()) {
@@ -48,13 +47,12 @@ void SkinMesh::LoadMesh(const aiMesh* pMesh, unsigned int meshIdx)
         }
 
         if (BoneIndex == m_BoneInfo.size()) {
-            GLUtil glutil;
             aiMatrix4x4 offsetMatrix = paiBone->mOffsetMatrix;
-            BoneInfo bi(glutil.ToGlmMat4(offsetMatrix));
+            BoneInfo bi(GLUtil::ToGlmMat4(offsetMatrix));
             m_BoneInfo.push_back(bi);
         }
 
-        // Bone‚ÌWeight‚ğæ“¾
+        // Boneã®Weightã‚’å–å¾—
         for (int weightIdx = 0; weightIdx < paiBone->mNumWeights; weightIdx++) {
             const aiVertexWeight& vw = paiBone->mWeights[weightIdx];
             unsigned int GlobalVertexID = m_Meshes[meshIdx].BaseVertex + paiBone->mWeights[weightIdx].mVertexId;
@@ -67,7 +65,7 @@ void SkinMesh::LoadMesh(const aiMesh* pMesh, unsigned int meshIdx)
 void SkinMesh::PopulateBuffers()
 {
     GLuint m_boneBuffer;
-    // ’¸“_ƒf[ƒ^‚ğ“Ç‚İ‚Ş
+    // é ‚ç‚¹ãƒ‡ãƒ¼ã‚¿ã‚’èª­ã¿è¾¼ã‚€
     Mesh::PopulateBuffers();
 
     // Bone and Weights
@@ -78,7 +76,7 @@ void SkinMesh::PopulateBuffers()
     glVertexAttribIPointer(3, MAX_NUM_BONES_PER_VERTEX, GL_INT, sizeof(VertexBoneData), (const GLvoid*)0);
     glEnableVertexAttribArray(4);
     glVertexAttribPointer(4, MAX_NUM_BONES_PER_VERTEX, GL_FLOAT, GL_FALSE, sizeof(VertexBoneData),
-        (const GLvoid*)(MAX_NUM_BONES_PER_VERTEX * sizeof(int32_t)));   // Œã”¼4Byte‚ªWeight
+        (const GLvoid*)(MAX_NUM_BONES_PER_VERTEX * sizeof(int32_t)));   // å¾ŒåŠ4ByteãŒWeight
 }
 
 
@@ -92,7 +90,7 @@ void SkinMesh::CalcInterpolatedRotation(aiQuaternion& Out, float AnimationTimeTi
 
     assert(pNodeAnim->mNumRotationKeys > 0);
 
-    // Œ»İ‚ÌƒtƒŒ[ƒ€‚ÌRtation Matrix‚ğ“Ç‚İ‚¾‚·
+    // ç¾åœ¨ã®ãƒ•ãƒ¬ãƒ¼ãƒ ã®Rtation Matrixã‚’èª­ã¿ã ã™
     unsigned int RotationIndex = 0;
     for (unsigned int i = 0; i < pNodeAnim->mNumRotationKeys - 1; i++) {
         float t = (float)pNodeAnim->mRotationKeys[i + 1].mTime;
@@ -131,7 +129,7 @@ void SkinMesh::CalcInterpolatedScaling(aiVector3D& Out, float AnimationTimeTicks
 
     assert(pNodeAnim->mNumScalingKeys > 0);
 
-    // Œ»İ‚ÌƒtƒŒ[ƒ€‚ÌScaling Matrix‚ğ“Ç‚İ‚¾‚·
+    // ç¾åœ¨ã®ãƒ•ãƒ¬ãƒ¼ãƒ ã®Scaling Matrixã‚’èª­ã¿ã ã™
     unsigned int ScalingIndex = 0;
     for (unsigned int i = 0; i < pNodeAnim->mNumScalingKeys - 1; i++) {
         float t = (float)pNodeAnim->mScalingKeys[i + 1].mTime;
@@ -148,7 +146,7 @@ void SkinMesh::CalcInterpolatedScaling(aiVector3D& Out, float AnimationTimeTicks
         Out = pNodeAnim->mScalingKeys[ScalingIndex].mValue;
     }
     else {
-        // Œ»İ‚ªƒtƒŒ[ƒ€‚ÆƒtƒŒ[ƒ€‚ÌŠÔ‚Å‚ ‚ê‚Î•âŠ®ˆ—
+        // ç¾åœ¨æ™‚åˆ»ãŒãƒ•ãƒ¬ãƒ¼ãƒ ã¨ãƒ•ãƒ¬ãƒ¼ãƒ ã®é–“ã§ã‚ã‚Œã°è£œå®Œå‡¦ç†
         float t2 = (float)pNodeAnim->mScalingKeys[NextScalingIndex].mTime;
         float DeltaTime = t2 - t1;
         float Factor = (AnimationTimeTicks - (float)t1) / DeltaTime;
@@ -169,7 +167,7 @@ void SkinMesh::CalcInterpolatedPosition(aiVector3D& Out, float AnimationTimeTick
     }
 
 
-    // Œ»İ‚ÌƒtƒŒ[ƒ€‚ÌPosition Matrix‚ğ“Ç‚İ‚¾‚·
+    // ç¾åœ¨ã®ãƒ•ãƒ¬ãƒ¼ãƒ ã®Position Matrixã‚’èª­ã¿ã ã™
     unsigned int PositionIndex = 0;
     for (unsigned int i = 0; i < pNodeAnim->mNumPositionKeys - 1; i++) {
         float t = (float)pNodeAnim->mPositionKeys[i + 1].mTime;
@@ -204,20 +202,19 @@ const aiAnimation* SkinMesh::SetAnimPointer()
 
 void SkinMesh::ReadNodeHierarchy(float AnimationTimeTicks, const aiNode* pNode, const glm::mat4& ParentTransform)
 {
-    GLUtil glutil;
     std::string NodeName(pNode->mName.data);
     int x = 0;
 
     const aiAnimation* pAnimation = SetAnimPointer();
 
-    // Node‚Ì‚ÂTransform
+    // Nodeã®æŒã¤Transform
     glm::mat4 NodeTransformation;
     {
         aiMatrix4x4 trans = pNode->mTransformation;
-        NodeTransformation = glutil.ToGlmMat4(trans);
+        NodeTransformation = GLUtil::ToGlmMat4(trans);
     }
 
-    // Œ»İ‚ÌNode‚ÌAnimation Data‚ğ“Ç‚İ‚¾‚·
+    // ç¾åœ¨ã®Nodeã®Animation Dataã‚’èª­ã¿ã ã™
     const aiNodeAnim* pNodeAnim = NULL;
     for (unsigned int i = 0; i < pAnimation->mNumChannels; i++) {
         const aiNodeAnim* nodeAnim = pAnimation->mChannels[i];
@@ -227,9 +224,9 @@ void SkinMesh::ReadNodeHierarchy(float AnimationTimeTicks, const aiNode* pNode, 
         }
     }
 
-    // ‚»‚ÌNode‚ÉAnimation‚ª‚ ‚ê‚ÎA
+    // ãã®Nodeã«AnimationãŒã‚ã‚Œã°ã€
     if (pNodeAnim) {
-        // Œ»İ‚ÌAnimation Transform‚ğ‚©‚¯‚ ‚í‚¹‚éB
+        // ç¾åœ¨æ™‚åˆ»ã®Animation Transformã‚’ã‹ã‘ã‚ã‚ã›ã‚‹ã€‚
         // Interpolate scaling and generate scaling transformation matrix
         aiVector3D Scaling;
         CalcInterpolatedScaling(Scaling, AnimationTimeTicks, pNodeAnim);
@@ -241,7 +238,7 @@ void SkinMesh::ReadNodeHierarchy(float AnimationTimeTicks, const aiNode* pNode, 
         CalcInterpolatedRotation(RotationQ, AnimationTimeTicks, pNodeAnim);
         //Matrix4f RotationM = Matrix4f(RotationQ.GetMatrix());
         aiMatrix3x3 rotationMat = RotationQ.GetMatrix();
-        glm::mat4 RotationM = glutil.ToGlmMat4(rotationMat);
+        glm::mat4 RotationM = GLUtil::ToGlmMat4(rotationMat);
         //std::cout << RotationM[0][0] << '\t' << RotationM[0][1] << '\t' << RotationM[0][2] << '\t' << RotationM[0][3] << '\t' << std::endl;
 
         // Interpolate translation and generate translation transformation matrix
@@ -278,14 +275,14 @@ void SkinMesh::GetBoneTransform(float TimeInSeconds, std::vector<glm::mat4>& Tra
 
     float TicksPerSecond = (float)(m_pScene->mAnimations[0]->mTicksPerSecond != NULL ? m_pScene->mAnimations[0]->mTicksPerSecond : 25.0f);
     float TimeInTicks = TimeInSeconds * TicksPerSecond;
-    float Duration = 0.0f;  // Animation‚ÌDuration‚Ì®”•”•ª‚ª“ü‚é
+    float Duration = 0.0f;  // Animationã®Durationã®æ•´æ•°éƒ¨åˆ†ãŒå…¥ã‚‹
     float fraction = modf((float)m_pScene->mAnimations[0]->mDuration, &Duration);
     float AnimationTimeTicks = fmod(TimeInTicks, Duration);
 
 
 
     glm::mat4 Identity = glm::mat4(1);
-    // Node‚ÌŠK‘w\‘¢‚É‚µ‚½‚ª‚Á‚ÄAAnimationTicks‚É‚¨‚¯‚éŠeBone‚ÌTransform‚ğ‹‚ß‚é
+    // Nodeã®éšå±¤æ§‹é€ ã«ã—ãŸãŒã£ã¦ã€AnimationTicksæ™‚åˆ»ã«ãŠã‘ã‚‹å„Boneã®Transformã‚’æ±‚ã‚ã‚‹
     ReadNodeHierarchy(AnimationTimeTicks, m_pScene->mRootNode, Identity);
     Transforms.resize(m_BoneInfo.size());
 
@@ -296,11 +293,11 @@ void SkinMesh::GetBoneTransform(float TimeInSeconds, std::vector<glm::mat4>& Tra
 
 void SkinMesh::UpdateBoneTransform(Shader* shader, float TimeInSeconds)
 {
-    // Œ»İ‚ÌBone Transform‚ğæ“¾
+    // ç¾åœ¨æ™‚åˆ»ã®Bone Transformã‚’å–å¾—
     std::vector<glm::mat4> BoneMatrixPalete;
     GetBoneTransform(TimeInSeconds, BoneMatrixPalete);
 
-    // Shader‚É“n‚·
+    // Shaderã«æ¸¡ã™
     for (int i = 0; i < BoneMatrixPalete.size(); i++) {
         std::string uniformName = "uMatrixPalette[" + std::to_string(i) + ']';
         shader->SetMatrixUniform(uniformName, BoneMatrixPalete[i]);

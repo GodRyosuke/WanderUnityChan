@@ -28,7 +28,8 @@ NodeMesh::NodeMesh(FbxNode* node, deFBXMesh* fbxmesh)
     mPositions.resize(0);
     mNormals.resize(0);
     mTexCoords.resize(0);
-    
+
+    mNode = node;
     std::string NodeName = node->GetName();
     mIsMesh = false;
     //printf("NodeName: %s\n", NodeName.c_str());
@@ -37,6 +38,7 @@ NodeMesh::NodeMesh(FbxNode* node, deFBXMesh* fbxmesh)
         FbxNodeAttribute* attr = node->GetNodeAttributeByIndex(i);
         FbxNodeAttribute::EType type = attr->GetAttributeType();
         if (type == FbxNodeAttribute::EType::eMesh) {   // Mesh Nodeなら
+            mNodeType = MESH;
             mIsMesh = true;
             FbxMesh* pMesh = static_cast<FbxMesh*>(attr);
             LoadMesh(pMesh);
@@ -75,6 +77,7 @@ NodeMesh::NodeMesh(FbxNode* node, deFBXMesh* fbxmesh)
             //mMeshOffsets.push_back(mo);
         }
         else if (type == FbxNodeAttribute::EType::eSkeleton) {
+            mNodeType = SKELETON;
             //FbxAMatrix lGlobalPosition = GetGlobalPosition(node, mOwnerMesh->GetCurrentTicks(), pPose, &mParentGlobalPositin);
             FbxTime pTime = mOwnerMesh->GetCurrentTicks();
             FbxPose* pose = node->GetScene()->GetPose(0);
@@ -95,8 +98,8 @@ NodeMesh::NodeMesh(FbxNode* node, deFBXMesh* fbxmesh)
             }
 
             pTime = 0;
-            glm::mat4 localTrans;
             {
+                glm::mat4 localTrans;
                 FbxAMatrix deLocalTrans;
                 deLocalTrans = node->EvaluateLocalTransform(pTime);
                 for (int k = 0; k < 4; k++) {
@@ -106,7 +109,15 @@ NodeMesh::NodeMesh(FbxNode* node, deFBXMesh* fbxmesh)
                 }
             }
 
-            mOwnerMesh->SetBoneMatrix(node->GetName(), localTrans);
+            {
+                // Global TransformとOffset Transformの初期化
+                glm::mat4 globalTrans = GLUtil::ToGlmMat4(node->EvaluateGlobalTransform());
+                glm::mat4 localTrans = GLUtil::ToGlmMat4(node->EvaluateLocalTransform());
+                mOwnerMesh->SetOffsetBoneTransform(node->GetName(), globalTrans);
+                mOwnerMesh->SetGlobalBoneTransform(node->GetName(), globalTrans);
+                mOwnerMesh->SetLocalBoneTransform(node->GetName(), localTrans);
+            }
+
             printf("skeleton node name: %s\n", node->GetName());
 
 
@@ -474,7 +485,6 @@ void NodeMesh::CreateVAO(
 
 void NodeMesh::CreateVAO()
 {
-    GLUtil glutil;
     glGenVertexArrays(1, &mVertexArray);
     glBindVertexArray(mVertexArray);
     // Vertex Bufferの作成
@@ -492,7 +502,7 @@ void NodeMesh::CreateVAO()
     glBufferData(GL_ARRAY_BUFFER, sizeof(mPositions[0]) * mPositions.size(), &mPositions[0], GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glutil.GetErr();
+    GLUtil::GetErr();
 
     if (mNormals.size() != 0) {
         glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffers[NORMAL_VB]);
@@ -620,15 +630,14 @@ FbxDouble3 NodeMesh::GetMaterialProperty(const FbxSurfaceMaterial* pMaterial,
                 const FbxString lFileName = lFileTexture->GetFileName();
                 std::string texFileName = lFileName.Buffer();
 
-                GLUtil glutil;
                 char buffer[512];
                 memset(buffer, 0, 512 * sizeof(char));
                 memcpy(buffer, texFileName.c_str(), sizeof(char) * 512);
-                glutil.Replace('\\', '/', buffer);
+                GLUtil::Replace('\\', '/', buffer);
                 std::vector<std::string> split_list;
                 std::string replace_file_name = buffer;
                 // 「/」で分解
-                glutil.Split('/', buffer, split_list);
+                GLUtil::Split('/', buffer, split_list);
                 textureName = split_list[split_list.size() - 1];
                 printf("\ttexture name: %s\n", textureName.c_str());
 
@@ -739,15 +748,32 @@ void NodeMesh::Draw(Shader* shader)
     }
 }
 
-void NodeMesh::Update(float deltatime)
+void NodeMesh::Update(float deltatime, glm::mat4 parentMat)
 {
-    if (mOwnerMesh->GetIsSkinMesh()) {
-        mFBXSkeleton->Update(deltatime);
+    glm::mat4 updatedGlobalTrans = glm::mat4(1.f);
+    if (mOwnerMesh->GetIsSkinMesh()) {  // ボーンだけのFBXファイル
+        if (mNodeType == SKELETON) {
+            // Local Transform更新
+            mOwnerMesh->GetCurrentTicks();
+            FbxAMatrix localTransFbx = mNode->EvaluateLocalTransform(mOwnerMesh->GetCurrentTicks() / 1000.f);
+            glm::mat4 localTrans = GLUtil::ToGlmMat4(localTransFbx);
+            mOwnerMesh->SetLocalBoneTransform(mNode->GetName(), localTrans);
+
+            // Global Transform更新
+            updatedGlobalTrans = parentMat * localTrans;
+            mOwnerMesh->SetGlobalBoneTransform(mNode->GetName(), updatedGlobalTrans);
+
+            mFBXSkeleton->Update(deltatime);
+        }
     }
 
-    for (auto child : mChilds) {
-        child->Update(deltatime);
+    for (int i = 0; i < mChilds.size(); i++) {
+        printf("num child: %d\n", mNumChild);
+        mChilds[i]->Update(deltatime, updatedGlobalTrans);
     }
+    //for (auto child : mChilds) {
+    //    child->Update(deltatime, updatedGlobalTrans);
+    //}
 }
 
 //
