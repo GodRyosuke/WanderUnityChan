@@ -75,7 +75,7 @@
     <ClCompile Include="src\GetPosition.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\deFBXMeshSkinning.cpp">
+    <ClCompile Include="src\GLUtil.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
