@@ -23,6 +23,12 @@ public:
         glm::mat4 OffsetMatrix;
         FbxNode* mFbxNode;
     };
+    struct SkeletonNodeData {
+        std::string mSkeletonNodeName;
+        FbxNode* mMeshNode;
+        FbxNode* mSkeletonNode;
+    };
+
 
 	deFBXMesh(class UnityChan* owner, bool isDrawArray = false, bool isSkeletal = false);
 	~deFBXMesh();
@@ -41,8 +47,8 @@ public:
     //    mMatrixUniforms.emplace(name, matrix);
     //}
     void AddMeshSkeletonName(std::string MeshNodeName, std::string SkeletonNodeName);
-    void AddMeshNodeName(std::string MeshNodeName);
-    void AddSkeletonNodeName(std::string SkeletonNodeName);
+    void AddMeshNodeName(std::string MeshNodeName, FbxNode* meshNode);
+    void AddSkeletonNodeName(std::string SkeletonNodeName, FbxNode* skeletonNode);
     void AddMeshTransform(std::string meshNodeName, glm::mat4 localTransform);
 
     void SetIsAnimMesh(bool isanim) { mIsAnimMesh = isanim; }
@@ -50,11 +56,12 @@ public:
     void SetLocalBoneTransform(std::string name, glm::mat4 globaltrans);
     void SetOffsetBoneTransform(std::string name, glm::mat4 globaltrans);
     void SetBoneTrasformNode(std::string name, FbxNode* node);
+    void SetBoneMatrixUniform(std::string name, glm::mat4 globalTrans, glm::mat4 localTrans, glm::mat4 offsetTrans, FbxNode* node);
     void SetMatrixUniforms(const std::map<std::string, BoneTransform> data) { mMatrixUniforms = data; }
-    void SetMeshSkeletonNameMap(const std::map<std::string, std::string> data) { mMeshSkeletonNameMap = data; }
+    void SetMeshSkeletonNameMap(const std::map<std::string, SkeletonNodeData> data) { mMeshSkeletonNameMap = data; }
 
     std::map<std::string, BoneTransform> GetMatrixUniforms() const { return mMatrixUniforms; }
-    std::map<std::string, std::string> GetMeshSkeletonNameMap() const { return mMeshSkeletonNameMap; }
+    std::map<std::string, SkeletonNodeData> GetMeshSkeletonNameMap() const { return mMeshSkeletonNameMap; }
     
     FbxScene* GetScene() const { return mScene; }
     bool GetIsAnimMesh() const { return mIsAnimMesh; }
@@ -138,6 +145,11 @@ private:
 		unsigned int VNTOffset;
 		Material* material;
 	};
+    struct MeshSkeleton {
+        std::string mMeshName;
+        FbxNode mMeshNode;
+    };
+
 	std::vector<MeshOffset> mMeshOffsets;
 
 	std::vector<BasicMeshEntry*> mBasicMeshEntries;
@@ -173,7 +185,7 @@ private:
     FbxScene* mScene;
 
     std::map<std::string, BoneTransform> mMatrixUniforms;
-    std::map<std::string, std::string> mMeshSkeletonNameMap;    // MeshNodeとSkeletonNodeとの対応付けをし，skeletonが与えられていないMeshNodeがないかチェック
+    std::map<std::string, SkeletonNodeData> mMeshSkeletonNameMap;    // MeshNodeとSkeletonNodeとの対応付けをし，skeletonが与えられていないMeshNodeがないかチェック
     std::map<std::string, glm::mat4> mMeshTransMap; // Mesh node nameとlocal transformのmap
 };
 

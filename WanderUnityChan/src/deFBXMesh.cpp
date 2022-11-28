@@ -141,15 +141,15 @@ bool deFBXMesh::Load(std::string folderPath, std::string fileName)
 
     // Meshファイルの読み出し
     FbxNode* rootNode = mScene->GetRootNode();
-    mRootNodeMesh = new NodeMesh(rootNode, this);
-    if (!mIsAnimMesh) {
-        // skeletonのないmesh transformを埋める
-        for (auto iter : mMeshSkeletonNameMap) {
-            if (iter.second.size() == 0) {
-                int x = 0;
-            }
-        }
-    }
+    mRootNodeMesh = new NodeMesh(rootNode, nullptr, this);
+    //if (!mIsAnimMesh) {
+    //    // skeletonのないmesh transformを埋める
+    //    for (auto iter : mMeshSkeletonNameMap) {
+    //        if (iter.second.mSkeletonNodeName.size() == 0) {
+    //            printf("**** %s\n", iter.first.c_str());
+    //        }
+    //    }
+    //}
 
     // マテリアルとtextureとの対応関係を読み込む
     {
@@ -1246,36 +1246,42 @@ void deFBXMesh::AddMeshTransform(std::string meshNodeName, glm::mat4 localTransf
     }
 }
 
-void deFBXMesh::AddMeshSkeletonName(std::string MeshNodeName, std::string SkeletonNodeName)
-{
-    auto iter = mMeshSkeletonNameMap.find(MeshNodeName);
-    if (iter != mMeshSkeletonNameMap.end()) {
-        iter->second = SkeletonNodeName;
-    }
-    else {
-        mMeshSkeletonNameMap.emplace(MeshNodeName, SkeletonNodeName);
-    }
-}
+//void deFBXMesh::AddMeshSkeletonName(std::string MeshNodeName, std::string SkeletonNodeName)
+//{
+//    auto iter = mMeshSkeletonNameMap.find(MeshNodeName);
+//    if (iter != mMeshSkeletonNameMap.end()) {
+//        iter->second = SkeletonNodeName;
+//    }
+//    else {
+//        mMeshSkeletonNameMap.emplace(MeshNodeName, SkeletonNodeName);
+//    }
+//}
 
-void deFBXMesh::AddMeshNodeName(std::string meshNodeName)
+void deFBXMesh::AddMeshNodeName(std::string meshNodeName, FbxNode* meshNode)
 {
     auto iter = mMeshSkeletonNameMap.find(meshNodeName);
     if (iter != mMeshSkeletonNameMap.end()) {
-        // すでに追加されていたら何もしない
+        iter->second.mMeshNode = meshNode;
     }
     else {
-        mMeshSkeletonNameMap.emplace(meshNodeName, "");
+        SkeletonNodeData snd;
+        snd.mMeshNode = meshNode;
+        mMeshSkeletonNameMap.emplace(meshNodeName, snd);
     }
 }
 
-void deFBXMesh::AddSkeletonNodeName(std::string SkeletonNodeName)
+void deFBXMesh::AddSkeletonNodeName(std::string SkeletonNodeName, FbxNode* skeletonNode)
 {
     auto iter = mMeshSkeletonNameMap.find(SkeletonNodeName);
     if (iter != mMeshSkeletonNameMap.end()) {
-        printf("error: this skeleton is not assigned by mesh!\n");
+        iter->second.mSkeletonNodeName = SkeletonNodeName;
+        iter->second.mSkeletonNode = skeletonNode;
     }
     else {
-        mMeshSkeletonNameMap.emplace(SkeletonNodeName, SkeletonNodeName);
+        SkeletonNodeData snd;
+        snd.mSkeletonNode = skeletonNode;
+        snd.mSkeletonNodeName = SkeletonNodeName;
+        mMeshSkeletonNameMap.emplace(SkeletonNodeName, snd);
     }
 }
 
@@ -1284,6 +1290,34 @@ glm::mat4 deFBXMesh::GetBoneMatrix(std::string name)
     glm::mat4 offsetMat = mMatrixUniforms[name].OffsetMatrix;
     glm::mat4 globalTrans = mMatrixUniforms[name].GlobalTrans;
     return globalTrans * glm::inverse(offsetMat);
+}
+
+void deFBXMesh::SetBoneTrasformNode(std::string name, FbxNode* node)
+{
+    auto iter = mMatrixUniforms.find(name);
+    if (iter != mMatrixUniforms.end()) {    // すでに要素があれば
+        iter->second.mFbxNode = node;
+    }
+    else {
+        BoneTransform bt;
+        bt.mFbxNode = node;
+        mMatrixUniforms.emplace(name, bt);
+    }
+}
+
+void deFBXMesh::SetBoneMatrixUniform(std::string name, glm::mat4 globalTrans, glm::mat4 localTrans, glm::mat4 offsetTrans, FbxNode* node)
+{
+    auto iter = mMatrixUniforms.find(name);
+    if (iter != mMatrixUniforms.end()) {    // すでに要素があれば
+    }
+    else {
+        BoneTransform bt;
+        bt.mFbxNode = node;
+        bt.GlobalTrans = globalTrans;
+        bt.LocalTrans = localTrans;
+        bt.OffsetMatrix = offsetTrans;
+        mMatrixUniforms.emplace(name, bt);
+    }
 }
 
 void deFBXMesh::SetGlobalBoneTransform(std::string name, glm::mat4 globaltrans)
@@ -1356,7 +1390,6 @@ void deFBXMesh::Update(float deltaTime)
     //        }
     //    }
     //}
-
 
 
     mdeAnimCurrTime += mOneFrameValue;

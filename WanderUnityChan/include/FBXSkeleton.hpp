@@ -11,7 +11,7 @@ class FBXSkeleton {
 public:
 	FBXSkeleton();
 
-	bool Load(FbxMesh* mesh);
+	bool Load(FbxMesh* mesh, bool& hasSkin);
     void Update(float delatTime);
     void CreateVBO();
     void GetBoneIdexWeightArray(std::vector<glm::ivec4>& boneIndices,

@@ -192,7 +192,7 @@ FBXSkeleton::FBXSkeleton()
 
 }
 
-bool FBXSkeleton::Load(FbxMesh* mesh)
+bool FBXSkeleton::Load(FbxMesh* mesh, bool& hasSkin)
 {
     const bool lHasShape = mesh->GetShapeCount() > 0;
     if (lHasShape)
@@ -202,12 +202,23 @@ bool FBXSkeleton::Load(FbxMesh* mesh)
         //ComputeShapeDeformation(mesh, pTime, pAnimLayer, lVertexArray);
     }
 
-
+    mBones.resize(mesh->GetPolygonCount() * 3);
 	int lSkinCount = mesh->GetDeformerCount(FbxDeformer::eSkin);
 	if (lSkinCount == 0) {
 		printf("this mesh doesnt have skin\n");
+        // Boneがなかったら、自分のNodeNameを登録
+        mBoneNameIdxTable.emplace(mesh->GetNode()->GetName(), 0);   // Idxは0番
+        hasSkin = false;
+
+        // 0番目のBoneに全影響受ける
+        for (int i = 0; i < mBones.size(); i++) {
+            mBones[i].AddBoneData(0, 1.f);
+        }
+
 		return true;
 	}
+
+    hasSkin = true;
 
     // Deform the vertex array with the skin deformer.
     FbxSkin* lSkinDeformer = (FbxSkin*)mesh->GetDeformer(0, FbxDeformer::eSkin);
@@ -256,7 +267,6 @@ bool FBXSkeleton::Load(FbxMesh* mesh)
 
 	// For all skins and all clusters, accumulate their deformation and weight
 	// on each vertices and store them in lClusterDeformation and lClusterWeight.
-	mBones.resize(mesh->GetPolygonCount() * 3);
 	assert(lSkinCount == 1);
 
 	for (int lSkinIndex = 0; lSkinIndex < lSkinCount; ++lSkinIndex)
@@ -267,6 +277,7 @@ bool FBXSkeleton::Load(FbxMesh* mesh)
         mBoneMatrixPallete.resize(lClusterCount);
         mBoneGlobalInvMatrices.resize(lClusterCount);
         printf("cluster num: %d\n", lClusterCount);
+        assert(lClusterCount);
 		for (int lClusterIndex = 0; lClusterIndex < lClusterCount; ++lClusterIndex)
 		{
 			FbxCluster* lCluster = lSkinDeformer->GetCluster(lClusterIndex);
@@ -275,11 +286,7 @@ bool FBXSkeleton::Load(FbxMesh* mesh)
 
 			FbxAMatrix lVertexTransformMatrix;
 			lCluster->GetTransformMatrix(lVertexTransformMatrix);
-            FbxPose* pose = nullptr;
-            pose = mesh->GetScene()->GetPose(10);
-            if (pose->IsBindPose()) {
-                int x = 0;
-            }
+
             FbxTime pTime = 0;
             std::string clusterName = lCluster->GetLink()->GetName();
             printf("cluster name: %s\n", clusterName.c_str());

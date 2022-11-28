@@ -8,7 +8,7 @@
 
 class NodeMesh {
 public:
-	NodeMesh(FbxNode* pNode, class deFBXMesh* fbxmesh);
+	NodeMesh(FbxNode* pNode, FbxNode* parentNode, class deFBXMesh* fbxmesh);
 
 	void Draw(class Shader* shader);
     void Update(float deltatime, glm::mat4 = glm::mat4(1.f));
@@ -95,6 +95,8 @@ private:
 
 	std::vector<NodeMesh*> mChilds;
 
+    bool mHasSkin;
     FbxNode* mNode;
+    FbxNode* mParentNode;
     NodeType mNodeType;
 };

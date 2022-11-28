@@ -49,7 +49,7 @@ void main()
 
 	vec4 SampledColor = texture2D(gSampler, TexCoord0.xy); 
 	FragColor = SampledColor * vec4(Phong, 1.0f);
-	// FragColor = SampledColor;
+	FragColor = SampledColor;
     // FragColor = vec4(Phong, 1.0f);
 	// FragColor = vec4(1.0f);
 }

@@ -19,9 +19,10 @@ namespace
  
 }
 
-NodeMesh::NodeMesh(FbxNode* node, deFBXMesh* fbxmesh)
+NodeMesh::NodeMesh(FbxNode* node, FbxNode* parentNode, deFBXMesh* fbxmesh)
     :mOwnerMesh(fbxmesh)
     ,mFBXSkeleton(nullptr)
+    ,mParentNode(parentNode)
 {
     mVertexArray = 0;
     //mVertexBuffers = nullptr;
@@ -78,7 +79,7 @@ NodeMesh::NodeMesh(FbxNode* node, deFBXMesh* fbxmesh)
             //mo.VNTOffset = vertexOffset;
             //mMeshOffsets.push_back(mo);
             if (!mOwnerMesh->GetIsAnimMesh()) {
-                mOwnerMesh->AddMeshNodeName(node->GetName());
+                mOwnerMesh->AddMeshNodeName(node->GetName(), node);
             }
         }
         else if (type == FbxNodeAttribute::EType::eSkeleton) {
@@ -92,40 +93,16 @@ NodeMesh::NodeMesh(FbxNode* node, deFBXMesh* fbxmesh)
 
             FbxSkeleton* lSkeleton = (FbxSkeleton*)node->GetNodeAttribute();
 
-            // Only draw the skeleton if it's a limb node and if 
-            // the parent also has an attribute of type skeleton.
-            if (lSkeleton->GetSkeletonType() == FbxSkeleton::eLimbNode &&
-                node->GetParent() &&
-                node->GetParent()->GetNodeAttribute() &&
-                node->GetParent()->GetNodeAttribute()->GetAttributeType() == FbxNodeAttribute::eSkeleton)
-            {
-                //GlDrawLimbNode(mParentGlobalPositin, lGlobalOffPosition);
-            }
-
-            pTime = 0;
-            {
-                glm::mat4 localTrans;
-                FbxAMatrix deLocalTrans;
-                deLocalTrans = node->EvaluateLocalTransform(pTime);
-                for (int k = 0; k < 4; k++) {
-                    for (int l = 0; l < 4; l++) {
-                        localTrans[k][l] = deLocalTrans[k][l];
-                    }
-                }
-            }
-
             {
                 // Global TransformとOffset Transformの初期化
                 glm::mat4 globalTrans = GLUtil::ToGlmMat4(node->EvaluateGlobalTransform());
                 glm::mat4 localTrans = GLUtil::ToGlmMat4(node->EvaluateLocalTransform());
-                mOwnerMesh->SetOffsetBoneTransform(node->GetName(), globalTrans);
-                mOwnerMesh->SetGlobalBoneTransform(node->GetName(), globalTrans);
-                mOwnerMesh->SetLocalBoneTransform(node->GetName(), localTrans);
+                mOwnerMesh->SetBoneMatrixUniform(node->GetName(), globalTrans, localTrans, globalTrans, node);
             }
 
             printf("skeleton node name: %s\n", node->GetName());
             if (!mOwnerMesh->GetIsAnimMesh()) {
-                mOwnerMesh->AddSkeletonNodeName(node->GetName());
+                mOwnerMesh->AddSkeletonNodeName(node->GetName(), node);
             }
         }
     }
@@ -135,7 +112,7 @@ NodeMesh::NodeMesh(FbxNode* node, deFBXMesh* fbxmesh)
     NodeMesh* nodeMesh = nullptr;
     mChilds.resize(childCount);
     for (int nodeIdx = 0; nodeIdx < childCount; ++nodeIdx) {
-        nodeMesh = new NodeMesh(node->GetChild(nodeIdx), fbxmesh);
+        nodeMesh = new NodeMesh(node->GetChild(nodeIdx), node, fbxmesh);
         mChilds[nodeIdx] = nodeMesh;
         //LoadNode(node->GetChild(nodeIdx));
     }
@@ -394,9 +371,18 @@ bool NodeMesh::LoadMesh(FbxMesh* mesh)
 
     if (mOwnerMesh->GetIsSkinMesh()) {
         mFBXSkeleton = new FBXSkeleton();
-        if (!mFBXSkeleton->Load(mesh)) {
+        if (!mFBXSkeleton->Load(mesh, mHasSkin)) {
             printf("error: failed to load fbx skeleton\n");
             return false;
+        }
+
+        if (!mHasSkin) {
+            // Skinを持っていない場合、自分のNode Transを登録
+            FbxNode* node = mesh->GetNode();
+            glm::mat4 globalTrans = GLUtil::ToGlmMat4(node->EvaluateGlobalTransform());
+            glm::mat4 localTrans = GLUtil::ToGlmMat4(node->EvaluateLocalTransform());
+            mOwnerMesh->SetBoneMatrixUniform(node->GetName(), globalTrans, localTrans, globalTrans, node);
+
         }
     }
 
@@ -681,8 +667,8 @@ void NodeMesh::Draw(Shader* shader)
             std::vector<glm::mat4> BoneGlobalInvMatrixPallete;
             std::map<std::string, int> BoneNameIdxTable;    // BoneIdxと名前の対応付け
             if (mOwnerMesh->GetIsSkinMesh()) {
-                mFBXSkeleton->GetBoneMatrixPallete(BoneMatrixPallete);
-                mFBXSkeleton->GetBoneMatrixPallete(BoneGlobalInvMatrixPallete);
+                //mFBXSkeleton->GetBoneMatrixPallete(BoneMatrixPallete);
+                //mFBXSkeleton->GetBoneMatrixPallete(BoneGlobalInvMatrixPallete);
                 mFBXSkeleton->GetBoneMatrixPallete(BoneNameIdxTable);
                 for (auto iter : BoneNameIdxTable) {
                     // boneIdxのmatrixを取得する
@@ -730,20 +716,31 @@ void NodeMesh::Update(float deltatime, glm::mat4 parentMat)
 {
     glm::mat4 updatedGlobalTrans = glm::mat4(1.f);
     if (mOwnerMesh->GetIsSkinMesh()) {  // ボーンだけのFBXファイル
+        glm::mat4 localTrans;
+        bool isUpdate = false;
         if (mNodeType == SKELETON) {
             // Local Transform更新
             mOwnerMesh->GetCurrentTicks();
             //FbxAMatrix localTransFbx = mNode->EvaluateLocalTransform(mOwnerMesh->GetCurrentTicks() / 1000.f);
             FbxAMatrix localTransFbx = mNode->EvaluateLocalTransform(mOwnerMesh->GetCurrAnimTime());
-            glm::mat4 localTrans = GLUtil::ToGlmMat4(localTransFbx);
+            localTrans = GLUtil::ToGlmMat4(localTransFbx);
+            isUpdate = true;
+        }
+        else if (!mHasSkin) {
+            // Skinを持たないMESH NODEなら
+            localTrans = GLUtil::ToGlmMat4(mNode->EvaluateLocalTransform());
+            isUpdate = true;
+        }
+
+        if (isUpdate) {
             mOwnerMesh->SetLocalBoneTransform(mNode->GetName(), localTrans);
 
             // Global Transform更新
             updatedGlobalTrans = parentMat * localTrans;
             mOwnerMesh->SetGlobalBoneTransform(mNode->GetName(), updatedGlobalTrans);
-
-            mFBXSkeleton->Update(deltatime);
         }
+
+        mFBXSkeleton->Update(deltatime);
     }
 
     for (int i = 0; i < mChilds.size(); i++) {
