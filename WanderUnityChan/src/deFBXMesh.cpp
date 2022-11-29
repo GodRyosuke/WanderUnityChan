@@ -1394,7 +1394,8 @@ void deFBXMesh::Update(float deltaTime)
 
     mdeAnimCurrTime += mOneFrameValue;
     if (mdeAnimCurrTime >= mGoalAnimTime) {
-        mdeAnimCurrTime = mStartAnimTime + 2 * mOneFrameValue;
+        //mdeAnimCurrTime = mStartAnimTime + 2 * mOneFrameValue;
+        mdeAnimCurrTime = 0;
     }
 
     mAnimCurrTime += mFrameTime;
