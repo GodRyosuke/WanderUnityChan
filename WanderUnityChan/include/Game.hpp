@@ -6,7 +6,7 @@
 #include "TextureShadowMap.hpp"
 #include "Skinning.hpp"
 #include "UnityChan.hpp"
-#include <map>
+#include <unordered_map>
 
 class Game {
 public:
@@ -17,6 +17,15 @@ public:
 	void RunLoop();
 	void Shutdown();
     Uint32 GetCurrentTime() const { return mTicksCount; }
+
+    class Mesh* GetMesh(std::string filePath);
+
+    void AddActor(class Actor* actor) { mActors.push_back(actor); }
+    void RemoveActor(class Actor* actor);
+    void AddMeshComp(class MeshComponent* meshcomp);
+    void RemoveMeshComp(class MeshComponent* meshcomp);
+
+
 
 private:
 	enum PHASE {
@@ -53,7 +62,7 @@ private:
 		Mesh* mesh;
 		bool IsShadow;
 	};
-	std::vector<MeshData> mMeshes;
+	std::vector<MeshData> mdeMeshes;
 	std::vector<SkinMesh*> mSkinMeshes;
 	class UnityChan* mUnityChan;
 	SkinMesh* mRunAnim;
@@ -67,7 +76,7 @@ private:
 	//Shader* mSkinShadowLightingShader;
 	//Shader* mUnityChanShader;
 
-	std::map<std::string, class Shader*> mShaders;
+	std::unordered_map<std::string, class Shader*> mShaders;
 
 	PHASE mPhase;
 
@@ -79,6 +88,10 @@ private:
 	float mMoveSensitivity;
 
 	glm::vec3 mMousePos;
+
+    std::vector<class Actor*> mActors;
+    std::unordered_map<std::string, class Mesh*> mMeshes;
+    std::vector<class MeshComponent*> mMeshComps;
 
 	SDL_Window* mWindow;
 	// OpenGL context

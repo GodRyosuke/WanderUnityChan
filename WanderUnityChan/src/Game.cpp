@@ -8,7 +8,8 @@
 #include "gtx/rotate_vector.hpp"
 #include "gtx/vector_angle.hpp"
 #include "UnityChan.hpp"
-
+#include "Actor.hpp"
+#include "MeshCompoinent.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 
@@ -259,7 +260,7 @@ bool Game::LoadData()
 			mesh->SetMeshPos(glm::vec3(4.0f, 5.0f / 2.0f, 0.0f));
 			mesh->SetMeshRotate(glm::mat4(1.0f));
 			mesh->SetMeshScale(0.01f / 2.0f);
-			mMeshes.push_back(MeshData(mesh, true));
+			mdeMeshes.push_back(MeshData(mesh, true));
 		}
 	}
 
@@ -273,7 +274,7 @@ bool Game::LoadData()
 			//mesh->SetMeshRotate(rotate);
 			mesh->SetMeshRotate(glm::mat4(1.0f));
 			mesh->SetMeshScale(1.0f);
-			mMeshes.push_back(MeshData(mesh, false));
+			mdeMeshes.push_back(MeshData(mesh, false));
 		}
 	}
 	// Treasure Chest(Move)
@@ -437,6 +438,11 @@ void Game::ProcessInput()
 	if (keyState[SDL_SCANCODE_D]) {
 		mCameraPos += (float)mMoveSpeed * glm::normalize(glm::cross(mCameraOrientation, mCameraUP));
 	}
+
+    for (auto actor : mActors)
+    {
+        actor->ProcessInput(keyState);
+    }
 }
 
 
@@ -454,6 +460,9 @@ void Game::UpdateGame()
 	mTicksCount = SDL_GetTicks();
 
 	mUnityChan->Update(deltaTime);
+    for (auto actor : mActors) {
+        actor->Update(deltaTime);
+    }
 
 	if (mPhase == PHASE_MOVE) {
 		//printf("%d %d\n", mMousePos.x, mMousePos.y);
@@ -525,7 +534,7 @@ void Game::Draw()
 	//	mShadowMapShader->SetMatrixUniform("LightView", view);
 	//	mShadowMapShader->SetMatrixUniform("LightProj", projection);
 	//}
-	for (auto mesh : mMeshes) {
+	for (auto mesh : mdeMeshes) {
 		if (mesh.IsShadow) {
 			mesh.mesh->Draw(mShaders["ShadowMap"], mTicksCount / 1000.0f);
 		}
@@ -553,7 +562,7 @@ void Game::Draw()
 
 	mShaders["ShadowLighting"]->UseProgram();
 	mTextureShadowMapFBO->BindTexture(GL_TEXTURE1);
-	for (auto mesh : mMeshes) {
+	for (auto mesh : mdeMeshes) {
 		mesh.mesh->Draw(mShaders["ShadowLighting"], mTicksCount / 1000.0f);
 	}
 	for (auto skinmesh : mSkinMeshes) {
@@ -562,6 +571,9 @@ void Game::Draw()
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    for (auto mc : mMeshComps) {
+        mc->Draw(mShaders["TestShader"]);
+    }
 	mUnityChan->Draw(mShaders["TestShader"]);
 	//mAnimUnityChan->Draw(mUnityChanShader, mTicksCount / 1000.0f);
 
@@ -585,4 +597,42 @@ void Game::RunLoop()
 void Game::Shutdown()
 {
 
+}
+
+void Game::AddMeshComp(MeshComponent* meshcomp)
+{
+    if (meshcomp->GetIsSkeletal()) {
+        //SkinMeshComponent* skin = static_cast<SkinMeshComponent*>(meshcomp);
+        //mSkinMeshComps.push_back(skin);
+    }
+    else {
+        mMeshComps.push_back(meshcomp);
+    }
+}
+
+void Game::RemoveActor(Actor* actor)
+{
+    // Is it in actors?
+    auto iter = std::find(mActors.begin(), mActors.end(), actor);
+    if (iter != mActors.end())
+    {
+        // Swap to end of vector and pop off (avoid erase copies)
+        std::iter_swap(iter, mActors.end() - 1);
+        mActors.pop_back();
+    }
+}
+
+void Game::RemoveMeshComp(MeshComponent* meshcomp)
+{
+    if (meshcomp->GetIsSkeletal())
+    {
+        //SkinMeshComponent* sk = static_cast<SkinMeshComponent*>(meshcomp);
+        //auto iter = std::find(mSkinMeshComps.begin(), mSkinMeshComps.end(), sk);
+        //mSkinMeshComps.erase(iter);
+    }
+    else
+    {
+        auto iter = std::find(mMeshComps.begin(), mMeshComps.end(), meshcomp);
+        mMeshComps.erase(iter);
+    }
 }

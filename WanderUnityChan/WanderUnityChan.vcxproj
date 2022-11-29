@@ -179,8 +179,10 @@ XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y</Comman
   <ItemGroup>
     <ClCompile Include="include\FBXLoader\MaterialCache.hpp" />
     <ClCompile Include="include\Texture.hpp" />
+    <ClCompile Include="src\Actor.cpp" />
+    <ClCompile Include="src\Component.cpp" />
     <ClCompile Include="src\deFBXMesh.cpp" />
-    <ClCompile Include="src\deFBXMeshSkinning.cpp" />
+    <ClCompile Include="src\GLUtil.cpp" />
     <ClCompile Include="src\FBXMesh.cpp" />
     <ClCompile Include="src\FBXNodeMesh.cpp" />
     <ClCompile Include="src\FBXSkeleton.cpp" />
@@ -188,6 +190,7 @@ XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y</Comman
     <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\MaterialCache.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
+    <ClCompile Include="src\MeshComponent.cpp" />
     <ClCompile Include="src\NodeMeshSkinning.cpp" />
     <ClCompile Include="src\VBOMesh.cpp" />
     <ClCompile Include="src\Game.cpp" />
@@ -198,8 +201,12 @@ XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y</Comman
     <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\TextureShadowMap.cpp" />
     <ClCompile Include="src\UnityChan.cpp" />
+    <ClCompile Include="src\wMesh.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\Actor.hpp" />
+    <ClInclude Include="include\ActorUnityChan.hpp" />
+    <ClInclude Include="include\Component.hpp" />
     <ClInclude Include="include\GetPosition.h" />
     <ClInclude Include="include\FBXLoader2\FBXMesh2.hpp" />
     <ClInclude Include="include\FBXLoader\Mesh.hpp" />
@@ -210,12 +217,14 @@ XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y</Comman
     <ClInclude Include="include\Game.hpp" />
     <ClInclude Include="include\GLUtil.hpp" />
     <ClInclude Include="include\Mesh.hpp" />
+    <ClInclude Include="include\MeshCompoinent.hpp" />
     <ClInclude Include="include\NodeMeshSkinning.hpp" />
     <ClInclude Include="include\Shader.hpp" />
     <ClInclude Include="include\Skinning.hpp" />
     <ClInclude Include="include\TextureShadowMap.hpp" />
     <ClInclude Include="include\UnityChan.hpp" />
     <ClInclude Include="include\NodeMesh.hpp" />
+    <ClInclude Include="include\wMesh.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\UnityChan\Material.json" />

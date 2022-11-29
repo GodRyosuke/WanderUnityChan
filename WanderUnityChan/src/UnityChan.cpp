@@ -21,7 +21,7 @@ UnityChan::UnityChan(Game* game)
 	//mdeFBXMesh->Load("cacti");
 	//mdeFBXMesh->Load("TreasureChest");
 	//mdeFBXMesh->Load("TreasureBox2");
-	//mdeFBXMesh->Load("Bush_1");
+	//mdeFBXMesh->Load("./resources/Bush_1/", "Bush_1");
 
 	mPos = glm::vec3(2.f, 2.f, 0.f);
 	mRotate = glm::mat4(1.f);

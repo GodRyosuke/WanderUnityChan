@@ -10,9 +10,12 @@
 #include <fbxsdk.h>
 #include <vector>
 
+#define SIZE_OF_SPLIT_STRING_BUFF 512
+
 namespace GLUtil {
     void GetErr();
     void Split(char split_char, char* buffer, std::vector<std::string>& out);
+    void Split(char split_char, std::string targetStr, std::vector<std::string>& out);
     void Replace(char search_char, char replace_char, char* buffer);
     void Split(char split_char, char* buffer, std::vector<std::string>& out);
     void Replace(char search_char, char replace_char, char* buffer);

@@ -80,6 +80,18 @@ void Split(char split_char, char* buffer, std::vector<std::string>& out)
     }
 }
 
+void Split(char split_char, std::string targetStr, std::vector<std::string>& out)
+{
+    char buffer[SIZE_OF_SPLIT_STRING_BUFF];
+    memset(buffer, 0, SIZE_OF_SPLIT_STRING_BUFF * sizeof(char));
+    memcpy(buffer, targetStr.c_str(), sizeof(char) * SIZE_OF_SPLIT_STRING_BUFF);
+    std::vector<std::string> splitList;
+    std::string replace_file_name = buffer;
+    // 「/」で分解
+    GLUtil::Split('/', buffer, splitList);
+    out = splitList;
+}
+
 void Replace(char search_char, char replace_char, char* buffer)
 {
     int len = (int)strlen(buffer);
