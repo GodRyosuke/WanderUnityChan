@@ -180,6 +180,7 @@ XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y</Comman
     <ClCompile Include="include\FBXLoader\MaterialCache.hpp" />
     <ClCompile Include="include\Texture.hpp" />
     <ClCompile Include="src\Actor.cpp" />
+    <ClCompile Include="src\ActorUnityChan.cpp" />
     <ClCompile Include="src\Component.cpp" />
     <ClCompile Include="src\deFBXMesh.cpp" />
     <ClCompile Include="src\GLUtil.cpp" />

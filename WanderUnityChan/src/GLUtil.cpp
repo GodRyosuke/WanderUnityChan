@@ -87,8 +87,8 @@ void Split(char split_char, std::string targetStr, std::vector<std::string>& out
     memcpy(buffer, targetStr.c_str(), sizeof(char) * SIZE_OF_SPLIT_STRING_BUFF);
     std::vector<std::string> splitList;
     std::string replace_file_name = buffer;
-    // 「/」で分解
-    GLUtil::Split('/', buffer, splitList);
+    // split_charで分解
+    GLUtil::Split(split_char, buffer, splitList);
     out = splitList;
 }
 

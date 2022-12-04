@@ -290,8 +290,6 @@ bool NodeMesh::LoadMesh(FbxMesh* mesh)
                 continue;
             }
 
-            // If the lControlPointIndex is -1, we probably have a corrupted mesh data. At this point,
-            // it is not guaranteed that the cache will work as expected.
             lIndices[lIndexOffset + lVerticeIndex] = static_cast<unsigned int>(lVertexCount);
 
             lCurrentVertex = lControlPoints[lControlPointIndex];

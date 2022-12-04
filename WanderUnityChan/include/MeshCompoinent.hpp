@@ -5,11 +5,13 @@
 class MeshComponent : public Component {
 public:
     MeshComponent(class Actor* owner);
-    void Draw(class Shader* shader);
+    virtual void Draw(class Shader* shader);
 
 
+    void SetMesh(class wMesh* mesh) { mMesh = mesh; }
     bool GetIsSkeletal();
 
 private:
+    class wMesh* mMesh;
 
 };

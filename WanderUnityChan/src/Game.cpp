@@ -9,7 +9,9 @@
 #include "gtx/vector_angle.hpp"
 #include "UnityChan.hpp"
 #include "Actor.hpp"
+#include "ActorUnityChan.hpp"
 #include "MeshCompoinent.hpp"
+#include "wMesh.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 
@@ -253,6 +255,11 @@ bool Game::LoadData()
 
 
 	// Load Models
+    Actor* a = nullptr;
+    // UnityChan Loader改良版
+    a = new ActorUnityChan(this);
+
+
 	{
 		// Treasure Box
 		Mesh* mesh = new Mesh();
@@ -360,6 +367,7 @@ bool Game::LoadData()
 
 	// FBXSDKを使ってUnityChanを読み込む
 	mUnityChan = new UnityChan(this);
+
 
 
 	// Load ShadowMap FBO
@@ -576,7 +584,9 @@ void Game::Draw()
     }
 	mUnityChan->Draw(mShaders["TestShader"]);
 	//mAnimUnityChan->Draw(mUnityChanShader, mTicksCount / 1000.0f);
-
+    for (auto meshcomp : mMeshComps) {
+        meshcomp->Draw(mShaders["TestShader"]);
+    }
 
 
 
@@ -597,6 +607,31 @@ void Game::RunLoop()
 void Game::Shutdown()
 {
 
+}
+
+
+wMesh* Game::GetMesh(std::string fileName)
+{
+    wMesh* m = nullptr;
+    auto iter = mMeshes.find(fileName);
+    if (iter != mMeshes.end())
+    {
+        m = iter->second;
+    }
+    else
+    {
+        m = new wMesh();
+        if (m->Load(fileName))
+        {
+            mMeshes.emplace(fileName, m);
+        }
+        else
+        {
+            delete m;
+            m = nullptr;
+        }
+    }
+    return m;
 }
 
 void Game::AddMeshComp(MeshComponent* meshcomp)
