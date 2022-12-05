@@ -1,0 +1,31 @@
+# 
+# Wavefront material file
+# Created with Kaydara FBX
+# 
+
+newmtl face
+illum 2
+
+newmtl eyebase
+illum 2
+
+newmtl eye_L1
+illum 2
+
+newmtl eye_R1
+illum 2
+
+newmtl eyeline
+illum 2
+
+newmtl hair
+illum 2
+
+newmtl body
+illum 2
+
+newmtl skin1
+illum 2
+
+newmtl mat_cheek
+illum 2
