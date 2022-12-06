@@ -315,7 +315,8 @@ void Converter(std::string filePath)
 
 int main(int argc, char** argv)
 {
-    Converter("UnityChan.fbx");   // 7.4.0
+    //Converter("UnityChan.fbx");   // 7.4.0
+    Converter("unitychan_RUN00_F.fbx");   // 7.4.0
     //Converter("TreasureBox2.fbx");    // 7.4.0
     //Converter("Bush_1.fbx");    // 7.4.0
     //Converter("deSchoolDesk.fbx");    // 7.4.0

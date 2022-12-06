@@ -263,8 +263,8 @@ bool Game::LoadData()
 	{
 		// Treasure Box
 		Mesh* mesh = new Mesh();
-        //if (mesh->Load("./resources/UnityChan/", "UnityChan_fbx7binary.fbx")) {
-        if (mesh->Load("./resources/UnityChan/", "running.fbx")) {
+        if (mesh->Load("./resources/UnityChan/", "UnityChan_fbx7binary.fbx")) {
+        //if (mesh->Load("./resources/UnityChan/", "unitychan_RUN00_F.fbx")) {
         //if (mesh->Load("./resources/SchoolDesk/", "SchoolDesk.fbx")) {
 			mesh->SetMeshPos(glm::vec3(4.0f, 5.0f / 2.0f, 0.0f));
 			mesh->SetMeshRotate(glm::mat4(1.0f));
@@ -286,18 +286,35 @@ bool Game::LoadData()
 			mdeMeshes.push_back(MeshData(mesh, false));
 		}
 	}
-	// Treasure Chest(Move)
-	{
-		// Treasure Box
-		SkinMesh* mesh = new SkinMesh();
-		if (mesh->Load("./resources/TreasureBox3/", "scene.gltf")) {
-			mesh->SetMeshPos(glm::vec3(4.0f, 4.0f, 0.0f));
-			glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), (float)M_PI, glm::vec3(1.0f, 0.0f, 0.0f));
-			mesh->SetMeshRotate(rotate);
-			mesh->SetMeshScale(0.01f / 2.0f);
-			mSkinMeshes.push_back(mesh);
-		}
-	}
+
+    // Treasure Chest(Move)
+    //{
+    //    // Treasure Box
+    //    SkinMesh* mesh = new SkinMesh();
+    //    if (mesh->Load("./resources/TreasureBox3/", "scene.gltf")) {
+    //        mesh->SetMeshPos(glm::vec3(4.0f, 4.0f, 0.0f));
+    //        glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), (float)M_PI, glm::vec3(1.0f, 0.0f, 0.0f));
+    //        mesh->SetMeshRotate(rotate);
+    //        mesh->SetMeshScale(0.01f / 2.0f);
+    //        mSkinMeshes.push_back(mesh);
+    //    }
+    //}
+
+    // Unity Chan Skin 
+    {
+        // Treasure Box
+        SkinMesh* mesh = new SkinMesh();
+        if (mesh->Load("./resources/UnityChan/", "unitychan_RUN00_F_fbx7binary.fbx")) {
+        //if (mesh->Load("./resources/UnityChan/", "running.fbx")) {
+            mesh->SetMeshPos(glm::vec3(4.0f, 4.0f, 0.0f));
+            glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), (float)M_PI, glm::vec3(1.0f, 0.0f, 0.0f));
+            mesh->SetMeshRotate(rotate);
+            mesh->SetMeshScale(0.01f / 2.0f);
+            mSkinMeshes.push_back(mesh);
+        }
+    }
+
+
 
 	// Bob mesh clean
 	{

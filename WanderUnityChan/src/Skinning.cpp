@@ -109,7 +109,11 @@ void SkinMesh::CalcInterpolatedRotation(aiQuaternion& Out, float AnimationTimeTi
         float t2 = (float)pNodeAnim->mRotationKeys[NextRotationIndex].mTime;
         float DeltaTime = t2 - t1;
         float Factor = (AnimationTimeTicks - t1) / DeltaTime;
-        assert(Factor >= 0.0f && Factor <= 1.0f);
+        if (!(Factor >= 0.0f && Factor <= 1.0f)) {
+            //printf("warn: factor out of range\n");
+            Factor = 1.f;
+        }
+        //assert(Factor >= 0.0f && Factor <= 1.0f);
         const aiQuaternion& StartRotationQ = pNodeAnim->mRotationKeys[RotationIndex].mValue;
         const aiQuaternion& EndRotationQ = pNodeAnim->mRotationKeys[NextRotationIndex].mValue;
         aiQuaternion::Interpolate(Out, StartRotationQ, EndRotationQ, Factor);
@@ -150,7 +154,11 @@ void SkinMesh::CalcInterpolatedScaling(aiVector3D& Out, float AnimationTimeTicks
         float t2 = (float)pNodeAnim->mScalingKeys[NextScalingIndex].mTime;
         float DeltaTime = t2 - t1;
         float Factor = (AnimationTimeTicks - (float)t1) / DeltaTime;
-        assert(Factor >= 0.0f && Factor <= 1.0f);
+        if (!(Factor >= 0.0f && Factor <= 1.0f)) {
+            //printf("warn: factor out of range\n");
+            Factor = 1.f;
+        }
+        //assert(Factor >= 0.0f && Factor <= 1.0f);
         const aiVector3D& Start = pNodeAnim->mScalingKeys[ScalingIndex].mValue;
         const aiVector3D& End = pNodeAnim->mScalingKeys[NextScalingIndex].mValue;
         aiVector3D Delta = End - Start;
@@ -165,7 +173,6 @@ void SkinMesh::CalcInterpolatedPosition(aiVector3D& Out, float AnimationTimeTick
         Out = pNodeAnim->mPositionKeys[0].mValue;
         return;
     }
-
 
     // 現在のフレームのPosition Matrixを読みだす
     unsigned int PositionIndex = 0;
@@ -186,7 +193,11 @@ void SkinMesh::CalcInterpolatedPosition(aiVector3D& Out, float AnimationTimeTick
         float t2 = (float)pNodeAnim->mPositionKeys[NextPositionIndex].mTime;
         float DeltaTime = t2 - t1;
         float Factor = (AnimationTimeTicks - t1) / DeltaTime;
-        assert(Factor >= 0.0f && Factor <= 1.0f);
+        if (!(Factor >= 0.0f && Factor <= 1.0f)) {
+            //printf("warn: factor out of range\n");
+            Factor = 1.f;
+        }
+        //assert(Factor >= 0.0f && Factor <= 1.0f);
         const aiVector3D& Start = pNodeAnim->mPositionKeys[PositionIndex].mValue;
         const aiVector3D& End = pNodeAnim->mPositionKeys[NextPositionIndex].mValue;
         aiVector3D Delta = End - Start;
@@ -278,7 +289,6 @@ void SkinMesh::GetBoneTransform(float TimeInSeconds, std::vector<glm::mat4>& Tra
     float Duration = 0.0f;  // AnimationのDurationの整数部分が入る
     float fraction = modf((float)m_pScene->mAnimations[0]->mDuration, &Duration);
     float AnimationTimeTicks = fmod(TimeInTicks, Duration);
-
 
 
     glm::mat4 Identity = glm::mat4(1);
