@@ -31,9 +31,9 @@ bool Mesh::Load(std::string RootPath, std::string ObjFileName)
     mNumVertices = 0;
     mNumIndices = 0;
 
-    // ’¸“_‚Ì‘”‚È‚Ç‚ğ“Ç‚İ‚Ş
+    // Sub Meshã®èª­ã¿è¾¼ã¿
     for (unsigned int i = 0; i < m_Meshes.size(); i++) {
-        m_Meshes[i].MaterialIndex = m_pScene->mMeshes[i]->mMaterialIndex; // Mesh‚ÆMaterial‚Ì•R‚Ã‚¯
+        m_Meshes[i].MaterialIndex = m_pScene->mMeshes[i]->mMaterialIndex; // Meshã¨Materialã®ç´ã¥ã‘
         m_Meshes[i].NumIndices = m_pScene->mMeshes[i]->mNumFaces * 3;
         m_Meshes[i].BaseVertex = mNumVertices;
         m_Meshes[i].BaseIndex = mNumIndices;
@@ -44,21 +44,21 @@ bool Mesh::Load(std::string RootPath, std::string ObjFileName)
 
     ReserveVertexSpace();
 
-    // Mesh(’¸“_î•ñ‚È‚Ç)‚Ì“Ç‚İ‚İ
+    // Mesh(é ‚ç‚¹æƒ…å ±ãªã©)ã®èª­ã¿è¾¼ã¿
     for (int meshIdx = 0; meshIdx < m_Meshes.size(); meshIdx++) {
         const aiMesh* paiMesh = m_pScene->mMeshes[meshIdx];
         LoadMesh(paiMesh, meshIdx);
     }
 
 
-    // Material‚ÆTexture“Ç‚İ‚İ
+    // Materialã¨Textureèª­ã¿è¾¼ã¿
     printf("Num materials: %d\n", m_pScene->mNumMaterials);
 
-    // Material‚Ì“Ç‚İ‚İ
+    // Materialã®èª­ã¿è¾¼ã¿
     for (int materialIdx = 0; materialIdx < m_pScene->mNumMaterials; materialIdx++) {
         const aiMaterial* pMaterial = m_pScene->mMaterials[materialIdx];
 
-        // Diffuse Texture‚ğ“Ç‚İ‚Ş
+        // Diffuse Textureã‚’èª­ã¿è¾¼ã‚€
         m_Materials[materialIdx].DiffuseTexture = NULL;
 
         if (pMaterial->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
@@ -67,23 +67,22 @@ bool Mesh::Load(std::string RootPath, std::string ObjFileName)
             if (pMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &Path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS) {
                 std::string texturePathData = Path.data;
 
-                // “Ç‚İ‚ñ‚¾Texture‚ÌPath‚Ì•ª‰ğˆ—
-                GLUtil glutil;
+                // èª­ã¿è¾¼ã‚“ã Textureã®Pathã®åˆ†è§£å‡¦ç†
                 char buffer[512];
                 memset(buffer, 0, 512 * sizeof(char));
                 memcpy(buffer, texturePathData.c_str(), sizeof(char) * 512);
-                glutil.Replace('\\', '/', buffer);
+                GLUtil::Replace('\\', '/', buffer);
                 std::vector<std::string> split_list;
                 std::string replace_file_name = buffer;
-                // u/v‚Å•ª‰ğ
-                glutil.Split('/', buffer, split_list);
+                // ã€Œ/ã€ã§åˆ†è§£
+                GLUtil::Split('/', buffer, split_list);
 
                 std::string texturePath = ObjFileRoot + "Textures/" + split_list[split_list.size() - 1];
                 m_Materials[materialIdx].DiffuseTexture = new Texture(texturePath);
             }
         }
 
-        // Diffuse Specular Ambient‚Ì“Ç‚İ‚İ
+        // Diffuse Specular Ambientã®èª­ã¿è¾¼ã¿
         aiColor3D AmbientColor(0.0f, 0.0f, 0.0f);
         glm::vec3 AllOnes = glm::vec3(1.0f, 1.0f, 1.0f);
 
@@ -126,16 +125,15 @@ bool Mesh::Load(std::string RootPath, std::string ObjFileName)
         }
     }
 
-    // Vertex Array Objectì¬
+    // Vertex Array Objectä½œæˆ
     unsigned int VertexArray;
 
     glGenVertexArrays(1, &VertexArray);
     glBindVertexArray(VertexArray);
 
-    // Vertex Buffer‚Ìì¬
+    // Vertex Bufferã®ä½œæˆ
     PopulateBuffers();
-    GLUtil glutil;
-    glutil.GetErr();
+    GLUtil::GetErr();
 
 
     // unbind cube vertex arrays
@@ -163,7 +161,7 @@ void Mesh::LoadMesh(const aiMesh* pMesh, unsigned int meshIdx)
 {
     const aiVector3D Zero3D(0.0f, 0.0f, 0.0f);
 
-    // Vertex, Normal, UVæ“¾
+    // Vertex, Normal, UVå–å¾—
     for (unsigned int i = 0; i < pMesh->mNumVertices; i++) {
 
         const aiVector3D& pPos = pMesh->mVertices[i];
@@ -182,7 +180,7 @@ void Mesh::LoadMesh(const aiMesh* pMesh, unsigned int meshIdx)
         m_TexCoords.push_back(glm::vec2(pTexCoord.x, pTexCoord.y));
     }
 
-    // Index î•ñæ“¾
+    // Index æƒ…å ±å–å¾—
     for (unsigned int i = 0; i < pMesh->mNumFaces; i++) {
         const aiFace& Face = pMesh->mFaces[i];
         //printf("num indices %d\n", Face.mNumIndices);

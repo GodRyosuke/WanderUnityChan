@@ -304,10 +304,11 @@ bool Game::LoadData()
     {
         // Treasure Box
         SkinMesh* mesh = new SkinMesh();
-        if (mesh->Load("./resources/UnityChan/", "unitychan_RUN00_F_fbx7binary.fbx")) {
+        //if (mesh->Load("./resources/UnityChan/", "unitychan_RUN00_F_fbx7binary.fbx")) {
+        if (mesh->Load("./resources/UnityChan/", "UnityChan_fbx7binary.fbx")) {
         //if (mesh->Load("./resources/UnityChan/", "running.fbx")) {
             mesh->SetMeshPos(glm::vec3(4.0f, 4.0f, 0.0f));
-            glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), (float)M_PI, glm::vec3(1.0f, 0.0f, 0.0f));
+            glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), (float)M_PI / 2.f, glm::vec3(1.0f, 0.0f, 0.0f));
             mesh->SetMeshRotate(rotate);
             mesh->SetMeshScale(0.01f / 2.0f);
             mSkinMeshes.push_back(mesh);
@@ -490,6 +491,9 @@ void Game::UpdateGame()
     for (auto actor : mActors) {
         actor->Update(deltaTime);
     }
+    for (auto skinMesh : mSkinMeshes) {
+        skinMesh->Update(mTicksCount / 1000.0f);
+    }
 
 	if (mPhase == PHASE_MOVE) {
 		//printf("%d %d\n", mMousePos.x, mMousePos.y);
@@ -593,7 +597,8 @@ void Game::Draw()
 		mesh.mesh->Draw(mShaders["ShadowLighting"], mTicksCount / 1000.0f);
 	}
 	for (auto skinmesh : mSkinMeshes) {
-		skinmesh->Draw(mShaders["SkinShadowLighting"], mTicksCount / 1000.0f);
+        //skinmesh->Draw(mShaders["SkinShadowLighting"], mTicksCount / 1000.0f);
+        skinmesh->Draw(mShaders["TestShader"], mTicksCount / 1000.0f);
 	}
 
 	glEnable(GL_BLEND);

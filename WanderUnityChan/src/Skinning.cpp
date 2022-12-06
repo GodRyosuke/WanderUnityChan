@@ -31,6 +31,9 @@ void SkinMesh::LoadMesh(const aiMesh* pMesh, unsigned int meshIdx)
     Mesh::LoadMesh(pMesh, meshIdx);
 
     // Boneの読み込み
+    if (pMesh->mNumBones == 0) {
+        printf("warn: this mesh does not assigned bone: %s, meshIdx: %d\n", pMesh->mName.C_Str(), meshIdx);
+    }
     for (unsigned int i = 0; i < pMesh->mNumBones; i++) {
         aiBone* paiBone = pMesh->mBones[i];
 
@@ -214,7 +217,10 @@ const aiAnimation* SkinMesh::SetAnimPointer()
 void SkinMesh::ReadNodeHierarchy(float AnimationTimeTicks, const aiNode* pNode, const glm::mat4& ParentTransform)
 {
     std::string NodeName(pNode->mName.data);
-    int x = 0;
+    for (int i = 0; i < pNode->mNumMeshes; i++) {
+        unsigned int meshIdx = pNode->mMeshes[i];
+        printf("meshIdx: %d\n", meshIdx);
+    }
 
     const aiAnimation* pAnimation = SetAnimPointer();
 
@@ -301,22 +307,27 @@ void SkinMesh::GetBoneTransform(float TimeInSeconds, std::vector<glm::mat4>& Tra
     }
 }
 
-void SkinMesh::UpdateBoneTransform(Shader* shader, float TimeInSeconds)
+void SkinMesh::UpdateBoneTransform(float TimeInSeconds)
 {
     // 現在時刻のBone Transformを取得
-    std::vector<glm::mat4> BoneMatrixPalete;
-    GetBoneTransform(TimeInSeconds, BoneMatrixPalete);
+    GetBoneTransform(TimeInSeconds, mBoneMatrixPallete);
+}
 
-    // Shaderに渡す
-    for (int i = 0; i < BoneMatrixPalete.size(); i++) {
-        std::string uniformName = "uMatrixPalette[" + std::to_string(i) + ']';
-        shader->SetMatrixUniform(uniformName, BoneMatrixPalete[i]);
-    }
+void SkinMesh::Update(float deltaTime)
+{
+    UpdateBoneTransform(deltaTime);
 }
 
 void SkinMesh::UpdateTransform(Shader* shader, float timeInSeconds)
 {
     Mesh::UpdateTransform(shader, timeInSeconds);
-    UpdateBoneTransform(shader, timeInSeconds);
+
+    // Bone Matrix Palleteの更新
+    //UpdateBoneTransform(timeInSeconds);
+    // Shaderに渡す
+    for (int i = 0; i < mBoneMatrixPallete.size(); i++) {
+        std::string uniformName = "uMatrixPalette[" + std::to_string(i) + ']';
+        shader->SetMatrixUniform(uniformName, mBoneMatrixPallete[i]);
+    }
 }
 

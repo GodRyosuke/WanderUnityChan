@@ -6,6 +6,7 @@ class SkinMesh : public Mesh {
 public:
     SkinMesh();
     ~SkinMesh() {}
+    void Update(float deltaTime);
 
 protected:
     struct BoneInfo
@@ -36,7 +37,7 @@ private:
         void AddBoneData(unsigned int BoneID, float Weight)
         {
             for (unsigned int i = 0; i < MAX_NUM_BONES_PER_VERTEX; i++) {
-                //if ((BoneIDs[i] == BoneID) && (Weights[i] != 0.0)) { // ‚·‚Å‚ÉŠ‚µ‚Ä‚¢‚½‚ç’Ç‰Á‚µ‚È‚¢
+                //if ((BoneIDs[i] == BoneID) && (Weights[i] != 0.0)) { // ã™ã§ã«æ‰€æŒã—ã¦ã„ãŸã‚‰è¿½åŠ ã—ãªã„
                 //    return;
                 //}
                 if (Weights[i] == 0.0) {
@@ -60,12 +61,12 @@ private:
     virtual void GetGlobalInvTrans() override;
 
 
-    // ‚ª•Ï‰»‚·‚é‚É‚µ‚½‚ª‚Á‚ÄBone‚Ìs—ñ‚ğXV‚·‚é
-    void UpdateBoneTransform(Shader* shader, float TimeInSeconds);
-    // TimeInSeconds‚É‚¨‚¯‚éŠeƒ{[ƒ“‚ÌTransform‚ğ‹‚ß‚é
+    // æ™‚åˆ»ãŒå¤‰åŒ–ã™ã‚‹ã«ã—ãŸãŒã£ã¦Boneã®è¡Œåˆ—ã‚’æ›´æ–°ã™ã‚‹
+    void UpdateBoneTransform(float TimeInSeconds);
+    // æ™‚åˆ»TimeInSecondsã«ãŠã‘ã‚‹å„ãƒœãƒ¼ãƒ³ã®Transformã‚’æ±‚ã‚ã‚‹
     void GetBoneTransform(float TimeInSeconds, std::vector<glm::mat4>& Transforms);
-    // Node‚ÌŠK‘w\‘¢‚ğ“Ç‚İ‚¾‚·
-    // AnimationTimeTicks‚É‚¨‚¯‚éAnimation‚ğ‹‚ß‚é
+    // Nodeã®éšå±¤æ§‹é€ ã‚’èª­ã¿ã ã™
+    // AnimationTimeTicksæ™‚åˆ»ã«ãŠã‘ã‚‹Animationã‚’æ±‚ã‚ã‚‹
     void CalcInterpolatedRotation(aiQuaternion& Out, float AnimationTimeTicks, const aiNodeAnim* pNodeAnim);
     void CalcInterpolatedScaling(aiVector3D& Out, float AnimationTimeTicks, const aiNodeAnim* pNodeAnim);
     void CalcInterpolatedPosition(aiVector3D& Out, float AnimationTimeTicks, const aiNodeAnim* pNodeAnim);
@@ -76,7 +77,7 @@ private:
 
     std::map<std::string, unsigned int> m_BoneNameToIndexMap;
     std::vector<VertexBoneData> m_Bones;
-
+    std::vector<glm::mat4> mBoneMatrixPallete;
 
     glm::mat4 m_GlobalInverseTransform;
 };
