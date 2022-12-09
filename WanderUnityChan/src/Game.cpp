@@ -596,21 +596,21 @@ void Game::Draw()
 	for (auto mesh : mdeMeshes) {
 		mesh.mesh->Draw(mShaders["ShadowLighting"], mTicksCount / 1000.0f);
 	}
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	for (auto skinmesh : mSkinMeshes) {
         //skinmesh->Draw(mShaders["SkinShadowLighting"], mTicksCount / 1000.0f);
         skinmesh->Draw(mShaders["TestShader"], mTicksCount / 1000.0f);
 	}
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     for (auto mc : mMeshComps) {
         mc->Draw(mShaders["TestShader"]);
     }
 	mUnityChan->Draw(mShaders["TestShader"]);
 	//mAnimUnityChan->Draw(mUnityChanShader, mTicksCount / 1000.0f);
-    for (auto meshcomp : mMeshComps) {
-        meshcomp->Draw(mShaders["TestShader"]);
-    }
+    //for (auto meshcomp : mMeshComps) {
+    //    meshcomp->Draw(mShaders["TestShader"]);
+    //}
 
 
 

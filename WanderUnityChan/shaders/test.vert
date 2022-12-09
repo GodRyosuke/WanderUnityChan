@@ -14,7 +14,7 @@ uniform mat4 CameraProj;
 // SpotLight用
 uniform mat4 LightView;
 // uniform mat4 LightProj;
-uniform mat4 uMatrixPalette[128];
+uniform mat4 uMatrixPalette[150];
 
 out vec4 LightSpacePos;                                                             
 out vec2 TexCoord0;                                                                 

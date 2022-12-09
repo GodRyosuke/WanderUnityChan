@@ -32,8 +32,26 @@ void SkinMesh::LoadMesh(const aiMesh* pMesh, unsigned int meshIdx)
 
     // Boneの読み込み
     if (pMesh->mNumBones == 0) {
+        // Boneが割り当てられていないので、新たに作成
+        int BoneIndex = (int)m_BoneNameToIndexMap.size();
+        m_BoneNameToIndexMap[pMesh->mName.C_Str()] = BoneIndex;
+
+        for (int vertIdx = 0; vertIdx < pMesh->mNumVertices; vertIdx++) {
+            unsigned int GlobalVertexID = m_Meshes[meshIdx].BaseVertex + vertIdx;
+            m_Bones[GlobalVertexID].AddBoneData(BoneIndex, 1.f);
+        }
+
+        if (BoneIndex == m_BoneInfo.size()) {
+            //aiMatrix4x4 offsetMatrix = paiBone->mOffsetMatrix;
+            BoneInfo bi(glm::mat4(1.f));
+            m_BoneInfo.push_back(bi);
+        }
+
         printf("warn: this mesh does not assigned bone: %s, meshIdx: %d\n", pMesh->mName.C_Str(), meshIdx);
+
+        return;
     }
+
     for (unsigned int i = 0; i < pMesh->mNumBones; i++) {
         aiBone* paiBone = pMesh->mBones[i];
 
@@ -67,6 +85,7 @@ void SkinMesh::LoadMesh(const aiMesh* pMesh, unsigned int meshIdx)
 
 void SkinMesh::PopulateBuffers()
 {
+    assert(m_BoneInfo.size() <= 150);
     GLuint m_boneBuffer;
     // 頂点データを読み込む
     Mesh::PopulateBuffers();
