@@ -101,6 +101,23 @@ void SkinMesh::PopulateBuffers()
         (const GLvoid*)(MAX_NUM_BONES_PER_VERTEX * sizeof(int32_t)));   // 後半4ByteがWeight
 }
 
+const unsigned int SkinMesh::GetBoneIndex(std::string name) const
+{
+    auto iter = m_BoneNameToIndexMap.find(name);
+    if (iter != m_BoneNameToIndexMap.end()) {
+        return iter->second;
+    }
+    else {
+        printf("error: This Bone %s has not been loaded yet\n", name.c_str());
+        assert(false);
+    }
+}
+
+const glm::mat4 SkinMesh::GetOffsetMatrix(const unsigned int boneIndex) const
+{
+    assert(boneIndex < m_BoneInfo.size());
+    return m_BoneInfo[boneIndex].OffsetMatrix;
+}
 
 void SkinMesh::CalcInterpolatedRotation(aiQuaternion& Out, float AnimationTimeTicks, const aiNodeAnim* pNodeAnim)
 {

@@ -7,6 +7,9 @@ public:
     SkinMesh();
     ~SkinMesh() {}
     void Update(float deltaTime);
+    const unsigned int GetNumBones() const { return static_cast<unsigned int>(m_BoneInfo.size()); }
+    const unsigned int GetBoneIndex(const std::string name) const;
+    const glm::mat4 GetOffsetMatrix(const unsigned int boneIndex) const;
 
 protected:
     struct BoneInfo
