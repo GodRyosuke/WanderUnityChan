@@ -15,9 +15,23 @@
 
 class Mesh {
 public:
+    struct Material {
+        glm::vec3 AmbientColor;
+        glm::vec3 DiffuseColor;
+        glm::vec3 SpecColor;
+        float SpecPower;
+        float Alpha;
+        glm::vec3 Reflection;
+        glm::vec3 Emissive;
+        glm::vec3 Bump;
+        glm::vec3 NormalMap;
+        class Texture* DiffuseTexture;
+    };
+
     Mesh();
     ~Mesh() {}
     bool Load(std::string FilePath, std::string ObjFileName);
+    bool Load(std::string filePath, bool isSkeletal = false);
     void Draw(Shader* shader, float timeInSeconds) const;
 
     void SetMeshPos(glm::vec3 pos) { mMeshPos = pos; }
@@ -26,6 +40,8 @@ public:
     glm::mat4 GetWorldMat();
     class VertexArray* GetVertexArray() const { return mVAO; }
     const int GetSubMeshNum() const { return m_Meshes.size(); }
+    void GetMeshEntry(const int subMeshIdx, unsigned int& numIndices,
+        unsigned int& baseVertex, unsigned int& baseIndex, Material& mat) const;
 
 protected:
     struct BasicMeshEntry {
@@ -60,22 +76,6 @@ protected:
 
 
 private:
-
-    struct Material {
-        glm::vec3 AmbientColor;
-        glm::vec3 DiffuseColor;
-        glm::vec3 SpecColor;
-        float SpecPower;
-        float Alpha;
-        glm::vec3 Reflection;
-        glm::vec3 Emissive;
-        glm::vec3 Bump;
-        glm::vec3 NormalMap;
-        class Texture* DiffuseTexture;
-    };
-
-
-
     unsigned int mVertexArray;
 
 
@@ -86,11 +86,13 @@ private:
     std::vector<unsigned int> m_Indices;
 
     class VertexArray* mVAO;
+    class Skeleton* mSkeleton;
 
     glm::vec3 mMeshPos;
     glm::mat4 mMeshRotate;
     float mMeshScale;
 
+    std::string mMeshName;
     std::string ObjFileRoot;
     std::string ObjFileName;
 };

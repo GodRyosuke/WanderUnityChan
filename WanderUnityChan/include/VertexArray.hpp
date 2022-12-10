@@ -18,23 +18,23 @@ public:
     ~VertexArray();
 
     void SetActive();
-    unsigned int GetNumIndices() const { return mNumIndices; }
-    unsigned int GetNumVerts() const { return mNumVerts; }
-    const int GetNumSubMeshes() const { return mSubMeshes.size(); }
+    //unsigned int GetNumIndices() const { return mNumIndices; }
+    //unsigned int GetNumVerts() const { return mNumVerts; }
+    //const int GetNumSubMeshes() const { return mSubMeshes.size(); }
 
 private:
-    struct SubMesh {
-        unsigned int NumIndices;
-        unsigned int BaseVertex;
-        unsigned int BaseIndex;
-        unsigned int MaterialIndex;
-    };
+    //struct SubMesh {
+    //    unsigned int NumIndices;
+    //    unsigned int BaseVertex;
+    //    unsigned int BaseIndex;
+    //    unsigned int MaterialIndex;
+    //};
 
-    std::vector<SubMesh> mSubMeshes;
-    // How many vertices in the vertex buffer?
-    unsigned int mNumVerts;
-    // How many indices in the index buffer
-    unsigned int mNumIndices;
+    //std::vector<SubMesh> mSubMeshes;
+    //// How many vertices in the vertex buffer?
+    //unsigned int mNumVerts;
+    //// How many indices in the index buffer
+    //unsigned int mNumIndices;
     // OpenGL ID of the vertex buffer
     unsigned int* mVertexBuffers;
     // OpenGL ID of the vertex array object

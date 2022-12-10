@@ -18,7 +18,7 @@ public:
 	void Shutdown();
     Uint32 GetCurrentTime() const { return mTicksCount; }
 
-    class wMesh* GetMesh(std::string filePath);
+    class Mesh* GetMesh(std::string filePath);
 
     void AddActor(class Actor* actor) { mActors.push_back(actor); }
     void RemoveActor(class Actor* actor);
@@ -90,8 +90,9 @@ private:
 	glm::vec3 mMousePos;
 
     std::vector<class Actor*> mActors;
-    std::unordered_map<std::string, class wMesh*> mMeshes;
+    std::unordered_map<std::string, class Mesh*> mMeshes;
     std::vector<class MeshComponent*> mMeshComps;
+    std::vector<class SkinMeshComponent*> mSkinMeshComps;
 
 	SDL_Window* mWindow;
 	// OpenGL context

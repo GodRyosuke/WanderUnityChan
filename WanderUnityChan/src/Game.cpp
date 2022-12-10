@@ -12,6 +12,7 @@
 #include "ActorUnityChan.hpp"
 #include "MeshCompoinent.hpp"
 #include "wMesh.hpp"
+#include "Plane.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 
@@ -229,16 +230,29 @@ bool Game::LoadData()
 	}
 
 	// Load TestShader
-	{
-		// Shadow Lighting
-		std::string vert_file = "./Shaders/test.vert";
-		std::string frag_file = "./Shaders/test.frag";
-		shader = new Shader();
-		if (!shader->CreateShaderProgram(vert_file, frag_file)) {
-			return false;
-		}
-		mShaders.emplace("TestShader", shader);
-	}
+    {
+        // Shadow Lighting
+        std::string vert_file = "./Shaders/testMesh.vert";
+        std::string frag_file = "./Shaders/test.frag";
+        shader = new Shader();
+        if (!shader->CreateShaderProgram(vert_file, frag_file)) {
+            return false;
+        }
+        mShaders.emplace("TestMeshShader", shader);
+    }
+
+    {
+        // Shadow Lighting
+        std::string vert_file = "./Shaders/testSkin.vert";
+        std::string frag_file = "./Shaders/test.frag";
+        shader = new Shader();
+        if (!shader->CreateShaderProgram(vert_file, frag_file)) {
+            return false;
+        }
+        mShaders.emplace("TestSkinShader", shader);
+    }
+
+
 
 	// View Projection Matrixを設定
 	for (auto iter : mShaders) {
@@ -259,6 +273,15 @@ bool Game::LoadData()
     // UnityChan Loader改良版
     a = new ActorUnityChan(this);
 
+    for (int i = 0; i < 10; i++) {
+        for (int j = 0; j < 10; j++) {
+            float x_pos = i * 2 + 1.f;
+            float y_pos = j * 2 + 1.f;
+            a = new Plane(this);
+            a->SetPosition(glm::vec3(x_pos, y_pos, 0.f) - glm::vec3(10.f, 10.f, 0.f));
+        }
+    }
+
 
 	{
 		// Treasure Box
@@ -275,17 +298,17 @@ bool Game::LoadData()
 
 
 	// Unity Chan world
-	{
-		Mesh* mesh = new Mesh();
-		if (mesh->Load("./resources/world/", "terrain.fbx")) {
-			mesh->SetMeshPos(glm::vec3(0.0f));
-			glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), (float)M_PI / 2.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-			//mesh->SetMeshRotate(rotate);
-			mesh->SetMeshRotate(glm::mat4(1.0f));
-			mesh->SetMeshScale(1.0f);
-			mdeMeshes.push_back(MeshData(mesh, false));
-		}
-	}
+	//{
+	//	Mesh* mesh = new Mesh();
+	//	if (mesh->Load("./resources/world/", "terrain.fbx")) {
+	//		mesh->SetMeshPos(glm::vec3(0.0f));
+	//		glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), (float)M_PI / 2.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+	//		//mesh->SetMeshRotate(rotate);
+	//		mesh->SetMeshRotate(glm::mat4(1.0f));
+	//		mesh->SetMeshScale(1.0f);
+	//		mdeMeshes.push_back(MeshData(mesh, false));
+	//	}
+	//}
 
     // Treasure Chest(Move)
     //{
@@ -303,16 +326,16 @@ bool Game::LoadData()
     // Unity Chan Skin 
     {
         // Treasure Box
-        SkinMesh* mesh = new SkinMesh();
-        //if (mesh->Load("./resources/UnityChan/", "unitychan_RUN00_F_fbx7binary.fbx")) {
-        if (mesh->Load("./resources/UnityChan/", "UnityChan_fbx7binary.fbx")) {
-        //if (mesh->Load("./resources/UnityChan/", "running.fbx")) {
-            mesh->SetMeshPos(glm::vec3(4.0f, 4.0f, 0.0f));
-            glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), (float)M_PI / 2.f, glm::vec3(1.0f, 0.0f, 0.0f));
-            mesh->SetMeshRotate(rotate);
-            mesh->SetMeshScale(0.01f / 2.0f);
-            mSkinMeshes.push_back(mesh);
-        }
+        //SkinMesh* mesh = new SkinMesh();
+        ////if (mesh->Load("./resources/UnityChan/", "unitychan_RUN00_F_fbx7binary.fbx")) {
+        //if (mesh->Load("./resources/UnityChan/", "UnityChan_fbx7binary.fbx")) {
+        ////if (mesh->Load("./resources/UnityChan/", "running.fbx")) {
+        //    mesh->SetMeshPos(glm::vec3(4.0f, 4.0f, 0.0f));
+        //    glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), (float)M_PI / 2.f, glm::vec3(1.0f, 0.0f, 0.0f));
+        //    mesh->SetMeshRotate(rotate);
+        //    mesh->SetMeshScale(0.01f / 2.0f);
+        //    mSkinMeshes.push_back(mesh);
+        //}
     }
 
 
@@ -525,7 +548,8 @@ void Game::UpdateGame()
 	Shaders.push_back(mShaders["ShadowLighting"]);
 	Shaders.push_back(mShaders["SkinShadowLighting"]);
 	Shaders.push_back(mShaders["UnityChanShader"]);
-	Shaders.push_back(mShaders["TestShader"]);
+    Shaders.push_back(mShaders["TestMeshShader"]);
+    Shaders.push_back(mShaders["TestSkinShader"]);
 	for (auto shader : Shaders) {
 		shader->UseProgram();
 		shader->SetVectorUniform("gEyeWorldPos", mCameraPos);
@@ -565,11 +589,11 @@ void Game::Draw()
 	//	mShadowMapShader->SetMatrixUniform("LightView", view);
 	//	mShadowMapShader->SetMatrixUniform("LightProj", projection);
 	//}
-	for (auto mesh : mdeMeshes) {
-		if (mesh.IsShadow) {
-			mesh.mesh->Draw(mShaders["ShadowMap"], mTicksCount / 1000.0f);
-		}
-	}
+	//for (auto mesh : mdeMeshes) {
+	//	if (mesh.IsShadow) {
+	//		mesh.mesh->Draw(mShaders["ShadowMap"], mTicksCount / 1000.0f);
+	//	}
+	//}
 	for (auto skinmesh : mSkinMeshes) {
 		skinmesh->Draw(mShaders["SkinShadowMap"], mTicksCount / 1000.0f);
 	}
@@ -593,20 +617,20 @@ void Game::Draw()
 
 	mShaders["ShadowLighting"]->UseProgram();
 	mTextureShadowMapFBO->BindTexture(GL_TEXTURE1);
-	for (auto mesh : mdeMeshes) {
-		mesh.mesh->Draw(mShaders["ShadowLighting"], mTicksCount / 1000.0f);
-	}
+	//for (auto mesh : mdeMeshes) {
+	//	mesh.mesh->Draw(mShaders["ShadowLighting"], mTicksCount / 1000.0f);
+	//}
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	for (auto skinmesh : mSkinMeshes) {
         //skinmesh->Draw(mShaders["SkinShadowLighting"], mTicksCount / 1000.0f);
-        skinmesh->Draw(mShaders["TestShader"], mTicksCount / 1000.0f);
+        skinmesh->Draw(mShaders["TestSkinShader"], mTicksCount / 1000.0f);
 	}
     for (auto mc : mMeshComps) {
-        mc->Draw(mShaders["TestShader"]);
+        mc->Draw(mShaders["TestMeshShader"]);
     }
-	mUnityChan->Draw(mShaders["TestShader"]);
+	mUnityChan->Draw(mShaders["TestSkinShader"]);
 	//mAnimUnityChan->Draw(mUnityChanShader, mTicksCount / 1000.0f);
     //for (auto meshcomp : mMeshComps) {
     //    meshcomp->Draw(mShaders["TestShader"]);
@@ -634,9 +658,9 @@ void Game::Shutdown()
 }
 
 
-wMesh* Game::GetMesh(std::string fileName)
+Mesh* Game::GetMesh(std::string fileName)
 {
-    wMesh* m = nullptr;
+    Mesh* m = nullptr;
     auto iter = mMeshes.find(fileName);
     if (iter != mMeshes.end())
     {
@@ -644,7 +668,7 @@ wMesh* Game::GetMesh(std::string fileName)
     }
     else
     {
-        m = new wMesh();
+        m = new Mesh();
         if (m->Load(fileName))
         {
             mMeshes.emplace(fileName, m);

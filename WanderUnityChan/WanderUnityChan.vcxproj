@@ -194,6 +194,9 @@ XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y</Comman
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\MeshComponent.cpp" />
     <ClCompile Include="src\NodeMeshSkinning.cpp" />
+    <ClCompile Include="src\Plane.cpp" />
+    <ClCompile Include="src\Skeleton.cpp" />
+    <ClCompile Include="src\SkinMeshComponent.cpp" />
     <ClCompile Include="src\VBOMesh.cpp" />
     <ClCompile Include="src\Game.cpp" />
     <ClCompile Include="src\Main.cpp" />
@@ -224,7 +227,10 @@ XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y</Comman
     <ClInclude Include="include\Mesh.hpp" />
     <ClInclude Include="include\MeshCompoinent.hpp" />
     <ClInclude Include="include\NodeMeshSkinning.hpp" />
+    <ClInclude Include="include\Plane.hpp" />
     <ClInclude Include="include\Shader.hpp" />
+    <ClInclude Include="include\Skeleton.hpp" />
+    <ClInclude Include="include\SkinMeshComponent.hpp" />
     <ClInclude Include="include\Skinning.hpp" />
     <ClInclude Include="include\TextureShadowMap.hpp" />
     <ClInclude Include="include\UnityChan.hpp" />
@@ -241,7 +247,8 @@ XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y</Comman
     <None Include="shaders\SkinningShadowLighting.vert" />
     <None Include="shaders\SkinningShadowMap.vert" />
     <None Include="shaders\test.frag" />
-    <None Include="shaders\test.vert" />
+    <None Include="shaders\testSkin.vert" />
+    <None Include="shaders\testMesh.vert" />
     <None Include="shaders\UnityChan.frag" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

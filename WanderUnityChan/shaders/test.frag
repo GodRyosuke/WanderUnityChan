@@ -11,6 +11,7 @@ in vec3 WorldPos0;
 uniform vec3 matAmbientColor;
 uniform vec3 matDiffuseColor;
 uniform vec3 matSpecColor;
+uniform float matSpecPower;
 
 uniform vec3 gEyeWorldPos;
 uniform sampler2D gSampler;                                                                 
@@ -24,7 +25,7 @@ void main()
 	vec3 AmbientLight = vec3(0.2, 0.2, 0.2);
 	vec3 DiffuseColor = vec3(0.5, 0.5, 0.5) * 2.f;
 	vec3 SpecColor = vec3(0.5f, 0.5f, 0.5f) * 0.3f;
-	float SpecPower = 0.2f;
+	// float SpecPower = 0.2f;
 
 
     // Surface normal
@@ -43,7 +44,7 @@ void main()
 	{
 		// vec3 Diffuse = DiffuseColor * matDiffuseColor * NdotL;
 		vec3 Diffuse = matDiffuseColor * NdotL;
-		vec3 Specular = SpecColor * matSpecColor * pow(max(0.0, dot(R, V)), SpecPower);
+		vec3 Specular = SpecColor * matSpecColor * pow(max(0.0, dot(R, V)), matSpecPower);
 		Phong += Diffuse + Specular;
 	}
 

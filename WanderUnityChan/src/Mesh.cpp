@@ -3,28 +3,51 @@
 #include <iostream>
 #include "GLUtil.hpp"
 #include "VertexArray.hpp"
+#include "Skeleton.hpp"
 
 Mesh::Mesh()
 {
 
 }
 
-bool Mesh::Load(std::string RootPath, std::string ObjFileName)
+bool Mesh::Load(std::string filePath, bool isSkeletal)
 {
-    this->ObjFileRoot = RootPath;
-    this->ObjFileName = ObjFileName;
-    std::string FilePath = RootPath + ObjFileName;
+    if (!isSkeletal) {
+        mSkeleton = nullptr;
+    }
+    else {
+        mSkeleton = new Skeleton();
+    }
 
-    m_pScene = m_Importer.ReadFile(FilePath.c_str(), ASSIMP_LOAD_FLAGS);
+    std::string objFilePath;
+    // Mesh Nnameの取り出し
+    {
+        std::vector<std::string> wordArray;
+        GLUtil::Split('/', filePath, wordArray);
+        for (int i = 0; i < wordArray.size() - 1; i++) {
+            objFilePath += wordArray[i] + '/';
+        }
+        std::string meshFileName = wordArray[wordArray.size() - 1];
+        wordArray.clear();
+        GLUtil::Split('.', meshFileName, wordArray);
+        mMeshName = wordArray[wordArray.size() - 2];
+    }
+
+    m_pScene = m_Importer.ReadFile(filePath.c_str(), ASSIMP_LOAD_FLAGS);
     //m_pScene = pScene;
 
     if (!m_pScene) {
-        printf("Error parsing '%s': '%s'\n", FilePath.c_str(), m_Importer.GetErrorString());
+        printf("Error parsing '%s': '%s'\n", filePath.c_str(), m_Importer.GetErrorString());
         return false;
     }
 
+    if (isSkeletal) {
+        glm::mat4 globalInvTrans = GLUtil::ToGlmMat4(m_pScene->mRootNode->mTransformation);
+        globalInvTrans = glm::inverse(globalInvTrans);
+        mSkeleton->SetGlobalInvTrans(globalInvTrans);
+    }
 
-    GetGlobalInvTrans();
+    //GetGlobalInvTrans();
 
     m_Meshes.resize(m_pScene->mNumMeshes);
     m_Materials.resize(m_pScene->mNumMaterials);
@@ -43,12 +66,22 @@ bool Mesh::Load(std::string RootPath, std::string ObjFileName)
         mNumIndices += m_Meshes[i].NumIndices;
     }
 
-    ReserveVertexSpace();
+    //ReserveVertexSpace();
+    m_Positions.reserve(mNumVertices);
+    m_Normals.reserve(mNumVertices);
+    m_TexCoords.reserve(mNumVertices);
+    m_Indices.reserve(mNumIndices);
+    if (isSkeletal) {
+        mSkeleton->ReserveBoneSpace(mNumVertices);
+    }
 
     // Mesh(頂点情報など)の読み込み
     for (int meshIdx = 0; meshIdx < m_Meshes.size(); meshIdx++) {
         const aiMesh* paiMesh = m_pScene->mMeshes[meshIdx];
         LoadMesh(paiMesh, meshIdx);
+        if (isSkeletal) {
+            mSkeleton->Load(paiMesh, meshIdx, m_Meshes[meshIdx].BaseVertex);
+        }
     }
 
 
@@ -78,7 +111,7 @@ bool Mesh::Load(std::string RootPath, std::string ObjFileName)
                 // 「/」で分解
                 GLUtil::Split('/', buffer, split_list);
 
-                std::string texturePath = ObjFileRoot + "Textures/" + split_list[split_list.size() - 1];
+                std::string texturePath = objFilePath + "Textures/" + split_list[split_list.size() - 1];
                 m_Materials[materialIdx].DiffuseTexture = new Texture(texturePath);
             }
         }
@@ -129,6 +162,17 @@ bool Mesh::Load(std::string RootPath, std::string ObjFileName)
     // Vertex Array Object作成
     mVAO = new VertexArray(m_Positions, m_Normals, m_TexCoords, m_Indices, VertexArray::PosNormTex);
 
+
+    return true;
+}
+
+bool Mesh::Load(std::string RootPath, std::string ObjFileName)
+{
+    this->ObjFileRoot = RootPath;
+    this->ObjFileName = ObjFileName;
+    std::string FilePath = RootPath + ObjFileName;
+
+
     //unsigned int VertexArray;
 
     //glGenVertexArrays(1, &VertexArray);
@@ -152,10 +196,7 @@ bool Mesh::Load(std::string RootPath, std::string ObjFileName)
 
 void Mesh::ReserveVertexSpace()
 {
-    m_Positions.reserve(mNumVertices);
-    m_Normals.reserve(mNumVertices);
-    m_TexCoords.reserve(mNumVertices);
-    m_Indices.reserve(mNumIndices);
+
 }
 
 void Mesh::LoadMesh(const aiMesh* pMesh, unsigned int meshIdx)
@@ -295,6 +336,16 @@ void Mesh::Draw(Shader* shader, float timeInSeconds) const
     }
 
     glBindVertexArray(0);
+}
+
+void Mesh::GetMeshEntry(const int subMeshIdx, unsigned int& numIndices,
+    unsigned int& baseVertex, unsigned int& baseIndex, Material& mat) const
+{
+    numIndices = m_Meshes[subMeshIdx].NumIndices;
+    baseVertex = m_Meshes[subMeshIdx].BaseVertex;
+    baseIndex = m_Meshes[subMeshIdx].BaseIndex;
+    unsigned int materialIdx = m_Meshes[subMeshIdx].MaterialIndex;
+    mat = m_Materials[materialIdx];
 }
 
 glm::mat4 Mesh::GetWorldMat()

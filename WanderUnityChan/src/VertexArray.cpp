@@ -19,7 +19,8 @@ VertexArray::VertexArray(std::vector<glm::vec3>positions, std::vector<glm::vec3>
     };
 
     const int numBuffers = 4;
-    mVertexBuffers = new unsigned int[numBuffers];
+    //mVertexBuffers = new unsigned int[numBuffers];
+    unsigned int mVertexBuffers[numBuffers] = { 0 };
     //GLuint m_Buffers[numBuffers] = { 0 };
     glGenBuffers(numBuffers, mVertexBuffers);
 
