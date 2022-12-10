@@ -18,12 +18,14 @@ public:
     Mesh();
     ~Mesh() {}
     bool Load(std::string FilePath, std::string ObjFileName);
-    void Draw(Shader* shader, float timeInSeconds);
+    void Draw(Shader* shader, float timeInSeconds) const;
 
     void SetMeshPos(glm::vec3 pos) { mMeshPos = pos; }
     void SetMeshRotate(glm::mat4 rot) { mMeshRotate = rot; }
     void SetMeshScale(float scale) { mMeshScale = scale; }
     glm::mat4 GetWorldMat();
+    class VertexArray* GetVertexArray() const { return mVAO; }
+    const int GetSubMeshNum() const { return m_Meshes.size(); }
 
 protected:
     struct BasicMeshEntry {
@@ -48,7 +50,7 @@ protected:
     virtual void UpdateTransform(Shader* shader, float timeInSeconds);
 
     const aiScene* m_pScene;
-    Assimp::Importer m_Importer;    // Importer•Û‚¹‚ñ‚©‚Á‚½‚çAScene‚à•Û‚Å‚«‚È‚¢!!
+    Assimp::Importer m_Importer;    // Importerä¿æŒã›ã‚“ã‹ã£ãŸã‚‰ã€Sceneã‚‚ä¿æŒã§ããªã„!!
 
     //Shader* mShader;
 
@@ -83,7 +85,7 @@ private:
     std::vector<glm::vec2> m_TexCoords;
     std::vector<unsigned int> m_Indices;
 
-
+    class VertexArray* mVAO;
 
     glm::vec3 mMeshPos;
     glm::mat4 mMeshRotate;

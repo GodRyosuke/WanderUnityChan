@@ -203,6 +203,7 @@ XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y</Comman
     <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\TextureShadowMap.cpp" />
     <ClCompile Include="src\UnityChan.cpp" />
+    <ClCompile Include="src\VertexArray.cpp" />
     <ClCompile Include="src\wMesh.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -228,6 +229,7 @@ XCOPY "$(SolutionDir)WanderUnityChan\resources" %OUTPUT_DIRECTORY% /e /y</Comman
     <ClInclude Include="include\TextureShadowMap.hpp" />
     <ClInclude Include="include\UnityChan.hpp" />
     <ClInclude Include="include\NodeMesh.hpp" />
+    <ClInclude Include="include\VertexArray.hpp" />
     <ClInclude Include="include\wMesh.hpp" />
   </ItemGroup>
   <ItemGroup>

@@ -6,5 +6,5 @@ public:
     AssimpUnityChan(class Game* game);
 
 private:
-    class SkinMesh
+    //class SkinMesh
 };

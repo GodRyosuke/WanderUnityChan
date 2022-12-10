@@ -2,6 +2,7 @@
 #include "Texture.hpp"
 #include <iostream>
 #include "GLUtil.hpp"
+#include "VertexArray.hpp"
 
 Mesh::Mesh()
 {
@@ -126,27 +127,27 @@ bool Mesh::Load(std::string RootPath, std::string ObjFileName)
     }
 
     // Vertex Array Object作成
-    unsigned int VertexArray;
+    mVAO = new VertexArray(m_Positions, m_Normals, m_TexCoords, m_Indices, VertexArray::PosNormTex);
 
-    glGenVertexArrays(1, &VertexArray);
-    glBindVertexArray(VertexArray);
+    //unsigned int VertexArray;
 
-    // Vertex Bufferの作成
-    PopulateBuffers();
-    GLUtil::GetErr();
+    //glGenVertexArrays(1, &VertexArray);
+    //glBindVertexArray(VertexArray);
 
-
-    // unbind cube vertex arrays
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-    mVertexArray = VertexArray;
+    //// Vertex Bufferの作成
+    //PopulateBuffers();
+    //GLUtil::GetErr();
 
 
-    bool checkErr = (glGetError() == GL_NO_ERROR);
+    //// unbind cube vertex arrays
+    //glBindVertexArray(0);
+    //glBindBuffer(GL_ARRAY_BUFFER, 0);
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    //mVertexArray = VertexArray;
+
+
     return true;
-    return checkErr;
 }
 
 void Mesh::ReserveVertexSpace()
@@ -238,10 +239,15 @@ void Mesh::UpdateTransform(Shader* shader, float timeInSeconds)
     shader->SetMatrixUniform("ModelTransform", TransformMat);
 }
 
-void Mesh::Draw(Shader* shader, float timeInSeconds)
+void Mesh::Draw(Shader* shader, float timeInSeconds) const
 {
     shader->UseProgram();
-    UpdateTransform(shader, timeInSeconds);
+    //UpdateTransform(shader, timeInSeconds);
+    glm::mat4 ScaleMat = glm::scale(glm::mat4(1.0f), glm::vec3(mMeshScale, mMeshScale, mMeshScale));
+    glm::mat4 TranslateMat = glm::translate(glm::mat4(1.0f), mMeshPos);
+    glm::mat4 TransformMat = TranslateMat * mMeshRotate * ScaleMat;
+
+    shader->SetMatrixUniform("ModelTransform", TransformMat);
 
 
     glBindVertexArray(mVertexArray);
