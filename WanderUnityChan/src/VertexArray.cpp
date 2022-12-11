@@ -1,9 +1,9 @@
 #include "VertexArray.hpp"
 #include "glad/glad.h"
-
+#include "Skeleton.hpp"
 
 VertexArray::VertexArray(std::vector<glm::vec3>positions, std::vector<glm::vec3> normals, std::vector<glm::vec2> texcoords,
-    std::vector<unsigned int> indices, Layout layout)
+    std::vector<unsigned int> indices, Layout layout, const class Skeleton* skeleton)
 {
     glGenVertexArrays(1, &mVertexArray);
     glBindVertexArray(mVertexArray);
@@ -18,9 +18,12 @@ VertexArray::VertexArray(std::vector<glm::vec3>positions, std::vector<glm::vec3>
         NUM_BUFFER_TYPE = 5,  // required only for instancing
     };
 
-    const int numBuffers = 4;
-    //mVertexBuffers = new unsigned int[numBuffers];
-    unsigned int mVertexBuffers[numBuffers] = { 0 };
+    int numBuffers = 4;
+    if (layout == PosNormTexSkin) {
+        numBuffers = 5;
+    }
+
+    mVertexBuffers = new unsigned int[numBuffers];
     //GLuint m_Buffers[numBuffers] = { 0 };
     glGenBuffers(numBuffers, mVertexBuffers);
 
@@ -42,8 +45,12 @@ VertexArray::VertexArray(std::vector<glm::vec3>positions, std::vector<glm::vec3>
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
+    if (layout == PosNormTexSkin) {
+        // Born and Weights
+        skeleton->PopulateBuffer(mVertexBuffers[BONE_VB]);
+    }
 
-    // Indef Buffer
+    // Index Buffer
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVertexBuffers[INDEX_BUFFER]);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices[0]) * indices.size(), &indices[0], GL_STATIC_DRAW);
 

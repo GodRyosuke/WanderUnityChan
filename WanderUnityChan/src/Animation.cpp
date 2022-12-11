@@ -1,8 +1,8 @@
 #include "Animation.hpp"
 #include "GLUtil.hpp"
-#include "Skinning.hpp"
+#include "Skeleton.hpp"
 
-bool Animation::Load(std::string filePath, const SkinMesh* skin)
+bool Animation::Load(std::string filePath)
 {
     m_pScene = m_Importer.ReadFile(filePath.c_str(), ASSIMP_LOAD_FLAGS);
     //m_pScene = pScene;
@@ -12,20 +12,17 @@ bool Animation::Load(std::string filePath, const SkinMesh* skin)
         return false;
     }
 
-    m_GlobalInverseTransform = GLUtil::ToGlmMat4(m_pScene->mRootNode->mTransformation);
-    m_GlobalInverseTransform = glm::inverse(m_GlobalInverseTransform);
+    //m_GlobalInverseTransform = GLUtil::ToGlmMat4(m_pScene->mRootNode->mTransformation);
+    //m_GlobalInverseTransform = glm::inverse(m_GlobalInverseTransform);
 
     int num = m_pScene->mNumAnimations;
     assert(num);
-
-    mSkinMesh = skin;
 }
 
 void Animation::SetAnimIndex(int index)
 {
-    mAnimIndex = index;
     float Duration = 0.0f;  // AnimationのDurationの整数部分が入る
-    float fraction = modf((float)m_pScene->mAnimations[mAnimIndex]->mDuration, &Duration);
+    float fraction = modf((float)m_pScene->mAnimations[index]->mDuration, &Duration);
     mAnimDuration = Duration;
 }
 
@@ -155,7 +152,7 @@ void Animation::CalcInterpolatedPosition(aiVector3D& Out, float AnimationTimeTic
     }
 }
 
-void Animation::ReadNodeHierarchy(float AnimationTimeTicks, const aiNode* pNode, const glm::mat4& ParentTransform, std::vector<glm::mat4>& poses) const
+void Animation::ReadNodeHierarchy(const aiAnimation* anim, const Skeleton* inSkeleton, float AnimationTimeTicks, const aiNode* pNode, const glm::mat4& ParentTransform, std::vector<glm::mat4>& poses) const
 {
     std::string NodeName(pNode->mName.data);
     for (int i = 0; i < pNode->mNumMeshes; i++) {
@@ -163,7 +160,6 @@ void Animation::ReadNodeHierarchy(float AnimationTimeTicks, const aiNode* pNode,
         printf("meshIdx: %d\n", meshIdx);
     }
 
-    const aiAnimation* pAnimation = m_pScene->mAnimations[mAnimIndex];
 
     // Nodeの持つTransform
     glm::mat4 NodeTransformation;
@@ -174,8 +170,8 @@ void Animation::ReadNodeHierarchy(float AnimationTimeTicks, const aiNode* pNode,
 
     // 現在のNodeのAnimation Dataを読みだす
     const aiNodeAnim* pNodeAnim = NULL;
-    for (unsigned int i = 0; i < pAnimation->mNumChannels; i++) {
-        const aiNodeAnim* nodeAnim = pAnimation->mChannels[i];
+    for (unsigned int i = 0; i < anim->mNumChannels; i++) {
+        const aiNodeAnim* nodeAnim = anim->mChannels[i];
 
         if (std::string(nodeAnim->mNodeName.data) == NodeName) {
             pNodeAnim = nodeAnim;
@@ -207,14 +203,15 @@ void Animation::ReadNodeHierarchy(float AnimationTimeTicks, const aiNode* pNode,
         // Combine the above transformations
         NodeTransformation = TranslationM * RotationM * ScalingM;
     }
+    printf("node name: %s\n", pNode->mName.C_Str());
 
     glm::mat4 GlobalTransformation = ParentTransform * NodeTransformation;
 
-    unsigned int boneIndex = mSkinMesh->GetBoneIndex(NodeName);
+    unsigned int boneIndex = inSkeleton->GetBoneIdx(NodeName);
 
     // Derive Final Bone Transform
-    glm::mat4 offsetMat = mSkinMesh->GetOffsetMatrix(boneIndex);
-    poses[boneIndex] = m_GlobalInverseTransform * GlobalTransformation * offsetMat;
+    glm::mat4 offsetMat = inSkeleton->GetOffsetMatrix(boneIndex);
+    poses[boneIndex] = inSkeleton->GetGlobalInvTrans() * GlobalTransformation * offsetMat;
     //if (m_BoneNameToIndexMap.find(NodeName) != m_BoneNameToIndexMap.end()) {
     //    unsigned int BoneIndex = m_BoneNameToIndexMap[NodeName];
     //    m_BoneInfo[BoneIndex].FinalTransformation = m_GlobalInverseTransform * GlobalTransformation * m_BoneInfo[BoneIndex].OffsetMatrix;
@@ -224,25 +221,26 @@ void Animation::ReadNodeHierarchy(float AnimationTimeTicks, const aiNode* pNode,
     //}
 
     for (unsigned int i = 0; i < pNode->mNumChildren; i++) {
-        ReadNodeHierarchy(AnimationTimeTicks, pNode->mChildren[i], GlobalTransformation, poses);
+        ReadNodeHierarchy(anim, inSkeleton, AnimationTimeTicks, pNode->mChildren[i], GlobalTransformation, poses);
     }
 }
 
-void Animation::GetGlobalPoseAtTime(std::vector<glm::mat4>& outPoses, float inTime) const
+void Animation::GetGlobalPoseAtTime(std::vector<glm::mat4>& outPoses, const Skeleton* inSkeleton, float inTime, int animIdx) const
 {
-    const int numBones = mSkinMesh->GetNumBones();
+    const int numBones = inSkeleton->GetNumBones();
     if (outPoses.size() != numBones)
     {
         outPoses.resize(numBones);
     }
 
-    float TicksPerSecond = (float)(m_pScene->mAnimations[mAnimIndex]->mTicksPerSecond != NULL ? m_pScene->mAnimations[mAnimIndex]->mTicksPerSecond : 25.0f);
+    float TicksPerSecond = (float)(m_pScene->mAnimations[animIdx]->mTicksPerSecond != NULL ? m_pScene->mAnimations[animIdx]->mTicksPerSecond : 25.0f);
     float TimeInTicks = inTime * TicksPerSecond;
     float AnimationTimeTicks = fmod(TimeInTicks, mAnimDuration);
 
     glm::mat4 Identity = glm::mat4(1);
     // Nodeの階層構造にしたがって、AnimationTicks時刻における各BoneのTransformを求める
-    ReadNodeHierarchy(AnimationTimeTicks, m_pScene->mRootNode, Identity, outPoses);
+    aiAnimation* anim = m_pScene->mAnimations[animIdx];
+    ReadNodeHierarchy(anim, inSkeleton, AnimationTimeTicks, m_pScene->mRootNode, Identity, outPoses);
     //Transforms.resize(numBones);
 
     //for (unsigned int i = 0; i < numBones; i++) {

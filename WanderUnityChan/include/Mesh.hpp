@@ -42,6 +42,7 @@ public:
     const int GetSubMeshNum() const { return m_Meshes.size(); }
     void GetMeshEntry(const int subMeshIdx, unsigned int& numIndices,
         unsigned int& baseVertex, unsigned int& baseIndex, Material& mat) const;
+    const class Skeleton* GetSkeleton () const{ return mSkeleton; }
 
 protected:
     struct BasicMeshEntry {

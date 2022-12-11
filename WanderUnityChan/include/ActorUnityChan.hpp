@@ -7,5 +7,5 @@ public:
     ActorUnityChan(class Game* game);
 
 private:
-    class MeshComponent* mMeshComp;
+    class SkinMeshComponent* mSkinMeshComp;
 };

@@ -23,11 +23,7 @@ void MeshComponent::Draw(Shader* shader)
 {
     shader->UseProgram();
     if (mMesh) {
-        const float scale = mOwner->GetScale();
-        glm::mat4 scaleMat = glm::scale(glm::mat4(1.0f), glm::vec3(scale, scale, scale));
-        glm::mat4 translateMat = glm::translate(glm::mat4(1.0f), mOwner->GetPosition());
-        glm::mat4 transformMat = translateMat * mOwner->GetRotation() * scaleMat;
-        shader->SetMatrixUniform("ModelTransform", transformMat);
+        shader->SetMatrixUniform("ModelTransform", mOwner->GetWorldTransform());
 
         VertexArray* vao = mMesh->GetVertexArray();
         vao->SetActive();
@@ -37,6 +33,8 @@ void MeshComponent::Draw(Shader* shader)
             unsigned int baseIndex;
             Mesh::Material material;
             mMesh->GetMeshEntry(subMeshIdx, numIndices, baseVertex, baseIndex, material);
+
+            SetBoneMatrices(shader);
 
             // Material設定
             shader->SetVectorUniform("matAmbientColor", material.AmbientColor);

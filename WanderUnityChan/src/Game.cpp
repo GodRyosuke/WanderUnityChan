@@ -12,6 +12,7 @@
 #include "ActorUnityChan.hpp"
 #include "MeshCompoinent.hpp"
 #include "wMesh.hpp"
+#include "Animation.hpp"
 #include "Plane.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -285,15 +286,15 @@ bool Game::LoadData()
 
 	{
 		// Treasure Box
-		Mesh* mesh = new Mesh();
-        if (mesh->Load("./resources/UnityChan/", "UnityChan_fbx7binary.fbx")) {
-        //if (mesh->Load("./resources/UnityChan/", "unitychan_RUN00_F.fbx")) {
-        //if (mesh->Load("./resources/SchoolDesk/", "SchoolDesk.fbx")) {
-			mesh->SetMeshPos(glm::vec3(4.0f, 5.0f / 2.0f, 0.0f));
-			mesh->SetMeshRotate(glm::mat4(1.0f));
-			mesh->SetMeshScale(0.01f / 2.0f);
-			mdeMeshes.push_back(MeshData(mesh, true));
-		}
+		//Mesh* mesh = new Mesh();
+  //      if (mesh->Load("./resources/UnityChan/", "UnityChan_fbx7binary.fbx")) {
+  //      //if (mesh->Load("./resources/UnityChan/", "unitychan_RUN00_F.fbx")) {
+  //      //if (mesh->Load("./resources/SchoolDesk/", "SchoolDesk.fbx")) {
+		//	mesh->SetMeshPos(glm::vec3(4.0f, 5.0f / 2.0f, 0.0f));
+		//	mesh->SetMeshRotate(glm::mat4(1.0f));
+		//	mesh->SetMeshScale(0.01f / 2.0f);
+		//	mdeMeshes.push_back(MeshData(mesh, true));
+		//}
 	}
 
 
@@ -658,7 +659,7 @@ void Game::Shutdown()
 }
 
 
-Mesh* Game::GetMesh(std::string fileName)
+Mesh* Game::GetMesh(std::string fileName, bool isSkeletal)
 {
     Mesh* m = nullptr;
     auto iter = mMeshes.find(fileName);
@@ -669,7 +670,7 @@ Mesh* Game::GetMesh(std::string fileName)
     else
     {
         m = new Mesh();
-        if (m->Load(fileName))
+        if (m->Load(fileName, isSkeletal))
         {
             mMeshes.emplace(fileName, m);
         }
@@ -680,6 +681,31 @@ Mesh* Game::GetMesh(std::string fileName)
         }
     }
     return m;
+}
+
+const Animation* Game::GetAnimation(std::string fileName)
+{
+    Animation* anim = nullptr;
+    auto iter = mAnimations.find(fileName);
+    if (iter != mAnimations.end())
+    {
+        anim = iter->second;
+    }
+    else
+    {
+        anim = new Animation();
+        if (anim->Load(fileName))
+        {
+            mAnimations.emplace(fileName, anim);
+        }
+        else
+        {
+            delete anim;
+            anim = nullptr;
+        }
+    }
+
+    return anim;
 }
 
 void Game::AddMeshComp(MeshComponent* meshcomp)

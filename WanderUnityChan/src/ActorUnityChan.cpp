@@ -1,7 +1,7 @@
 #define _USE_MATH_DEFINES
 #include "ActorUnityChan.hpp"
 #include "gtc/matrix_transform.hpp"
-#include "MeshCompoinent.hpp"
+#include "SkinMeshComponent.hpp"
 #include "Game.hpp"
 
 
@@ -16,7 +16,9 @@ ActorUnityChan::ActorUnityChan(class Game* game)
     SetRotation(rotateMat);
     SetScale(0.01f);
 
+
     // Load Unity Chan
-    mMeshComp = new MeshComponent(this);
-    mMeshComp->SetMesh(game->GetMesh("./resources/UnityChan/UnityChan_fbx7binary.fbx"));
+    mSkinMeshComp = new SkinMeshComponent(this);
+    mSkinMeshComp->SetMesh(game->GetMesh("./resources/UnityChan/UnityChan_fbx7binary.fbx", true));
+    mSkinMeshComp->PlayAnimation(game->GetAnimation("./resources/UnityChan/unitychan_RUN00_F.fbx"), 0);
 }

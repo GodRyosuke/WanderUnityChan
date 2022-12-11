@@ -11,24 +11,23 @@
 class Animation
 {
 public:
-    Animation();
-    bool Load(std::string filePath, const class SkinMesh* skin);
+    bool Load(std::string filePath);
     void Update(float timeInSeconds);
-    void GetGlobalPoseAtTime(std::vector<glm::mat4>& outPoses, float inTime) const;
+    void GetGlobalPoseAtTime(std::vector<glm::mat4>& outPoses, const class Skeleton* inSkeleton, float inTime, int animIdx) const;
 
     void SetAnimIndex(int index);
+    const float GetDuration(int animIdx) const { return mAnimDuration; }
 
 private:
-    void ReadNodeHierarchy(float AnimationTimeTicks, const aiNode* pNode, const glm::mat4& ParentTransform, std::vector<glm::mat4>& poses) const;
+    void ReadNodeHierarchy(const aiAnimation* anim, const class Skeleton* inSkeleton, float AnimationTimeTicks, const aiNode* pNode, const glm::mat4& ParentTransform, std::vector<glm::mat4>& poses) const;
     void CalcInterpolatedRotation(aiQuaternion& Out, float AnimationTimeTicks, const aiNodeAnim* pNodeAnim) const;
     void CalcInterpolatedScaling(aiVector3D& Out, float AnimationTimeTicks, const aiNodeAnim* pNodeAnim) const;
     void CalcInterpolatedPosition(aiVector3D& Out, float AnimationTimeTicks, const aiNodeAnim* pNodeAnim) const;
 
 
-    const class SkinMesh* mSkinMesh;
+    //const class SkinMesh* mSkinMesh;
     const aiScene* m_pScene;
-    Assimp::Importer m_Importer;    // Importer保持せんかったら、Sceneも保持できない!!
-    glm::mat4 m_GlobalInverseTransform;
+    Assimp::Importer m_Importer; 
+    //glm::mat4 m_GlobalInverseTransform;
     float mAnimDuration;
-    int mAnimIndex;
 };

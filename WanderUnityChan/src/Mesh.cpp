@@ -160,7 +160,16 @@ bool Mesh::Load(std::string filePath, bool isSkeletal)
     }
 
     // Vertex Array Object作成
-    mVAO = new VertexArray(m_Positions, m_Normals, m_TexCoords, m_Indices, VertexArray::PosNormTex);
+    if (!isSkeletal) {
+        mVAO = new VertexArray(m_Positions, m_Normals, m_TexCoords, m_Indices, VertexArray::PosNormTex);
+    }
+    else {
+        mVAO = new VertexArray(m_Positions, m_Normals, m_TexCoords, m_Indices, VertexArray::PosNormTexSkin, mSkeleton);
+    }
+
+    m_Positions.clear();
+    m_Normals.clear();
+    m_TexCoords.clear();
 
 
     return true;

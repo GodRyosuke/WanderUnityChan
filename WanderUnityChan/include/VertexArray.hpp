@@ -10,11 +10,11 @@ public:
     enum Layout
     {
         PosNormTex,
-        PosNormSkinTex
+        PosNormTexSkin
     };
 
     VertexArray(std::vector<glm::vec3>positions, std::vector<glm::vec3> normals, std::vector<glm::vec2> texcoords,
-        std::vector<unsigned int> indices, Layout layout);
+        std::vector<unsigned int> indices, Layout layout, const class Skeleton* skeleton = nullptr);
     ~VertexArray();
 
     void SetActive();

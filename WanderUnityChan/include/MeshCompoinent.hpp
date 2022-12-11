@@ -10,12 +10,12 @@ public:
 
     void SetMesh(const class wMesh* mesh) { mwMesh = mesh; }
     void SetMesh(const class Mesh* mesh) { mMesh = mesh; }
-    void SetMesh(const class Animation* anim) { mAnimation = anim; }
     const bool GetIsSkeletal() const { return mIsSkeletal; }
 
-private:
+protected:
+    virtual void SetBoneMatrices(class Shader* shader) {}
+
     const class wMesh* mwMesh;
     const class Mesh* mMesh;
-    const class Animation* mAnimation;
     bool mIsSkeletal;
 };

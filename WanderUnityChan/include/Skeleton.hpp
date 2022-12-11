@@ -32,11 +32,17 @@ public:
     // Boneの読み出し
     bool Load(const aiMesh* mesh, unsigned int meshIdx, unsigned int baseVertex);
     void ReserveBoneSpace(unsigned int numVertices);
+    void PopulateBuffer(unsigned int& vertexBuffer) const;
 
     void SetGlobalInvTrans(glm::mat4 globalInvTrans) { mGlobalInvTrans = globalInvTrans; }
 
     // Getter functions
     size_t GetNumBones() const { return mBones.size(); }
+    unsigned int GetBoneIdx(std::string boneName) const;
+    glm::mat4 GetOffsetMatrix(std::string boneName) const;
+    glm::mat4 GetOffsetMatrix(int boneIdx) const;
+    glm::mat4 GetGlobalInvTrans() const { return mGlobalInvTrans; }
+    
     //const Bone& GetBone(size_t idx) const { return mBones[idx]; }
     //const std::vector<Bone>& GetBones() const { return mBones; }
     //const std::vector<Matrix4>& GetGlobalInvBindPoses() const { return mGlobalInvBindPoses; }
