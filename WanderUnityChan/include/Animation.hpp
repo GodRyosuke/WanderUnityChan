@@ -16,7 +16,8 @@ public:
     void GetGlobalPoseAtTime(std::vector<glm::mat4>& outPoses, const class Skeleton* inSkeleton, float inTime, int animIdx) const;
 
     void SetAnimIndex(int index);
-    const float GetDuration(int animIdx) const { return mAnimDuration; }
+    float GetDuration(int animIdx) const;
+    float GetAnimTicks(float inTime, int animIdx) const;
 
 private:
     void ReadNodeHierarchy(const aiAnimation* anim, const class Skeleton* inSkeleton, float AnimationTimeTicks, const aiNode* pNode, const glm::mat4& ParentTransform, std::vector<glm::mat4>& poses) const;
@@ -29,5 +30,5 @@ private:
     const aiScene* m_pScene;
     Assimp::Importer m_Importer; 
     //glm::mat4 m_GlobalInverseTransform;
-    float mAnimDuration;
+    //float mAnimDuration;
 };

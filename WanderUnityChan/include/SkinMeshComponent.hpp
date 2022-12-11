@@ -24,5 +24,6 @@ private:
     const class Animation* mAnimation;
     float mAnimPlayRate;
     float mAnimTime;
+    float mAnimTicks;
     int mAnimIdx;
 };

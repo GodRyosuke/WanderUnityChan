@@ -11,6 +11,7 @@
 #include "Actor.hpp"
 #include "ActorUnityChan.hpp"
 #include "MeshCompoinent.hpp"
+#include "SkinMeshComponent.hpp"
 #include "wMesh.hpp"
 #include "Animation.hpp"
 #include "Plane.hpp"
@@ -515,9 +516,9 @@ void Game::UpdateGame()
     for (auto actor : mActors) {
         actor->Update(deltaTime);
     }
-    for (auto skinMesh : mSkinMeshes) {
-        skinMesh->Update(mTicksCount / 1000.0f);
-    }
+    //for (auto skinMesh : mSkinMeshes) {
+    //    skinMesh->Update(mTicksCount / 1000.0f);
+    //}
 
 	if (mPhase == PHASE_MOVE) {
 		//printf("%d %d\n", mMousePos.x, mMousePos.y);
@@ -595,9 +596,9 @@ void Game::Draw()
 	//		mesh.mesh->Draw(mShaders["ShadowMap"], mTicksCount / 1000.0f);
 	//	}
 	//}
-	for (auto skinmesh : mSkinMeshes) {
-		skinmesh->Draw(mShaders["SkinShadowMap"], mTicksCount / 1000.0f);
-	}
+	//for (auto skinmesh : mSkinMeshes) {
+	//	skinmesh->Draw(mShaders["SkinShadowMap"], mTicksCount / 1000.0f);
+	//}
 
 	//mUnityChan->Draw(mShadowMapShader);
 	//mAnimUnityChan->Draw(mSkinShadowMapShader, mTicksCount / 1000.0f);
@@ -624,12 +625,15 @@ void Game::Draw()
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	for (auto skinmesh : mSkinMeshes) {
-        //skinmesh->Draw(mShaders["SkinShadowLighting"], mTicksCount / 1000.0f);
-        skinmesh->Draw(mShaders["TestSkinShader"], mTicksCount / 1000.0f);
-	}
+	//for (auto skinmesh : mSkinMeshes) {
+ //       //skinmesh->Draw(mShaders["SkinShadowLighting"], mTicksCount / 1000.0f);
+ //       skinmesh->Draw(mShaders["TestSkinShader"], mTicksCount / 1000.0f);
+	//}
     for (auto mc : mMeshComps) {
         mc->Draw(mShaders["TestMeshShader"]);
+    }
+    for (auto sk : mSkinMeshComps) {
+        sk->Draw(mShaders["TestSkinShader"]);
     }
 	mUnityChan->Draw(mShaders["TestSkinShader"]);
 	//mAnimUnityChan->Draw(mUnityChanShader, mTicksCount / 1000.0f);
@@ -712,7 +716,8 @@ void Game::AddMeshComp(MeshComponent* meshcomp)
 {
     if (meshcomp->GetIsSkeletal()) {
         //SkinMeshComponent* skin = static_cast<SkinMeshComponent*>(meshcomp);
-        //mSkinMeshComps.push_back(skin);
+        SkinMeshComponent* sk = static_cast<SkinMeshComponent*> (meshcomp);
+        mSkinMeshComps.push_back(sk);
     }
     else {
         mMeshComps.push_back(meshcomp);

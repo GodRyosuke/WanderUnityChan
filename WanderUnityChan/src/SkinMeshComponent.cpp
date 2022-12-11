@@ -6,10 +6,10 @@
 #include "Mesh.hpp"
 
 SkinMeshComponent::SkinMeshComponent(Actor* owner)
-    :MeshComponent(owner)
+    :MeshComponent(owner, true)
     ,mAnimation(nullptr)
+    ,mAnimTime(0.f)
 {
-    for (int i = 0; i < m)
 }
 
 void SkinMeshComponent::SetBoneMatrices(class Shader* shader)
@@ -26,10 +26,13 @@ void SkinMeshComponent::Update(float deltaTime)
     {
         mAnimTime += deltaTime * mAnimPlayRate;
         // Wrap around anim time if past duration
-        while (mAnimTime > mAnimation->GetDuration(mAnimIdx))
-        {
-            mAnimTime -= mAnimation->GetDuration(mAnimIdx);
-        }
+        float duration = mAnimation->GetDuration(mAnimIdx);
+        float animTicks = mAnimation->GetAnimTicks(mAnimTime / 1000.f, mAnimIdx);
+        mAnimTicks = fmod(animTicks, duration);
+        //while (animTicks > duration)
+        //{
+        //    animTicks -= duration;
+        //}
 
         // Recompute matrix palette
         ComputeMatrixPalette();
@@ -54,8 +57,10 @@ void SkinMeshComponent::ComputeMatrixPalette()
 {
     //const std::vector<Matrix4>& globalInvBindPoses = mSkeleton->GetGlobalInvBindPoses();
     //std::vector<Matrix4> currentPoses;
-    mAnimation->GetGlobalPoseAtTime(mMatrixPallete, mMesh->GetSkeleton(), mAnimTime, mAnimIdx);
-
+    mAnimation->GetGlobalPoseAtTime(mMatrixPallete, mMesh->GetSkeleton(), mAnimTicks, mAnimIdx);
+    //for (int i = 0; i < mMatrixPallete.size(); i++) {
+    //    mMatrixPallete[i] = glm::mat4(1.f);
+    //}
     // Setup the palette for each bone
     //for (size_t i = 0; i < mSkeleton->GetNumBones(); i++)
     //{

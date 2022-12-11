@@ -19,13 +19,27 @@ bool Animation::Load(std::string filePath)
     assert(num);
 }
 
-void Animation::SetAnimIndex(int index)
+//void Animation::SetAnimIndex(int index)
+//{
+//    float Duration = 0.0f;  // AnimationのDurationの整数部分が入る
+//    float fraction = modf((float)m_pScene->mAnimations[index]->mDuration, &Duration);
+//    mAnimDuration = Duration;
+//}
+
+float Animation::GetDuration(int animIdx) const
 {
     float Duration = 0.0f;  // AnimationのDurationの整数部分が入る
-    float fraction = modf((float)m_pScene->mAnimations[index]->mDuration, &Duration);
-    mAnimDuration = Duration;
+    float fraction = modf((float)m_pScene->mAnimations[animIdx]->mDuration, &Duration);
+    return Duration;
 }
 
+float Animation::GetAnimTicks(float inTime, int animIdx) const
+{
+    float TicksPerSecond = (float)(m_pScene->mAnimations[animIdx]->mTicksPerSecond != NULL ? m_pScene->mAnimations[animIdx]->mTicksPerSecond : 25.0f);
+    float timeInTicks = inTime * TicksPerSecond;
+    return timeInTicks;
+
+}
 
 void Animation::CalcInterpolatedRotation(aiQuaternion& Out, float AnimationTimeTicks, const aiNodeAnim* pNodeAnim) const
 {
@@ -155,10 +169,10 @@ void Animation::CalcInterpolatedPosition(aiVector3D& Out, float AnimationTimeTic
 void Animation::ReadNodeHierarchy(const aiAnimation* anim, const Skeleton* inSkeleton, float AnimationTimeTicks, const aiNode* pNode, const glm::mat4& ParentTransform, std::vector<glm::mat4>& poses) const
 {
     std::string NodeName(pNode->mName.data);
-    for (int i = 0; i < pNode->mNumMeshes; i++) {
-        unsigned int meshIdx = pNode->mMeshes[i];
-        printf("meshIdx: %d\n", meshIdx);
-    }
+    //for (int i = 0; i < pNode->mNumMeshes; i++) {
+    //    unsigned int meshIdx = pNode->mMeshes[i];
+    //    //printf("node name: %s, meshIdx: %d\n", pNode->mName.C_Str(), meshIdx);
+    //}
 
 
     // Nodeの持つTransform
@@ -203,15 +217,22 @@ void Animation::ReadNodeHierarchy(const aiAnimation* anim, const Skeleton* inSke
         // Combine the above transformations
         NodeTransformation = TranslationM * RotationM * ScalingM;
     }
-    printf("node name: %s\n", pNode->mName.C_Str());
+    //else if (pNode->mNumMeshes) {
+    //    aiMatrix4x4 nodeTrans = pNode->mTransformation;
+    //    NodeTransformation = GLUtil::ToGlmMat4(nodeTrans);
+    //}
+    //printf("node name: %s\n", pNode->mName.C_Str());
+
 
     glm::mat4 GlobalTransformation = ParentTransform * NodeTransformation;
 
-    unsigned int boneIndex = inSkeleton->GetBoneIdx(NodeName);
-
+    bool isFind;
+    unsigned int boneIndex = inSkeleton->GetBoneIdx(NodeName, isFind);
+    if (isFind) {
+        glm::mat4 offsetMat = inSkeleton->GetOffsetMatrix(boneIndex);
+        poses[boneIndex] = inSkeleton->GetGlobalInvTrans() * GlobalTransformation * offsetMat;
+    }
     // Derive Final Bone Transform
-    glm::mat4 offsetMat = inSkeleton->GetOffsetMatrix(boneIndex);
-    poses[boneIndex] = inSkeleton->GetGlobalInvTrans() * GlobalTransformation * offsetMat;
     //if (m_BoneNameToIndexMap.find(NodeName) != m_BoneNameToIndexMap.end()) {
     //    unsigned int BoneIndex = m_BoneNameToIndexMap[NodeName];
     //    m_BoneInfo[BoneIndex].FinalTransformation = m_GlobalInverseTransform * GlobalTransformation * m_BoneInfo[BoneIndex].OffsetMatrix;
@@ -233,14 +254,14 @@ void Animation::GetGlobalPoseAtTime(std::vector<glm::mat4>& outPoses, const Skel
         outPoses.resize(numBones);
     }
 
-    float TicksPerSecond = (float)(m_pScene->mAnimations[animIdx]->mTicksPerSecond != NULL ? m_pScene->mAnimations[animIdx]->mTicksPerSecond : 25.0f);
-    float TimeInTicks = inTime * TicksPerSecond;
-    float AnimationTimeTicks = fmod(TimeInTicks, mAnimDuration);
+    //float TicksPerSecond = (float)(m_pScene->mAnimations[animIdx]->mTicksPerSecond != NULL ? m_pScene->mAnimations[animIdx]->mTicksPerSecond : 25.0f);
+    //float TimeInTicks = inTime * TicksPerSecond;
+    //float AnimationTimeTicks = fmod(TimeInTicks, GetDuration(animIdx));
 
     glm::mat4 Identity = glm::mat4(1);
     // Nodeの階層構造にしたがって、AnimationTicks時刻における各BoneのTransformを求める
     aiAnimation* anim = m_pScene->mAnimations[animIdx];
-    ReadNodeHierarchy(anim, inSkeleton, AnimationTimeTicks, m_pScene->mRootNode, Identity, outPoses);
+    ReadNodeHierarchy(anim, inSkeleton, inTime, m_pScene->mRootNode, Identity, outPoses);
     //Transforms.resize(numBones);
 
     //for (unsigned int i = 0; i < numBones; i++) {

@@ -37,8 +37,8 @@ public:
     void SetGlobalInvTrans(glm::mat4 globalInvTrans) { mGlobalInvTrans = globalInvTrans; }
 
     // Getter functions
-    size_t GetNumBones() const { return mBones.size(); }
-    unsigned int GetBoneIdx(std::string boneName) const;
+    size_t GetNumBones() const { return mOffsetMatrices.size(); }
+    unsigned int GetBoneIdx(std::string boneName, bool& isFind) const;
     glm::mat4 GetOffsetMatrix(std::string boneName) const;
     glm::mat4 GetOffsetMatrix(int boneIdx) const;
     glm::mat4 GetGlobalInvTrans() const { return mGlobalInvTrans; }

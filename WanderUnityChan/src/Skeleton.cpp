@@ -77,21 +77,24 @@ void Skeleton::PopulateBuffer(unsigned int& vertexBuffer) const
 
 }
 
-unsigned int Skeleton::GetBoneIdx(std::string boneName) const
+unsigned int Skeleton::GetBoneIdx(std::string boneName, bool& isFind) const
 {
     auto iter = mBoneNameToIndexMap.find(boneName);
     if (iter != mBoneNameToIndexMap.end()) {
+        isFind = true;
         return iter->second;
     }
     else {
-        printf("warn: this bone %s is not added to boneNameMap\n", boneName.c_str());
+        isFind = false;
+        //printf("warn: this bone %s is not added to boneNameMap\n", boneName.c_str());
     }
     //assert(false);
 }
 
 glm::mat4 Skeleton::GetOffsetMatrix(std::string boneName) const
 {
-    return GetOffsetMatrix(GetBoneIdx(boneName));
+    bool isFind;
+    return GetOffsetMatrix(GetBoneIdx(boneName, isFind));
 }
 
 glm::mat4 Skeleton::GetOffsetMatrix(int boneIdx) const

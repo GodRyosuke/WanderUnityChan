@@ -78,6 +78,7 @@ bool Mesh::Load(std::string filePath, bool isSkeletal)
     // Mesh(頂点情報など)の読み込み
     for (int meshIdx = 0; meshIdx < m_Meshes.size(); meshIdx++) {
         const aiMesh* paiMesh = m_pScene->mMeshes[meshIdx];
+        printf("mesh name: %s, mesh idx: %d\n", paiMesh->mName.C_Str(), meshIdx);
         LoadMesh(paiMesh, meshIdx);
         if (isSkeletal) {
             mSkeleton->Load(paiMesh, meshIdx, m_Meshes[meshIdx].BaseVertex);
