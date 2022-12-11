@@ -172,7 +172,11 @@ void Animation::ReadNodeHierarchy(const aiAnimation* anim, const Skeleton* inSke
     for (int i = 0; i < pNode->mNumMeshes; i++) {
         unsigned int meshIdx = pNode->mMeshes[i];
         std::string meshName = m_pScene->mMeshes[meshIdx]->mName.C_Str();
-        printf("node name: %s, meshIdx: %d meshName: %s\n", pNode->mName.C_Str(), meshIdx, meshName.c_str());
+        std::string boneName = "meshIdx" + std::to_string(meshIdx);
+        NodeName = boneName;
+        //bool isFind;
+        //unsigned int boneIdx = inSkeleton->GetBoneIdx(boneName, isFind);
+        //printf("node name: %s, meshIdx: %d meshName: %s\n", pNode->mName.C_Str(), meshIdx, meshName.c_str());
     }
 
 
@@ -258,18 +262,17 @@ void Animation::GetGlobalPoseAtTime(std::vector<glm::mat4>& outPoses, const Skel
     //float TicksPerSecond = (float)(m_pScene->mAnimations[animIdx]->mTicksPerSecond != NULL ? m_pScene->mAnimations[animIdx]->mTicksPerSecond : 25.0f);
     //float TimeInTicks = inTime * TicksPerSecond;
     //float AnimationTimeTicks = fmod(TimeInTicks, GetDuration(animIdx));
-    float TicksPerSecond = (float)(m_pScene->mAnimations[0]->mTicksPerSecond != NULL ? m_pScene->mAnimations[0]->mTicksPerSecond : 25.0f);
-    float TimeInTicks = inTime * TicksPerSecond;
-    float Duration = 0.0f;  // AnimationのDurationの整数部分が入る
-    float fraction = modf((float)m_pScene->mAnimations[0]->mDuration, &Duration);
-    float AnimationTimeTicks = fmod(TimeInTicks, Duration);
-
+    //float TicksPerSecond = (float)(m_pScene->mAnimations[0]->mTicksPerSecond != NULL ? m_pScene->mAnimations[0]->mTicksPerSecond : 25.0f);
+    //float TimeInTicks = inTime * TicksPerSecond;
+    //float Duration = 0.0f;  // AnimationのDurationの整数部分が入る
+    //float fraction = modf((float)m_pScene->mAnimations[0]->mDuration, &Duration);
+    //float AnimationTimeTicks = fmod(TimeInTicks, Duration);
 
 
     glm::mat4 Identity = glm::mat4(1);
     // Nodeの階層構造にしたがって、AnimationTicks時刻における各BoneのTransformを求める
     aiAnimation* anim = m_pScene->mAnimations[animIdx];
-    ReadNodeHierarchy(anim, inSkeleton, AnimationTimeTicks, m_pScene->mRootNode, Identity, outPoses);
+    ReadNodeHierarchy(anim, inSkeleton, inTime, m_pScene->mRootNode, Identity, outPoses);
     int x = 0;
     //Transforms.resize(numBones);
 

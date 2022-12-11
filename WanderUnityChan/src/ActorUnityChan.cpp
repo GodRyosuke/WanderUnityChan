@@ -19,10 +19,10 @@ ActorUnityChan::ActorUnityChan(class Game* game)
 
     // Load Unity Chan
     mSkinMeshComp = new SkinMeshComponent(this);
-    //mSkinMeshComp->SetMesh(game->GetMesh("./resources/UnityChan/UnityChan_fbx7binary.fbx", true));
+    mSkinMeshComp->SetMesh(game->GetMesh("./resources/UnityChan/UnityChan_fbx7binary.fbx", true));
+    mSkinMeshComp->PlayAnimation(game->GetAnimation("./resources/UnityChan/unitychan_RUN00_F_fbx7binary.fbx"), 0);
+    //mSkinMeshComp->SetMesh(game->GetMesh("./resources/UnityChan/unitychan2.fbx", true));
     //mSkinMeshComp->PlayAnimation(game->GetAnimation("./resources/UnityChan/unitychan_RUN00_F.fbx"), 0);
-    mSkinMeshComp->SetMesh(game->GetMesh("./resources/UnityChan/unitychan2.fbx", true));
-    mSkinMeshComp->PlayAnimation(game->GetAnimation("./resources/UnityChan/unitychan_RUN00_F.fbx"), 0);
     //mSkinMeshComp->SetMesh(game->GetMesh("./resources/SimpleMan/test_output.fbx", true));
     //mSkinMeshComp->PlayAnimation(game->GetAnimation("./resources/SimpleMan/test_output.fbx"), 0);
 

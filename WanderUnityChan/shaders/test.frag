@@ -25,7 +25,8 @@ void main()
 	vec3 AmbientLight = vec3(0.2, 0.2, 0.2);
 	vec3 DiffuseColor = vec3(0.5, 0.5, 0.5) * 2.f;
 	vec3 SpecColor = vec3(0.5f, 0.5f, 0.5f) * 0.3f;
-	// float SpecPower = 0.2f;
+	float SpecPower = 0.2f;
+    // SpecPoser = matSpecPoser;
 
 
     // Surface normal
@@ -44,7 +45,7 @@ void main()
 	{
 		// vec3 Diffuse = DiffuseColor * matDiffuseColor * NdotL;
 		vec3 Diffuse = matDiffuseColor * NdotL;
-		vec3 Specular = SpecColor * matSpecColor * pow(max(0.0, dot(R, V)), matSpecPower);
+		vec3 Specular = SpecColor * matSpecColor * pow(max(0.0, dot(R, V)), SpecPower);
 		Phong += Diffuse + Specular;
 	}
 

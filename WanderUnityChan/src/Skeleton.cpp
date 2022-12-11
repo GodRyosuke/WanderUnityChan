@@ -11,7 +11,8 @@ bool Skeleton::Load(const aiMesh* mesh, unsigned int meshIdx, unsigned int baseV
     if (mesh->mNumBones == 0) {
         // Boneが割り当てられていないので、新たに作成
         int BoneIndex = (int)mBoneNameToIndexMap.size();
-        mBoneNameToIndexMap[mesh->mName.C_Str()] = BoneIndex;
+        std::string newBoneName = "meshIdx" + std::to_string(meshIdx);
+        mBoneNameToIndexMap[newBoneName] = BoneIndex;
 
         for (int vertIdx = 0; vertIdx < mesh->mNumVertices; vertIdx++) {
             unsigned int GlobalVertexID = baseVertex + vertIdx;

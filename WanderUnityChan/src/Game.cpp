@@ -411,7 +411,7 @@ bool Game::LoadData()
 	}
 
 	// FBXSDKを使ってUnityChanを読み込む
-	mUnityChan = new UnityChan(this);
+	//mUnityChan = new UnityChan(this);
 
 
 
