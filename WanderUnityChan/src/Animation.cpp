@@ -169,10 +169,11 @@ void Animation::CalcInterpolatedPosition(aiVector3D& Out, float AnimationTimeTic
 void Animation::ReadNodeHierarchy(const aiAnimation* anim, const Skeleton* inSkeleton, float AnimationTimeTicks, const aiNode* pNode, const glm::mat4& ParentTransform, std::vector<glm::mat4>& poses) const
 {
     std::string NodeName(pNode->mName.data);
-    //for (int i = 0; i < pNode->mNumMeshes; i++) {
-    //    unsigned int meshIdx = pNode->mMeshes[i];
-    //    //printf("node name: %s, meshIdx: %d\n", pNode->mName.C_Str(), meshIdx);
-    //}
+    for (int i = 0; i < pNode->mNumMeshes; i++) {
+        unsigned int meshIdx = pNode->mMeshes[i];
+        std::string meshName = m_pScene->mMeshes[meshIdx]->mName.C_Str();
+        printf("node name: %s, meshIdx: %d meshName: %s\n", pNode->mName.C_Str(), meshIdx, meshName.c_str());
+    }
 
 
     // Nodeの持つTransform
@@ -257,11 +258,19 @@ void Animation::GetGlobalPoseAtTime(std::vector<glm::mat4>& outPoses, const Skel
     //float TicksPerSecond = (float)(m_pScene->mAnimations[animIdx]->mTicksPerSecond != NULL ? m_pScene->mAnimations[animIdx]->mTicksPerSecond : 25.0f);
     //float TimeInTicks = inTime * TicksPerSecond;
     //float AnimationTimeTicks = fmod(TimeInTicks, GetDuration(animIdx));
+    float TicksPerSecond = (float)(m_pScene->mAnimations[0]->mTicksPerSecond != NULL ? m_pScene->mAnimations[0]->mTicksPerSecond : 25.0f);
+    float TimeInTicks = inTime * TicksPerSecond;
+    float Duration = 0.0f;  // AnimationのDurationの整数部分が入る
+    float fraction = modf((float)m_pScene->mAnimations[0]->mDuration, &Duration);
+    float AnimationTimeTicks = fmod(TimeInTicks, Duration);
+
+
 
     glm::mat4 Identity = glm::mat4(1);
     // Nodeの階層構造にしたがって、AnimationTicks時刻における各BoneのTransformを求める
     aiAnimation* anim = m_pScene->mAnimations[animIdx];
-    ReadNodeHierarchy(anim, inSkeleton, inTime, m_pScene->mRootNode, Identity, outPoses);
+    ReadNodeHierarchy(anim, inSkeleton, AnimationTimeTicks, m_pScene->mRootNode, Identity, outPoses);
+    int x = 0;
     //Transforms.resize(numBones);
 
     //for (unsigned int i = 0; i < numBones; i++) {

@@ -512,7 +512,7 @@ void Game::UpdateGame()
 
 	mTicksCount = SDL_GetTicks();
 
-	mUnityChan->Update(deltaTime);
+	//mUnityChan->Update(deltaTime);
     for (auto actor : mActors) {
         actor->Update(deltaTime);
     }
@@ -635,7 +635,7 @@ void Game::Draw()
     for (auto sk : mSkinMeshComps) {
         sk->Draw(mShaders["TestSkinShader"]);
     }
-	mUnityChan->Draw(mShaders["TestSkinShader"]);
+	//mUnityChan->Draw(mShaders["TestSkinShader"]);
 	//mAnimUnityChan->Draw(mUnityChanShader, mTicksCount / 1000.0f);
     //for (auto meshcomp : mMeshComps) {
     //    meshcomp->Draw(mShaders["TestShader"]);
