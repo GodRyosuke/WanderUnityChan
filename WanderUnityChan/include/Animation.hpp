@@ -11,7 +11,10 @@
 class Animation
 {
 public:
+    Animation();
     bool Load(std::string filePath);
+    // Boneを割り当てられていないMeshでtransformを指定する場合
+    bool Load(std::string filePath, glm::mat4 meshMat);
     void Update(float timeInSeconds);
     void GetGlobalPoseAtTime(std::vector<glm::mat4>& outPoses, const class Skeleton* inSkeleton, float inTime, int animIdx) const;
 
@@ -28,7 +31,9 @@ private:
 
     //const class SkinMesh* mSkinMesh;
     const aiScene* m_pScene;
-    Assimp::Importer m_Importer; 
+    Assimp::Importer m_Importer;
+    bool mIsSetMeshMat;
+    glm::mat4 mMeshMat;
     //glm::mat4 m_GlobalInverseTransform;
     //float mAnimDuration;
 };

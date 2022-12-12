@@ -2,6 +2,14 @@
 #include "GLUtil.hpp"
 #include "Skeleton.hpp"
 
+
+Animation::Animation()
+    :m_pScene(nullptr)
+    , mIsSetMeshMat(false)
+{
+
+}
+
 bool Animation::Load(std::string filePath)
 {
     m_pScene = m_Importer.ReadFile(filePath.c_str(), ASSIMP_LOAD_FLAGS);
@@ -17,6 +25,13 @@ bool Animation::Load(std::string filePath)
 
     int num = m_pScene->mNumAnimations;
     assert(num);
+}
+
+bool Animation::Load(std::string filePath, glm::mat4 meshMat)
+{
+    mIsSetMeshMat = true;
+    mMeshMat = meshMat;
+    return Load(filePath);
 }
 
 //void Animation::SetAnimIndex(int index)
@@ -185,6 +200,13 @@ void Animation::ReadNodeHierarchy(const aiAnimation* anim, const Skeleton* inSke
     {
         aiMatrix4x4 trans = pNode->mTransformation;
         NodeTransformation = GLUtil::ToGlmMat4(trans);
+        if (    // 頭のオブジェクトなら
+            (NodeTransformation != glm::mat4(1.f)) &&   // EL_DEF(まつ毛)のTransform対策
+            (mIsSetMeshMat) &&                          
+            (pNode->mNumMeshes)
+            ) {
+            NodeTransformation = mMeshMat;
+        }
     }
 
     // 現在のNodeのAnimation Dataを読みだす
@@ -251,6 +273,8 @@ void Animation::ReadNodeHierarchy(const aiAnimation* anim, const Skeleton* inSke
     }
 }
 
+static void ShowNodeNames(const aiNode* node, int indent);
+
 void Animation::GetGlobalPoseAtTime(std::vector<glm::mat4>& outPoses, const Skeleton* inSkeleton, float inTime, int animIdx) const
 {
     const int numBones = inSkeleton->GetNumBones();
@@ -273,6 +297,7 @@ void Animation::GetGlobalPoseAtTime(std::vector<glm::mat4>& outPoses, const Skel
     // Nodeの階層構造にしたがって、AnimationTicks時刻における各BoneのTransformを求める
     aiAnimation* anim = m_pScene->mAnimations[animIdx];
     ReadNodeHierarchy(anim, inSkeleton, inTime, m_pScene->mRootNode, Identity, outPoses);
+    //ShowNodeNames(m_pScene->mRootNode, 0);
     int x = 0;
     //Transforms.resize(numBones);
 
@@ -326,3 +351,26 @@ void Animation::GetGlobalPoseAtTime(std::vector<glm::mat4>& outPoses, const Skel
 //    float AnimationTimeTicks = fmod(TimeInTicks, Duration);
 //
 //}
+
+static void ShowNodeNames(const aiNode* node, int indent)
+{
+    // indentの数だけ空白を描画
+    for (int i = 0; i < indent; i++) {
+        printf(" ");
+    }
+
+    const char* typeNames[] = {
+        "eUnknown", "eNull", "eMarker", "eSkeleton", "eMesh", "eNurbs",
+        "ePatch", "eCamera", "eCameraStereo", "eCameraSwitcher", "eLight",
+        "eOpticalReference", "eOpticalMarker", "eNurbsCurve", "eTrimNurbsSurface",
+        "eBoundary", "eNurbsSurface", "eShape", "eLODGroup", "eSubDiv",
+        "eCachedEffect", "eLine"
+    };
+    const char* name = node->mName.C_Str();
+    printf("%s\n", name);
+
+    int childCount = node->mNumChildren;
+    for (int i = 0; i < childCount; ++i) {
+        ShowNodeNames(node->mChildren[i], indent + 1);
+    }
+}

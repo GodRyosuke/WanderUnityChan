@@ -712,6 +712,31 @@ const Animation* Game::GetAnimation(std::string fileName)
     return anim;
 }
 
+const Animation* Game::GetAnimation(std::string filePath, glm::mat4 meshMat)
+{
+    Animation* anim = nullptr;
+    auto iter = mAnimations.find(filePath);
+    if (iter != mAnimations.end())
+    {
+        anim = iter->second;
+    }
+    else
+    {
+        anim = new Animation();
+        if (anim->Load(filePath, meshMat))
+        {
+            mAnimations.emplace(filePath, anim);
+        }
+        else
+        {
+            delete anim;
+            anim = nullptr;
+        }
+    }
+
+    return anim;
+}
+
 void Game::AddMeshComp(MeshComponent* meshcomp)
 {
     if (meshcomp->GetIsSkeletal()) {

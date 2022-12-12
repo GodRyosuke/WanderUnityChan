@@ -20,6 +20,7 @@ public:
 
     class Mesh* GetMesh(std::string filePath, bool isSkeletal = false);
     const class Animation* GetAnimation(std::string filePath);
+    const class Animation* GetAnimation(std::string filePath, glm::mat4 meshMat);
 
     void AddActor(class Actor* actor) { mActors.push_back(actor); }
     void RemoveActor(class Actor* actor);
