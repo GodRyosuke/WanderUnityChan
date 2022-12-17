@@ -238,13 +238,13 @@ void Converter(std::string filePath)
 {
     const char* lFileTypes[] =
     {
-        "_dae.dae",            "Collada DAE (*.dae)",
+        //"_dae.dae",            "Collada DAE (*.dae)",
         "_fbx7binary.fbx", "FBX binary (*.fbx)",
-        "_fbx7ascii.fbx",  "FBX ascii (*.fbx)",
-        "_fbx6binary.fbx", "FBX 6.0 binary (*.fbx)",
-        "_fbx6ascii.fbx",  "FBX 6.0 ascii (*.fbx)",
-        "_obj.obj",            "Alias OBJ (*.obj)",
-        "_dxf.dxf",            "AutoCAD DXF (*.dxf)"
+        //"_fbx7ascii.fbx",  "FBX ascii (*.fbx)",
+        //"_fbx6binary.fbx", "FBX 6.0 binary (*.fbx)",
+        //"_fbx6ascii.fbx",  "FBX 6.0 ascii (*.fbx)",
+        //"_obj.obj",            "Alias OBJ (*.obj)",
+        //"_dxf.dxf",            "AutoCAD DXF (*.dxf)"
     };
 
     FbxManager* lSdkManager = NULL;
@@ -316,7 +316,8 @@ void Converter(std::string filePath)
 int main(int argc, char** argv)
 {
     //Converter("UnityChan.fbx");   // 7.4.0
-    Converter("unitychan_RUN00_F.fbx");   // 7.4.0
+    Converter("C86unitychan_001_SAK01_Final.fbx");   // 7.4.0
+    //Converter("unitychan_RUN00_F.fbx");   // 7.4.0
     //Converter("TreasureBox2.fbx");    // 7.4.0
     //Converter("Bush_1.fbx");    // 7.4.0
     //Converter("deSchoolDesk.fbx");    // 7.4.0

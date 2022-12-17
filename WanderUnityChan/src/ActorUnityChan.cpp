@@ -27,7 +27,8 @@ ActorUnityChan::ActorUnityChan(class Game* game)
         {-0.136268482f, 0.989723265f, -0.0433587097f, 0.f},
         {-128.945908f, -16.3280373f, -1.34681416f, 1.f}
     };
-    mSkinMeshComp->PlayAnimation(game->GetAnimation("./resources/UnityChan/unitychan_RUN00_F_fbx7binary.fbx", meshMat), 0);
+    mSkinMeshComp->PlayAnimation(game->GetAnimation("./resources/UnityChan/unitychan_WIN00_fbx7binary.fbx", meshMat), 0);
+    //mSkinMeshComp->PlayAnimation(game->GetAnimation("./resources/UnityChan/unitychan_RUN00_F_fbx7binary.fbx", meshMat), 0);
     //mSkinMeshComp->SetMesh(game->GetMesh("./resources/UnityChan/unitychan2.fbx", true));
     //mSkinMeshComp->PlayAnimation(game->GetAnimation("./resources/UnityChan/unitychan_RUN00_F.fbx"), 0);
     //mSkinMeshComp->SetMesh(game->GetMesh("./resources/SimpleMan/test_output.fbx", true));
