@@ -4,6 +4,7 @@
 /x64/Release/
 /WanderUnityChan/x64/
 /UnityChanFbx/x64/
+ConvertFBX/x64/
 # /x64/Debug/*.exe
 # /x64/Debug/*.pdb
 /dependencies/fbxsdk/lib/
